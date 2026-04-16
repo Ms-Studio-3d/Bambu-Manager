@@ -3,6 +3,7 @@ package com.msstudio.bambumanager;
 import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,13 +20,28 @@ import android.webkit.WebViewClient;
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String APP_URL = "file:///android_asset/index.html";
+    private static final String PREFS_NAME = "bambu_prefs";
+    private static final String KEY_MAINTENANCE = "bambu_maint";
+    private static final String KEY_DEFAULT_RATE = "def_rate";
+    private static final String KEY_DEFAULT_FILAMENTS = "def_fils";
 
     private WebView webView;
+    private AppDatabase database;
+    private SharedPreferences preferences;
+    private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor();
 
     public class AndroidBridge {
+
         @JavascriptInterface
         public void printPage() {
             runOnUiThread(() -> {
@@ -44,6 +60,116 @@ public class MainActivity extends AppCompatActivity {
                 );
             });
         }
+
+        @JavascriptInterface
+        public String getMaintenanceHours() {
+            return String.valueOf(preferences.getFloat(KEY_MAINTENANCE, 0f));
+        }
+
+        @JavascriptInterface
+        public void setMaintenanceHours(String value) {
+            float parsedValue = safeFloat(value);
+            preferences.edit().putFloat(KEY_MAINTENANCE, parsedValue).apply();
+        }
+
+        @JavascriptInterface
+        public String getDefaultRate() {
+            return preferences.getString(KEY_DEFAULT_RATE, null);
+        }
+
+        @JavascriptInterface
+        public void setDefaultRate(String value) {
+            preferences.edit().putString(KEY_DEFAULT_RATE, value == null ? "0" : value).apply();
+        }
+
+        @JavascriptInterface
+        public String getDefaultFilaments() {
+            return preferences.getString(KEY_DEFAULT_FILAMENTS, "[]");
+        }
+
+        @JavascriptInterface
+        public void setDefaultFilaments(String json) {
+            preferences.edit().putString(KEY_DEFAULT_FILAMENTS, json == null ? "[]" : json).apply();
+        }
+
+        @JavascriptInterface
+        public void saveSale(String saleJson) {
+            dbExecutor.execute(() -> {
+                try {
+                    JSONObject obj = new JSONObject(saleJson);
+
+                    SaleEntity sale = new SaleEntity(
+                            obj.optLong("id"),
+                            obj.optString("date", ""),
+                            obj.optString("client", "عميل"),
+                            obj.optString("model", "مجسم"),
+                            obj.optDouble("sale", 0),
+                            obj.optDouble("profit", 0),
+                            obj.optDouble("hours", 0),
+                            obj.optDouble("weight", 0),
+                            obj.optDouble("waste", 0)
+                    );
+
+                    database.saleDao().insert(sale);
+                } catch (Exception ignored) {
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public String getSales() {
+            try {
+                List<SaleEntity> sales = database.saleDao().getAllSales();
+                JSONArray array = new JSONArray();
+
+                for (SaleEntity sale : sales) {
+                    JSONObject obj = new JSONObject();
+                    obj.put("id", sale.id);
+                    obj.put("date", sale.date);
+                    obj.put("client", sale.client);
+                    obj.put("model", sale.model);
+                    obj.put("sale", sale.sale);
+                    obj.put("profit", sale.profit);
+                    obj.put("hours", sale.hours);
+                    obj.put("weight", sale.weight);
+                    obj.put("waste", sale.waste);
+                    array.put(obj);
+                }
+
+                return array.toString();
+            } catch (Exception e) {
+                return "[]";
+            }
+        }
+
+        @JavascriptInterface
+        public void deleteSale(String saleId) {
+            dbExecutor.execute(() -> {
+                try {
+                    long id = Long.parseLong(saleId);
+                    database.saleDao().deleteById(id);
+                } catch (Exception ignored) {
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void clearAllSales() {
+            dbExecutor.execute(() -> {
+                try {
+                    database.saleDao().deleteAll();
+                } catch (Exception ignored) {
+                }
+            });
+        }
+
+        private float safeFloat(String value) {
+            try {
+                return Float.parseFloat(value);
+            } catch (Exception e) {
+                return 0f;
+            }
+        }
     }
 
     @SuppressLint({"SetJavaScriptEnabled"})
@@ -51,6 +177,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        database = AppDatabase.getInstance(this);
 
         webView = findViewById(R.id.webView);
         configureWebView();
@@ -94,7 +223,6 @@ public class MainActivity extends AppCompatActivity {
         settings.setSupportZoom(false);
 
         settings.setMediaPlaybackRequiresUserGesture(true);
-
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
@@ -120,17 +248,17 @@ public class MainActivity extends AppCompatActivity {
                     return false;
                 }
 
-                return handleUrl(view, request.getUrl().toString());
+                return handleUrl(request.getUrl().toString());
             }
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                return handleUrl(view, url);
+                return handleUrl(url);
             }
         };
     }
 
-    private boolean handleUrl(WebView view, String url) {
+    private boolean handleUrl(String url) {
         if (url == null || url.trim().isEmpty()) {
             return true;
         }
@@ -229,6 +357,8 @@ public class MainActivity extends AppCompatActivity {
             webView.destroy();
             webView = null;
         }
+
+        dbExecutor.shutdown();
         super.onDestroy();
     }
 }
