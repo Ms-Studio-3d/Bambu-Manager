@@ -495,23 +495,20 @@
         alert('✅ تم حفظ أسعارك وإعداداتك بنجاح!');
     }
 
-    function buildInvoiceText() {
-        const client = getText('cName');
-        const model = getText('mName');
-        const finalPrice = document.getElementById('finalP').innerText;
-        const discount = sanitizeNumber(document.getElementById('disc').value);
+function buildInvoiceText() {
+    const client = getText('cName') || '';
+    const model = getText('mName') || '';
+    const finalPrice = document.getElementById('finalP').innerText;
 
-        let text = 'مرحباً بك! ✨\n';
-        if (client) text += `عزيزي ${client}،\n`;
-        text += model ? `تفاصيل تسعير طلب الطباعة (3D) الخاص بك (${model}):\n` : 'تفاصيل تسعير طلب الطباعة (3D) الخاص بك:\n';
-        text += '------------------------\n';
-        text += `إجمالي السعر النهائي: ${finalPrice} جنيه\n`;
-        if (discount > 0) text += `(تم تطبيق خصم بقيمة ${discount} ج 🎉)\n`;
-        text += '------------------------\n';
-        text += 'مدة التنفيذ والشحن سيتم تحديدها لاحقاً.\n';
-        text += 'شكراً لاختياركم خدماتنا! 🤍';
-        return text;
-    }
+    let text = 'مرحباً بك ✨\n\n';
+    text += `عزيزي ${client}،\n`;
+    text += 'تم تسعير الطلب بنجاح:\n\n';
+    text += `• الطلب: ${model}\n`;
+    text += `• السعر النهائي: ${finalPrice} جنيه\n\n`;
+    text += 'شكراً لاختياركم خدماتنا 🤍';
+
+    return text;
+}
 
     async function copyInvoiceText() {
         const text = buildInvoiceText();
@@ -532,11 +529,11 @@
         }
     }
 
-    function shareWA() {
-        const text = buildInvoiceText();
-        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-    }
-
+  function shareWA() {
+    const text = buildInvoiceText();
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.location.href = whatsappUrl;
+}
     function generatePDFNative() {
         document.getElementById('pdf-date').innerText = new Date().toLocaleDateString('ar-EG');
         document.getElementById('pdf-client').innerText = getText('cName') || 'عميل';
