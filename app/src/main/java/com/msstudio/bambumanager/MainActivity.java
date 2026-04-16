@@ -16,7 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public class MainActivity extends AppCompatActivity {
 
     private WebView webView;
-    private static final String APP_URL = "https://ms-studio-3d.github.io/Bambu-Manager/";
+    private static final String APP_URL = "file:///android_asset/index.html";
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
