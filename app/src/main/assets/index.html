@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bambu Business Manager v8.0</title>
+    <title>Bambu Business Manager v7.1</title>
     <style>
         :root {
             --bg-dark: #0a0c10;
@@ -15,14 +15,6 @@
             --text-light: #f0f6fc;
             --text-muted: #8b949e;
             --border-radius: 14px;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html {
-            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -75,14 +67,8 @@
             background: rgba(0, 230, 118, 0.05);
         }
 
-        .page {
-            display: none;
-        }
-
-        .page.active {
-            display: block;
-            animation: fadeIn 0.25s ease;
-        }
+        .page { display: none; }
+        .page.active { display: block; animation: fadeIn 0.3s ease; }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(5px); }
@@ -114,7 +100,6 @@
 
         .input-group {
             flex: 1;
-            min-width: 0;
         }
 
         label {
@@ -133,7 +118,8 @@
             border-radius: 8px;
             font-size: 14px;
             outline: none;
-            transition: 0.25s;
+            box-sizing: border-box;
+            transition: 0.3s;
         }
 
         input:focus {
@@ -266,12 +252,10 @@
             justify-content: center;
             gap: 6px;
             font-size: 14px;
-            transition: transform 0.15s ease, opacity 0.2s ease;
+            transition: 0.2s;
         }
 
-        .btn:active {
-            transform: scale(0.97);
-        }
+        .btn:active { transform: scale(0.97); }
 
         .btn-save {
             background: #161b22;
@@ -329,13 +313,11 @@
             padding: 12px;
             border-bottom: 2px solid #30363d;
             background: rgba(0,0,0,0.2);
-            white-space: nowrap;
         }
 
         td {
             padding: 12px;
             border-bottom: 1px solid #30363d;
-            vertical-align: middle;
         }
 
         .btn-del {
@@ -366,7 +348,7 @@
             height: 100%;
             background: var(--primary);
             width: 0%;
-            transition: width 0.4s ease;
+            transition: width 0.5s ease;
         }
 
         .maint-preview {
@@ -375,37 +357,8 @@
             margin-top: 6px;
         }
 
-        .empty-state {
-            text-align: center;
-            color: var(--text-muted);
-            padding: 20px 10px;
-            font-size: 13px;
-        }
-
         #pdf-template {
             display: none;
-        }
-
-        @media (max-width: 480px) {
-            .input-row {
-                flex-direction: column;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .details-box {
-                grid-template-columns: 1fr;
-            }
-
-            .btn-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .btn-pdf {
-                grid-column: span 1;
-            }
         }
 
         @media print {
@@ -441,7 +394,6 @@
             .print-table th {
                 background-color: #f2f2f2 !important;
                 -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
             }
 
             .print-header {
@@ -456,8 +408,8 @@
 <body>
 
 <div class="tab-bar">
-    <button class="tab-btn active" data-page="calc-page">🖩 الحاسبة السريعة</button>
-    <button class="tab-btn" data-page="sales-page">📊 السجل والأرباح</button>
+    <button class="tab-btn active" onclick="showPage('calc-page', this)">🖩 الحاسبة السريعة</button>
+    <button class="tab-btn" onclick="showPage('sales-page', this); loadSales();">📊 السجل والأرباح</button>
 </div>
 
 <div class="container">
@@ -476,9 +428,9 @@
         <div class="section">
             <h2 class="section-title">🛠️ حالة الماكينة</h2>
             <div class="maint-box">
-                <div style="display: flex; justify-content: space-between; font-size: 13px; gap: 8px;">
+                <div style="display: flex; justify-content: space-between; font-size: 13px;">
                     <span>الساعات المسجلة: <span id="maintHours">0</span> / 200 س</span>
-                    <button id="resetMaintBtn" type="button" style="background:none; border:none; color:var(--danger); text-decoration:underline; font-size:12px; cursor:pointer;">تصفير الصيانة</button>
+                    <button onclick="resetMaint()" style="background:none; border:none; color:var(--danger); text-decoration:underline; font-size:12px; cursor:pointer;">تصفير الصيانة</button>
                 </div>
                 <div class="maint-bar-bg"><div class="maint-bar-fill" id="maintBar"></div></div>
                 <div class="maint-preview" id="maintPreview">بعد الطلب الحالي: 0.0 س</div>
@@ -489,11 +441,11 @@
             <h2 class="section-title">👤 العميل والطلب</h2>
             <div class="input-row">
                 <div class="input-group">
-                    <label for="cName">اسم العميل</label>
+                    <label>اسم العميل</label>
                     <input type="text" id="cName" placeholder="اختياري" maxlength="100">
                 </div>
                 <div class="input-group">
-                    <label for="mName">اسم المجسم</label>
+                    <label>اسم المجسم</label>
                     <input type="text" id="mName" placeholder="اختياري" maxlength="100">
                 </div>
             </div>
@@ -503,30 +455,30 @@
             <h2 class="section-title">⚙️ التشغيل والخامات</h2>
             <div class="input-row">
                 <div class="input-group">
-                    <label for="pTime">وقت الطباعة (ساعات)</label>
-                    <input type="number" id="pTime" class="calc-trigger" placeholder="0" min="0" step="0.1" inputmode="decimal">
+                    <label>وقت الطباعة (ساعات)</label>
+                    <input type="number" id="pTime" class="calc-trigger" placeholder="0" min="0" step="0.1">
                 </div>
                 <div class="input-group">
-                    <label for="hRate">سعر الساعة (الماكينة)</label>
-                    <input type="number" id="hRate" class="calc-trigger" value="20" min="0" step="0.01" inputmode="decimal">
+                    <label>سعر الساعة (الماكينة)</label>
+                    <input type="number" id="hRate" class="calc-trigger" value="20" min="0" step="0.01">
                 </div>
             </div>
 
             <datalist id="filamentTypes">
-                <option value="PLA"></option>
-                <option value="PLA Silk"></option>
-                <option value="PLA Matte"></option>
-                <option value="PETG"></option>
-                <option value="TPU"></option>
-                <option value="ABS"></option>
+                <option value="PLA">
+                <option value="PLA Silk">
+                <option value="PLA Matte">
+                <option value="PETG">
+                <option value="TPU">
+                <option value="ABS">
             </datalist>
 
             <div id="filaments-container"></div>
-            <button id="addFilBtn" type="button" class="btn-add-color">➕ إضافة لون جديد</button>
+            <button onclick="addFil()" class="btn-add-color">➕ إضافة لون جديد</button>
 
             <div class="input-group" style="margin-top:15px;">
-                <label for="waste">🗑️ وزن الهالك الإجمالي (جرام)</label>
-                <input type="number" id="waste" class="calc-trigger" placeholder="0" min="0" step="0.1" inputmode="decimal">
+                <label>🗑️ وزن الهالك الإجمالي (جرام)</label>
+                <input type="number" id="waste" class="calc-trigger" placeholder="0" min="0" step="0.1">
             </div>
         </div>
 
@@ -534,15 +486,15 @@
             <h2 class="section-title">💰 الربح والخصم</h2>
             <div class="input-row">
                 <div class="input-group">
-                    <label for="prof">نسبة الربح على التكلفة (%)</label>
-                    <input type="number" id="prof" class="calc-trigger" value="100" min="0" step="0.01" inputmode="decimal">
+                    <label>نسبة الربح على التكلفة (%)</label>
+                    <input type="number" id="prof" class="calc-trigger" value="100" min="0" step="0.01">
                 </div>
                 <div class="input-group">
-                    <label for="disc">خصم (جنيه)</label>
-                    <input type="number" id="disc" class="calc-trigger" value="0" min="0" step="0.01" inputmode="decimal">
+                    <label>خصم (جنيه)</label>
+                    <input type="number" id="disc" class="calc-trigger" value="0" min="0" step="0.01">
                 </div>
             </div>
-            <button id="saveDefaultsBtn" type="button" class="btn btn-save">💾 حفظ الإعدادات كأساسي</button>
+            <button onclick="saveDefaults()" class="btn btn-save">💾 حفظ الإعدادات كأساسي</button>
         </div>
 
         <div class="result-card">
@@ -553,11 +505,11 @@
                 <div class="detail-item" style="color: var(--primary);">صافي ربحك:<span id="netP">0 ج</span></div>
             </div>
             <div class="btn-grid">
-                <button id="copyInvoiceBtn" type="button" class="btn btn-copy">📋 نسخ الفاتورة</button>
-                <button id="shareWABtn" type="button" class="btn btn-whatsapp">💬 واتساب</button>
-                <button id="printPdfBtn" type="button" class="btn btn-pdf">📄 طباعة / PDF</button>
+                <button class="btn btn-copy" onclick="copyInvoiceText()">📋 نسخ الفاتورة</button>
+                <button class="btn btn-whatsapp" onclick="shareWA()">💬 واتساب</button>
+                <button class="btn btn-pdf" onclick="generatePDFNative()">📄 طباعة / PDF</button>
             </div>
-            <button id="confirmSaleBtn" type="button" class="btn btn-confirm">✅ تأكيد البيعة وتسجيلها في الدفتر</button>
+            <button onclick="confirmSale()" class="btn btn-confirm">✅ تأكيد البيعة وتسجيلها في الدفتر</button>
         </div>
     </div>
 
@@ -584,8 +536,7 @@
                     <tbody id="salesTable"></tbody>
                 </table>
             </div>
-            <div id="salesEmptyState" class="empty-state" style="display:none;">لا توجد مبيعات مسجلة حتى الآن</div>
-            <button id="exportCsvBtn" type="button" class="btn btn-export">📥 تصدير السجل لملف إكسيل (Excel)</button>
+            <button onclick="exportCSV()" class="btn btn-export">📥 تصدير السجل لملف إكسيل (Excel)</button>
         </div>
     </div>
 </div>
@@ -617,7 +568,7 @@
         </tr>
         <tr>
             <th style="font-size: 20px; text-align: right;">الإجمالي النهائي المستحق</th>
-            <th style="font-size: 20px; text-align: center; color: #00E676; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+            <th style="font-size: 20px; text-align: center; color: #00E676; -webkit-print-color-adjust: exact;">
                 <span id="pdf-final"></span> ج.م
             </th>
         </tr>
@@ -625,9 +576,6 @@
 </div>
 
 <script>
-(function () {
-    'use strict';
-
     const STORAGE_KEYS = {
         sales: 'bambu_sales',
         maintenance: 'bambu_maint',
@@ -635,116 +583,56 @@
         defaultFilaments: 'def_fils'
     };
 
-    const $ = (id) => document.getElementById(id);
+    let sales = safeJSONParse(localStorage.getItem(STORAGE_KEYS.sales), []);
+    let calcTimer = null;
 
-    const dom = {
-        tabButtons: Array.from(document.querySelectorAll('.tab-btn')),
-        pages: Array.from(document.querySelectorAll('.page')),
-        filamentsContainer: $('filaments-container'),
-        salesTable: $('salesTable'),
-        salesEmptyState: $('salesEmptyState'),
-        maintHours: $('maintHours'),
-        maintBar: $('maintBar'),
-        maintPreview: $('maintPreview'),
-        finalP: $('finalP'),
-        actualC: $('actualC'),
-        netP: $('netP'),
-        statSales: $('statSales'),
-        statHours: $('statHours'),
-        statWeight: $('statWeight'),
-        statWaste: $('statWaste'),
-        pTime: $('pTime'),
-        hRate: $('hRate'),
-        waste: $('waste'),
-        prof: $('prof'),
-        disc: $('disc'),
-        cName: $('cName'),
-        mName: $('mName'),
-        addFilBtn: $('addFilBtn'),
-        saveDefaultsBtn: $('saveDefaultsBtn'),
-        copyInvoiceBtn: $('copyInvoiceBtn'),
-        shareWABtn: $('shareWABtn'),
-        printPdfBtn: $('printPdfBtn'),
-        confirmSaleBtn: $('confirmSaleBtn'),
-        exportCsvBtn: $('exportCsvBtn'),
-        resetMaintBtn: $('resetMaintBtn'),
-        pdfDate: $('pdf-date'),
-        pdfClient: $('pdf-client'),
-        pdfModel: $('pdf-model'),
-        pdfTotal: $('pdf-total'),
-        pdfFinal: $('pdf-final'),
-        pdfDiscountRow: $('pdf-discount-row'),
-        pdfDiscVal: $('pdf-disc-val')
-    };
-
-    let sales = readJSON(STORAGE_KEYS.sales, []);
-
-    function readJSON(key, fallback) {
+    function safeJSONParse(value, fallback) {
         try {
-            const raw = localStorage.getItem(key);
-            if (!raw) return fallback;
-            const parsed = JSON.parse(raw);
-            return parsed ?? fallback;
+            return JSON.parse(value) ?? fallback;
         } catch {
             return fallback;
         }
     }
 
-    function writeJSON(key, value) {
-        localStorage.setItem(key, JSON.stringify(value));
-    }
-
-    function readNumber(key, fallback = 0) {
-        return sanitizeNumber(localStorage.getItem(key), fallback);
-    }
-
     function sanitizeNumber(value, min = 0) {
         const parsed = parseFloat(value);
         if (!Number.isFinite(parsed)) return min;
-        return parsed < min ? min : parsed;
+        return Math.max(min, parsed);
     }
 
     function getText(id) {
-        return $(id).value.trim();
+        return document.getElementById(id).value.trim();
     }
 
-    function debounce(fn, delay = 80) {
-        let timer = null;
-        return function (...args) {
-            clearTimeout(timer);
-            timer = setTimeout(() => fn.apply(this, args), delay);
-        };
+    function debounceCalculate() {
+        clearTimeout(calcTimer);
+        calcTimer = setTimeout(calculate, 80);
     }
 
-    const calculateDebounced = debounce(calculate, 80);
-
-    function getFilamentRows() {
-        return Array.from(dom.filamentsContainer.querySelectorAll('.filament-row'));
+    function persistSales() {
+        localStorage.setItem(STORAGE_KEYS.sales, JSON.stringify(sales));
     }
 
     function computeOrder() {
-        const time = sanitizeNumber(dom.pTime.value);
-        const rate = sanitizeNumber(dom.hRate.value);
-        const wasteW = sanitizeNumber(dom.waste.value);
-        const profit = sanitizeNumber(dom.prof.value);
-        let discount = sanitizeNumber(dom.disc.value);
+        const time = sanitizeNumber(document.getElementById('pTime').value);
+        const rate = sanitizeNumber(document.getElementById('hRate').value);
+        const wasteW = sanitizeNumber(document.getElementById('waste').value);
+        const profit = sanitizeNumber(document.getElementById('prof').value);
+        let discount = sanitizeNumber(document.getElementById('disc').value);
 
         let filamentCost = 0;
         let totalWeight = 0;
 
-        const rows = getFilamentRows();
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
+        document.querySelectorAll('.filament-row').forEach(row => {
             const weight = sanitizeNumber(row.querySelector('.f-w').value);
             const pricePerKg = sanitizeNumber(row.querySelector('.f-p').value);
             filamentCost += weight * (pricePerKg / 1000);
             totalWeight += weight;
-        }
+        });
 
-        const wasteCost = wasteW * (totalWeight > 0 ? (filamentCost / totalWeight) : 0);
+        const wasteCost = wasteW * (totalWeight > 0 ? filamentCost / totalWeight : 0);
         const totalCost = (time * rate) + filamentCost + wasteCost;
-        const maxDiscount = totalCost * (1 + profit / 100);
-        discount = Math.min(discount, maxDiscount);
+        discount = Math.min(discount, totalCost * (1 + profit / 100));
 
         let finalPrice = (totalCost * (1 + profit / 100)) - discount;
         finalPrice = Math.ceil(finalPrice / 5) * 5;
@@ -766,28 +654,20 @@
 
     function calculate() {
         const order = computeOrder();
-        dom.finalP.textContent = order.finalPrice.toFixed(0);
-        dom.actualC.textContent = order.totalCost.toFixed(2) + ' ج';
-        dom.netP.textContent = order.netProfit.toFixed(2) + ' ج';
+        document.getElementById('finalP').innerText = order.finalPrice.toFixed(0);
+        document.getElementById('actualC').innerText = order.totalCost.toFixed(2) + ' ج';
+        document.getElementById('netP').innerText = order.netProfit.toFixed(2) + ' ج';
         updateMaintUI(order.time);
     }
 
-    function showPage(pageId) {
-        for (let i = 0; i < dom.pages.length; i++) {
-            dom.pages[i].classList.toggle('active', dom.pages[i].id === pageId);
-        }
-
-        for (let i = 0; i < dom.tabButtons.length; i++) {
-            const btn = dom.tabButtons[i];
-            btn.classList.toggle('active', btn.dataset.page === pageId);
-        }
-
-        if (pageId === 'sales-page') {
-            renderSales();
-        }
+    function showPage(id, btn) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if (btn) btn.classList.add('active');
     }
 
-    function createFilamentRow(type = '', weight = '', price = '') {
+    function addFil(type = '', weight = '', price = '') {
         const div = document.createElement('div');
         div.className = 'filament-row';
         div.innerHTML = `
@@ -800,10 +680,10 @@
                     <input type="text" class="f-t" list="filamentTypes" placeholder="النوع (PLA...)" maxlength="50">
                 </div>
                 <div class="input-group">
-                    <input type="number" class="f-w calc-trigger" placeholder="الوزن (g)" min="0" step="0.1" inputmode="decimal">
+                    <input type="number" class="f-w calc-trigger" placeholder="الوزن (g)" min="0" step="0.1">
                 </div>
                 <div class="input-group">
-                    <input type="number" class="f-p calc-trigger" placeholder="السعر / كجم" min="0" step="0.01" inputmode="decimal">
+                    <input type="number" class="f-p calc-trigger" placeholder="السعر / كجم" min="0" step="0.01">
                 </div>
             </div>
         `;
@@ -812,39 +692,51 @@
         div.querySelector('.f-w').value = weight;
         div.querySelector('.f-p').value = price;
 
-        return div;
+        div.querySelector('.btn-remove').addEventListener('click', () => {
+            div.remove();
+            if (document.querySelectorAll('.filament-row').length === 0) {
+                addFil('PLA', '', '1000');
+            }
+            calculate();
+        });
+
+        document.getElementById('filaments-container').appendChild(div);
     }
 
-    function addFil(type = '', weight = '', price = '') {
-        const row = createFilamentRow(type, weight, price);
-        dom.filamentsContainer.appendChild(row);
-        calculateDebounced();
+    function bindStaticEvents() {
+        document.querySelectorAll('.calc-trigger').forEach(input => {
+            input.removeEventListener('input', debounceCalculate);
+            input.addEventListener('input', debounceCalculate);
+        });
+
+        document.getElementById('filaments-container').addEventListener('input', (e) => {
+            if (e.target.closest('.filament-row')) {
+                debounceCalculate();
+            }
+        });
+
+        document.getElementById('salesTable').addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-del');
+            if (!btn) return;
+            delSale(Number(btn.dataset.id));
+        });
     }
 
     function updateMaintUI(currentOrderHours = 0) {
-        const savedH = readNumber(STORAGE_KEYS.maintenance);
-        dom.maintHours.textContent = savedH.toFixed(1);
-        dom.maintPreview.textContent = `بعد الطلب الحالي: ${(savedH + currentOrderHours).toFixed(1)} س`;
+        const savedH = sanitizeNumber(localStorage.getItem(STORAGE_KEYS.maintenance));
+        document.getElementById('maintHours').innerText = savedH.toFixed(1);
+        document.getElementById('maintPreview').innerText = `بعد الطلب الحالي: ${(savedH + currentOrderHours).toFixed(1)} س`;
 
-        const percent = Math.min((savedH / 200) * 100, 100);
-        dom.maintBar.style.width = percent + '%';
-
-        if (savedH >= 200) {
-            dom.maintBar.style.background = 'var(--danger)';
-        } else if (savedH >= 150) {
-            dom.maintBar.style.background = 'var(--warning)';
-        } else {
-            dom.maintBar.style.background = 'var(--primary)';
-        }
+        const bar = document.getElementById('maintBar');
+        bar.style.width = Math.min((savedH / 200) * 100, 100) + '%';
+        bar.style.background = savedH >= 200 ? 'var(--danger)' : savedH >= 150 ? 'var(--warning)' : 'var(--primary)';
     }
 
     function resetMaint() {
-        if (!confirm('هل متأكد أنك قمت بصيانة الماكينة؟')) {
-            return;
+        if (confirm('هل متأكد أنك قمت بصيانة الماكينة؟')) {
+            localStorage.setItem(STORAGE_KEYS.maintenance, '0');
+            updateMaintUI(sanitizeNumber(document.getElementById('pTime').value));
         }
-
-        localStorage.setItem(STORAGE_KEYS.maintenance, '0');
-        updateMaintUI(sanitizeNumber(dom.pTime.value));
     }
 
     function confirmSale() {
@@ -870,29 +762,22 @@
         sales.unshift(entry);
         persistSales();
 
-        const currentH = readNumber(STORAGE_KEYS.maintenance);
+        const currentH = sanitizeNumber(localStorage.getItem(STORAGE_KEYS.maintenance));
         localStorage.setItem(STORAGE_KEYS.maintenance, String(currentH + entry.hours));
 
         alert('✅ تمت إضافة البيعة إلى السجل بنجاح!');
         resetCurrentOrder();
-        renderSales();
+        loadSales();
     }
 
-    function persistSales() {
-        writeJSON(STORAGE_KEYS.sales, sales);
-    }
+    function loadSales() {
+        const table = document.getElementById('salesTable');
+        table.innerHTML = '';
 
-    function renderSales() {
+        let totalSales = 0, totalHours = 0, totalWeight = 0, totalWaste = 0;
         const fragment = document.createDocumentFragment();
 
-        let totalSales = 0;
-        let totalHours = 0;
-        let totalWeight = 0;
-        let totalWaste = 0;
-
-        for (let i = 0; i < sales.length; i++) {
-            const sale = sales[i];
-
+        sales.forEach(sale => {
             totalSales += sanitizeNumber(sale.sale);
             totalHours += sanitizeNumber(sale.hours);
             totalWeight += sanitizeNumber(sale.weight);
@@ -926,33 +811,28 @@
 
             const btn = document.createElement('button');
             btn.className = 'btn-del';
-            btn.type = 'button';
             btn.textContent = 'مسح';
-            btn.dataset.saleId = String(sale.id);
+            btn.dataset.id = sale.id;
             deleteTd.appendChild(btn);
 
             row.append(dateTd, clientTd, profitTd, deleteTd);
             fragment.appendChild(row);
-        }
+        });
 
-        dom.salesTable.replaceChildren(fragment);
-        dom.salesEmptyState.style.display = sales.length === 0 ? 'block' : 'none';
+        table.appendChild(fragment);
 
-        dom.statSales.textContent = totalSales.toFixed(0) + ' ج';
-        dom.statHours.textContent = totalHours.toFixed(1) + ' س';
-        dom.statWeight.textContent = (totalWeight / 1000).toFixed(2) + ' كجم';
-        dom.statWaste.textContent = totalWaste.toFixed(0) + ' جرام';
+        document.getElementById('statSales').innerText = totalSales.toFixed(0) + ' ج';
+        document.getElementById('statHours').innerText = totalHours.toFixed(1) + ' س';
+        document.getElementById('statWeight').innerText = (totalWeight / 1000).toFixed(2) + ' كجم';
+        document.getElementById('statWaste').innerText = totalWaste.toFixed(0) + ' جرام';
     }
 
     function delSale(id) {
-        if (!confirm('هل أنت متأكد من مسح هذه البيعة من السجل؟')) {
-            return;
+        if (confirm('هل أنت متأكد من مسح هذه البيعة من السجل؟')) {
+            sales = sales.filter(s => s.id !== id);
+            persistSales();
+            loadSales();
         }
-
-        const numericId = Number(id);
-        sales = sales.filter(s => s.id !== numericId);
-        persistSales();
-        renderSales();
     }
 
     function csvEscape(value) {
@@ -967,8 +847,7 @@
 
         let csv = 'التاريخ,اسم العميل,المجسم,سعر البيع,الربح الصافي,ساعات الطباعة,وزن المجسم(جرام),الهالك(جرام)\n';
 
-        for (let i = 0; i < sales.length; i++) {
-            const s = sales[i];
+        sales.forEach(s => {
             csv += [
                 csvEscape(s.date),
                 csvEscape(s.client),
@@ -979,70 +858,55 @@
                 csvEscape(s.weight),
                 csvEscape(s.waste)
             ].join(',') + '\n';
-        }
+        });
 
         const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
-
         link.href = url;
         link.download = 'سجل_مبيعات_الطباعة.csv';
-        document.body.appendChild(link);
         link.click();
-        link.remove();
-
         setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
     function resetCurrentOrder() {
-        dom.pTime.value = '';
-        dom.waste.value = '';
-        dom.cName.value = '';
-        dom.mName.value = '';
-        dom.disc.value = '0';
-
-        const rows = getFilamentRows();
-        for (let i = 0; i < rows.length; i++) {
-            const weightInput = rows[i].querySelector('.f-w');
-            if (weightInput) weightInput.value = '';
-        }
-
+        document.getElementById('pTime').value = '';
+        document.getElementById('waste').value = '';
+        document.getElementById('cName').value = '';
+        document.getElementById('mName').value = '';
+        document.getElementById('disc').value = '0';
+        document.querySelectorAll('.f-w').forEach(i => i.value = '');
         calculate();
     }
 
     function saveDefaults() {
-        localStorage.setItem(STORAGE_KEYS.defaultRate, dom.hRate.value || '0');
+        localStorage.setItem(STORAGE_KEYS.defaultRate, document.getElementById('hRate').value || '0');
 
         const filaments = [];
-        const rows = getFilamentRows();
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
+        document.querySelectorAll('.filament-row').forEach(row => {
             filaments.push({
                 t: row.querySelector('.f-t').value.trim(),
                 p: sanitizeNumber(row.querySelector('.f-p').value)
             });
-        }
+        });
 
-        writeJSON(STORAGE_KEYS.defaultFilaments, filaments);
+        localStorage.setItem(STORAGE_KEYS.defaultFilaments, JSON.stringify(filaments));
         alert('✅ تم حفظ أسعارك وإعداداتك بنجاح!');
     }
 
     function buildInvoiceText() {
-        const client = getText('cName') || 'العميل';
-        const model = getText('mName') || 'مجسم ثلاثي الأبعاد';
-        const finalPrice = dom.finalP.textContent;
+        const client = getText('cName') || '';
+        const model = getText('mName') || '';
+        const finalPrice = document.getElementById('finalP').innerText;
 
-        return [
-            'مرحباً بك ✨',
-            '',
-            `عزيزي ${client}،`,
-            'تم تسعير الطلب بنجاح:',
-            '',
-            `• الطلب: ${model}`,
-            `• السعر النهائي: ${finalPrice} جنيه`,
-            '',
-            'شكراً لاختياركم خدماتنا 🤍'
-        ].join('\n');
+        let text = 'مرحباً بك ✨\n\n';
+        text += `عزيزي ${client}،\n`;
+        text += 'تم تسعير الطلب بنجاح:\n\n';
+        text += `• الطلب: ${model}\n`;
+        text += `• السعر النهائي: ${finalPrice} جنيه\n\n`;
+        text += 'شكراً لاختياركم خدماتنا 🤍';
+
+        return text;
     }
 
     async function copyInvoiceText() {
@@ -1054,15 +918,11 @@
             } else {
                 const dummy = document.createElement('textarea');
                 dummy.value = text;
-                dummy.setAttribute('readonly', '');
-                dummy.style.position = 'fixed';
-                dummy.style.opacity = '0';
                 document.body.appendChild(dummy);
                 dummy.select();
                 document.execCommand('copy');
-                dummy.remove();
+                document.body.removeChild(dummy);
             }
-
             alert('✅ تم نسخ الفاتورة كاملة!');
         } catch {
             alert('فشل النسخ. حاول مرة أخرى.');
@@ -1076,124 +936,45 @@
     }
 
     function generatePDFNative() {
-        dom.pdfDate.textContent = new Date().toLocaleDateString('ar-EG');
-        dom.pdfClient.textContent = getText('cName') || 'عميل';
-        dom.pdfModel.textContent = getText('mName') || 'مجسم ثلاثي الأبعاد';
+        document.getElementById('pdf-date').innerText = new Date().toLocaleDateString('ar-EG');
+        document.getElementById('pdf-client').innerText = getText('cName') || 'عميل';
+        document.getElementById('pdf-model').innerText = getText('mName') || 'مجسم ثلاثي الأبعاد';
 
-        const final = sanitizeNumber(dom.finalP.textContent);
-        const discount = sanitizeNumber(dom.disc.value);
+        const final = sanitizeNumber(document.getElementById('finalP').innerText);
+        const discount = sanitizeNumber(document.getElementById('disc').value);
 
-        dom.pdfTotal.textContent = (final + discount).toFixed(0);
-        dom.pdfFinal.textContent = final.toFixed(0);
+        document.getElementById('pdf-total').innerText = (final + discount).toFixed(0);
+        document.getElementById('pdf-final').innerText = final.toFixed(0);
 
         if (discount > 0) {
-            dom.pdfDiscountRow.style.display = 'table-row';
-            dom.pdfDiscVal.textContent = discount.toFixed(0);
+            document.getElementById('pdf-discount-row').style.display = 'table-row';
+            document.getElementById('pdf-disc-val').innerText = discount.toFixed(0);
         } else {
-            dom.pdfDiscountRow.style.display = 'none';
-            dom.pdfDiscVal.textContent = '0';
+            document.getElementById('pdf-discount-row').style.display = 'none';
         }
 
-        if (window.Android && typeof window.Android.printPage === 'function') {
-            window.Android.printPage();
+        if (window.Android && typeof Android.printPage === 'function') {
+            Android.printPage();
         } else {
             alert('ميزة الطباعة غير متاحة حالياً');
         }
     }
 
-    function handleTabClick(event) {
-        const btn = event.target.closest('.tab-btn');
-        if (!btn) return;
-        showPage(btn.dataset.page);
-    }
-
-    function handleFilamentContainerClick(event) {
-        const removeBtn = event.target.closest('.btn-remove');
-        if (!removeBtn) return;
-
-        const row = removeBtn.closest('.filament-row');
-        if (!row) return;
-
-        row.remove();
-
-        if (getFilamentRows().length === 0) {
-            addFil('PLA', '', '1000');
-        } else {
-            calculateDebounced();
-        }
-    }
-
-    function handleFilamentContainerInput(event) {
-        if (event.target.closest('.filament-row')) {
-            calculateDebounced();
-        }
-    }
-
-    function handleDocumentInput(event) {
-        if (event.target.classList.contains('calc-trigger')) {
-            calculateDebounced();
-        }
-    }
-
-    function handleSalesTableClick(event) {
-        const deleteBtn = event.target.closest('.btn-del');
-        if (!deleteBtn) return;
-        delSale(deleteBtn.dataset.saleId);
-    }
-
-    function bindEvents() {
-        document.querySelector('.tab-bar').addEventListener('click', handleTabClick);
-        dom.addFilBtn.addEventListener('click', () => addFil());
-        dom.saveDefaultsBtn.addEventListener('click', saveDefaults);
-        dom.copyInvoiceBtn.addEventListener('click', copyInvoiceText);
-        dom.shareWABtn.addEventListener('click', shareWA);
-        dom.printPdfBtn.addEventListener('click', generatePDFNative);
-        dom.confirmSaleBtn.addEventListener('click', confirmSale);
-        dom.exportCsvBtn.addEventListener('click', exportCSV);
-        dom.resetMaintBtn.addEventListener('click', resetMaint);
-
-        document.addEventListener('input', handleDocumentInput);
-        dom.filamentsContainer.addEventListener('input', handleFilamentContainerInput);
-        dom.filamentsContainer.addEventListener('click', handleFilamentContainerClick);
-        dom.salesTable.addEventListener('click', handleSalesTableClick);
-    }
-
-    function loadDefaults() {
+    window.onload = () => {
         const rate = localStorage.getItem(STORAGE_KEYS.defaultRate);
-        if (rate !== null) {
-            dom.hRate.value = rate;
-        }
+        if (rate !== null) document.getElementById('hRate').value = rate;
 
-        const filaments = readJSON(STORAGE_KEYS.defaultFilaments, []);
+        const filaments = safeJSONParse(localStorage.getItem(STORAGE_KEYS.defaultFilaments), []);
         if (filaments.length > 0) {
-            for (let i = 0; i < filaments.length; i++) {
-                const f = filaments[i];
-                addFil(f.t, '', f.p);
-            }
+            filaments.forEach(f => addFil(f.t, '', f.p));
         } else {
             addFil('PLA', '', '1000');
         }
-    }
 
-    function init() {
-        bindEvents();
-        loadDefaults();
+        bindStaticEvents();
         calculate();
-        renderSales();
-    }
-
-    window.showPage = showPage;
-    window.addFil = addFil;
-    window.resetMaint = resetMaint;
-    window.confirmSale = confirmSale;
-    window.exportCSV = exportCSV;
-    window.saveDefaults = saveDefaults;
-    window.copyInvoiceText = copyInvoiceText;
-    window.shareWA = shareWA;
-    window.generatePDFNative = generatePDFNative;
-
-    document.addEventListener('DOMContentLoaded', init);
-})();
+        loadSales();
+    };
 </script>
 </body>
 </html>
