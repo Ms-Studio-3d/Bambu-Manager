@@ -63,15 +63,6 @@
         .maint-bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.5s ease; }
         .maint-preview { color: var(--text-muted); font-size: 12px; margin-top: 6px; }
         #pdf-template { display: none; }
-        @media print {
-            body { background: #fff; color: #000; padding: 0; margin: 0; }
-            .tab-bar, .container { display: none !important; }
-            #pdf-template { display: block !important; padding: 20px; }
-            .print-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 16px; }
-            .print-table th, .print-table td { border: 1px solid #000; padding: 12px; text-align: right; }
-            .print-table th { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
-            .print-header { text-align: center; border-bottom: 2px solid #00E676; padding-bottom: 10px; margin-bottom: 20px; }
-        }
     </style>
 </head>
 <body>
@@ -198,24 +189,6 @@
             <button onclick="exportCSV()" class="btn btn-export">📥 تصدير السجل لملف إكسيل (Excel)</button>
         </div>
     </div>
-</div>
-
-<div id="pdf-template" dir="rtl">
-    <div class="print-header">
-        <h1 style="margin: 0; color: #1a1a1a;">فاتورة طلب طباعة 3D <svg class="icon-3d-printer" viewBox="0 0 24 24"><path d="M12,2C10.89,2 10,2.89 10,4C10,5.11 10.89,6 12,6C13.11,6 14,5.11 14,4C14,2.89 13.11,2 12,2M16,8C15.45,8 15,8.45 15,9V11H13V9C13,8.45 12.55,8 12,8H10C9.45,8 9,8.45 9,9V11H7V9C7,8.45 6.55,8 6,8C5.45,8 5,8.45 5,9V13A2,2 0 0,0 7,15V19A2,2 0 0,0 9,21V22H15V21A2,2 0 0,0 17,19V15A2,2 0 0,0 19,13V9C19,8.45 18.55,8 18,8C17.45,8 17,8.45 17,9V11H16V8M7,13V15H9V19H15V15H17V13H7Z" /></svg></h1>
-        <p style="color: #666; margin-top: 5px;">Bambu Lab Services</p>
-    </div>
-    <div style="margin-bottom: 20px; line-height: 1.8; font-size: 16px;">
-        <p><strong>التاريخ:</strong> <span id="pdf-date"></span></p>
-        <p><strong>اسم العميل:</strong> <span id="pdf-client"></span></p>
-        <p><strong>وصف المجسم:</strong> <span id="pdf-model"></span></p>
-    </div>
-    <table class="print-table">
-        <tr><th>البيان</th><th style="width: 150px; text-align: center;">المبلغ</th></tr>
-        <tr><td>إجمالي السعر للطباعة والخامات</td><td style="text-align: center;"><span id="pdf-total"></span> ج.م</td></tr>
-        <tr id="pdf-discount-row" style="display: none;"><td style="color: red;">قيمة الخصم</td><td style="text-align: center; color: red;">- <span id="pdf-disc-val"></span> ج.م</td></tr>
-        <tr><th style="font-size: 20px; text-align: right;">الإجمالي النهائي المستحق</th><th style="font-size: 20px; text-align: center; color: #00E676; -webkit-print-color-adjust: exact;"><span id="pdf-final"></span> ج.م</th></tr>
-    </table>
 </div>
 
 <script>
@@ -495,20 +468,20 @@
         alert('✅ تم حفظ أسعارك وإعداداتك بنجاح!');
     }
 
-function buildInvoiceText() {
-    const client = getText('cName') || '';
-    const model = getText('mName') || '';
-    const finalPrice = document.getElementById('finalP').innerText;
+    function buildInvoiceText() {
+        const client = getText('cName') || '';
+        const model = getText('mName') || '';
+        const finalPrice = document.getElementById('finalP').innerText;
 
-    let text = 'مرحباً بك ✨\n\n';
-    text += `عزيزي ${client}،\n`;
-    text += 'تم تسعير الطلب بنجاح:\n\n';
-    text += `• الطلب: ${model}\n`;
-    text += `• السعر النهائي: ${finalPrice} جنيه\n\n`;
-    text += 'شكراً لاختياركم خدماتنا 🤍';
+        let text = 'مرحباً بك ✨\n\n';
+        text += `عزيزي ${client}،\n`;
+        text += 'تم تسعير الطلب بنجاح:\n\n';
+        text += `• الطلب: ${model}\n`;
+        text += `• السعر النهائي: ${finalPrice} جنيه\n\n`;
+        text += 'شكراً لاختياركم خدماتنا 🤍';
 
-    return text;
-}
+        return text;
+    }
 
     async function copyInvoiceText() {
         const text = buildInvoiceText();
@@ -529,28 +502,18 @@ function buildInvoiceText() {
         }
     }
 
-  function shareWA() {
-    const text = buildInvoiceText();
-    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-    window.location.href = whatsappUrl;
-}
+    function shareWA() {
+        const text = buildInvoiceText();
+        const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+        window.location.href = whatsappUrl;
+    }
+
     function generatePDFNative() {
-        document.getElementById('pdf-date').innerText = new Date().toLocaleDateString('ar-EG');
-        document.getElementById('pdf-client').innerText = getText('cName') || 'عميل';
-        document.getElementById('pdf-model').innerText = getText('mName') || 'مجسم ثلاثي الأبعاد';
-        const final = sanitizeNumber(document.getElementById('finalP').innerText);
-        const discount = sanitizeNumber(document.getElementById('disc').value);
-
-        document.getElementById('pdf-total').innerText = (final + discount).toFixed(0);
-        document.getElementById('pdf-final').innerText = final.toFixed(0);
-
-        if (discount > 0) {
-            document.getElementById('pdf-discount-row').style.display = 'table-row';
-            document.getElementById('pdf-disc-val').innerText = discount.toFixed(0);
+        if (window.Android && typeof Android.printPage === 'function') {
+            Android.printPage();
         } else {
-            document.getElementById('pdf-discount-row').style.display = 'none';
+            alert('ميزة الطباعة غير متاحة حالياً');
         }
-        window.print();
     }
 
     window.onload = () => {
