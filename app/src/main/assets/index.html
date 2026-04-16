@@ -16,53 +16,393 @@
             --text-muted: #8b949e;
             --border-radius: 14px;
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-dark); color: var(--text-light); margin: 0; padding-bottom: 70px; }
-        .container { max-width: 600px; margin: 0 auto; padding: 15px; }
-        .icon-3d-printer { width: 32px; height: 32px; fill: var(--primary); vertical-align: middle; margin-left: 8px; }
-        .tab-bar { display: flex; background: #161b22; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #30363d; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .tab-btn { flex: 1; padding: 15px; border: none; background: none; color: var(--text-muted); font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 15px; }
-        .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: rgba(0, 230, 118, 0.05); }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding-bottom: 70px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        .icon-3d-printer {
+            width: 32px;
+            height: 32px;
+            fill: var(--primary);
+            vertical-align: middle;
+            margin-left: 8px;
+        }
+
+        .tab-bar {
+            display: flex;
+            background: #161b22;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid #30363d;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: none;
+            color: var(--text-muted);
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 15px;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+            background: rgba(0, 230, 118, 0.05);
+        }
+
         .page { display: none; }
         .page.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .section { background: var(--card-bg); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--border-radius); padding: 15px; margin-bottom: 15px; }
-        .section-title { font-size: 16px; color: var(--primary); margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; }
-        .input-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        .input-group { flex: 1; }
-        label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
-        input { width: 100%; background: #000; border: 1px solid #30363d; color: #fff; padding: 12px; border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box; transition: 0.3s; }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.1); }
-        .filament-row { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 10px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
-        .filament-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .btn-remove { background: transparent; color: var(--danger); border: 1px solid var(--danger); border-radius: 6px; font-size: 11px; padding: 4px 8px; cursor: pointer; }
-        .btn-add-color { background: rgba(0, 230, 118, 0.1); color: var(--primary); border: 1px dashed var(--primary); width: 100%; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; margin-bottom: 10px; font-size: 14px; }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .stat-card { background: #161b22; padding: 15px; border-radius: 12px; border-right: 4px solid var(--primary); box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
-        .stat-card h3 { font-size: 13px; color: var(--text-muted); margin: 0; }
-        .stat-card p { font-size: 22px; font-weight: bold; margin: 8px 0 0 0; color: #fff; }
-        .result-card { background: linear-gradient(145deg, #161b22, #0d1117); border: 2px solid var(--primary); border-radius: 20px; padding: 20px; text-align: center; margin-top: 20px; }
-        .price-value { font-size: 38px; font-weight: 800; color: var(--primary); margin: 5px 0; }
-        .details-box { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #30363d; font-size: 13px; }
-        .detail-item { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; text-align: center; }
-        .detail-item span { display: block; color: #fff; font-weight: bold; font-size: 18px; margin-top: 5px; }
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .btn { border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px; transition: 0.2s; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            color: var(--primary);
+            margin: 0 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .input-group {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        input {
+            width: 100%;
+            background: #000;
+            border: 1px solid #30363d;
+            color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.1);
+        }
+
+        .filament-row {
+            background: rgba(0,0,0,0.3);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .filament-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .btn-remove {
+            background: transparent;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            border-radius: 6px;
+            font-size: 11px;
+            padding: 4px 8px;
+            cursor: pointer;
+        }
+
+        .btn-add-color {
+            background: rgba(0, 230, 118, 0.1);
+            color: var(--primary);
+            border: 1px dashed var(--primary);
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #161b22;
+            padding: 15px;
+            border-radius: 12px;
+            border-right: 4px solid var(--primary);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .stat-card h3 {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .stat-card p {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 8px 0 0 0;
+            color: #fff;
+        }
+
+        .result-card {
+            background: linear-gradient(145deg, #161b22, #0d1117);
+            border: 2px solid var(--primary);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .price-value {
+            font-size: 38px;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 5px 0;
+        }
+
+        .details-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed #30363d;
+            font-size: 13px;
+        }
+
+        .detail-item {
+            background: rgba(0,0,0,0.2);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .detail-item span {
+            display: block;
+            color: #fff;
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 5px;
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
         .btn:active { transform: scale(0.97); }
-        .btn-save { background: #161b22; color: var(--primary); border: 1px solid var(--primary); width: 100%; margin-top: 10px; }
-        .btn-copy { background: #fff; color: #000; }
-        .btn-whatsapp { background: #25D366; color: white; }
-        .btn-pdf { background: #ff4757; color: white; grid-column: span 2; }
-        .btn-confirm { background: var(--primary); color: #000; width: 100%; margin-top: 15px; font-size: 16px; box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3); }
-        .btn-export { background: var(--secondary); color: #fff; width: 100%; margin-top: 15px; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; background: #161b22; border-radius: 10px; overflow: hidden; }
-        th { text-align: right; color: var(--text-muted); padding: 12px; border-bottom: 2px solid #30363d; background: rgba(0,0,0,0.2); }
-        td { padding: 12px; border-bottom: 1px solid #30363d; }
-        .btn-del { background: rgba(255, 82, 82, 0.1); border: 1px solid var(--danger); color: var(--danger); cursor: pointer; padding: 6px 10px; border-radius: 6px; }
-        .maint-box { background: rgba(0,0,0,0.4); padding: 12px; border-radius: 10px; }
-        .maint-bar-bg { width: 100%; height: 8px; background: #30363d; border-radius: 4px; overflow: hidden; margin: 8px 0; }
-        .maint-bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.5s ease; }
-        .maint-preview { color: var(--text-muted); font-size: 12px; margin-top: 6px; }
-        #pdf-template { display: none; }
+
+        .btn-save {
+            background: #161b22;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-copy {
+            background: #fff;
+            color: #000;
+        }
+
+        .btn-whatsapp {
+            background: #25D366;
+            color: white;
+        }
+
+        .btn-pdf {
+            background: #ff4757;
+            color: white;
+            grid-column: span 2;
+        }
+
+        .btn-confirm {
+            background: var(--primary);
+            color: #000;
+            width: 100%;
+            margin-top: 15px;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3);
+        }
+
+        .btn-export {
+            background: var(--secondary);
+            color: #fff;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 10px;
+            background: #161b22;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th {
+            text-align: right;
+            color: var(--text-muted);
+            padding: 12px;
+            border-bottom: 2px solid #30363d;
+            background: rgba(0,0,0,0.2);
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .btn-del {
+            background: rgba(255, 82, 82, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 6px;
+        }
+
+        .maint-box {
+            background: rgba(0,0,0,0.4);
+            padding: 12px;
+            border-radius: 10px;
+        }
+
+        .maint-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: #30363d;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+
+        .maint-bar-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .maint-preview {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 6px;
+        }
+
+        #pdf-template {
+            display: none;
+        }
+
+        @media print {
+            body {
+                background: #fff;
+                color: #000;
+                padding: 0;
+                margin: 0;
+            }
+
+            .tab-bar, .container {
+                display: none !important;
+            }
+
+            #pdf-template {
+                display: block !important;
+                padding: 20px;
+            }
+
+            .print-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+                font-size: 16px;
+            }
+
+            .print-table th, .print-table td {
+                border: 1px solid #000;
+                padding: 12px;
+                text-align: right;
+            }
+
+            .print-table th {
+                background-color: #f2f2f2 !important;
+                -webkit-print-color-adjust: exact;
+            }
+
+            .print-header {
+                text-align: center;
+                border-bottom: 2px solid #00E676;
+                padding-bottom: 10px;
+                margin-bottom: 20px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -74,9 +414,14 @@
 
 <div class="container">
     <div class="header" style="text-align: center; margin: 15px 0;">
-        <h1>Bambu Business <span style="color:var(--primary)">
-            <svg class="icon-3d-printer" viewBox="0 0 24 24"><path d="M12,2L2,7V17L12,22L22,17V7L12,2ZM12,4.2L19.5,8L12,11.8L4.5,8L12,4.2ZM4,10.1L11,13.6V20L4,16.5V10.1ZM13,20V13.6L20,10.1V16.5L13,20Z"/></svg>
-        Manager</span></h1>
+        <h1>Bambu Business
+            <span style="color:var(--primary)">
+                <svg class="icon-3d-printer" viewBox="0 0 24 24">
+                    <path d="M12,2L2,7V17L12,22L22,17V7L12,2ZM12,4.2L19.5,8L12,11.8L4.5,8L12,4.2ZM4,10.1L11,13.6V20L4,16.5V10.1ZM13,20V13.6L20,10.1V16.5L13,20Z"/>
+                </svg>
+                Manager
+            </span>
+        </h1>
     </div>
 
     <div id="calc-page" class="page active">
@@ -120,7 +465,12 @@
             </div>
 
             <datalist id="filamentTypes">
-                <option value="PLA"><option value="PLA Silk"><option value="PLA Matte"><option value="PETG"><option value="TPU"><option value="ABS">
+                <option value="PLA">
+                <option value="PLA Silk">
+                <option value="PLA Matte">
+                <option value="PETG">
+                <option value="TPU">
+                <option value="ABS">
             </datalist>
 
             <div id="filaments-container"></div>
@@ -191,6 +541,40 @@
     </div>
 </div>
 
+<div id="pdf-template" dir="rtl">
+    <div class="print-header">
+        <h1 style="margin: 0; color: #1a1a1a;">فاتورة طلب طباعة 3D</h1>
+        <p style="color: #666; margin-top: 5px;">Bambu Lab Services</p>
+    </div>
+
+    <div style="margin-bottom: 20px; line-height: 1.8; font-size: 16px;">
+        <p><strong>التاريخ:</strong> <span id="pdf-date"></span></p>
+        <p><strong>اسم العميل:</strong> <span id="pdf-client"></span></p>
+        <p><strong>وصف المجسم:</strong> <span id="pdf-model"></span></p>
+    </div>
+
+    <table class="print-table">
+        <tr>
+            <th>البيان</th>
+            <th style="width: 150px; text-align: center;">المبلغ</th>
+        </tr>
+        <tr>
+            <td>إجمالي السعر للطباعة والخامات</td>
+            <td style="text-align: center;"><span id="pdf-total"></span> ج.م</td>
+        </tr>
+        <tr id="pdf-discount-row" style="display: none;">
+            <td style="color: red;">قيمة الخصم</td>
+            <td style="text-align: center; color: red;">- <span id="pdf-disc-val"></span> ج.م</td>
+        </tr>
+        <tr>
+            <th style="font-size: 20px; text-align: right;">الإجمالي النهائي المستحق</th>
+            <th style="font-size: 20px; text-align: center; color: #00E676; -webkit-print-color-adjust: exact;">
+                <span id="pdf-final"></span> ج.م
+            </th>
+        </tr>
+    </table>
+</div>
+
 <script>
     const STORAGE_KEYS = {
         sales: 'bambu_sales',
@@ -202,7 +586,11 @@
     let sales = safeJSONParse(localStorage.getItem(STORAGE_KEYS.sales), []);
 
     function safeJSONParse(value, fallback) {
-        try { return JSON.parse(value) ?? fallback; } catch { return fallback; }
+        try {
+            return JSON.parse(value) ?? fallback;
+        } catch {
+            return fallback;
+        }
     }
 
     function sanitizeNumber(value, min = 0) {
@@ -314,6 +702,7 @@
         const savedH = sanitizeNumber(localStorage.getItem(STORAGE_KEYS.maintenance));
         document.getElementById('maintHours').innerText = savedH.toFixed(1);
         document.getElementById('maintPreview').innerText = `بعد الطلب الحالي: ${(savedH + currentOrderHours).toFixed(1)} س`;
+
         const bar = document.getElementById('maintBar');
         bar.style.width = Math.min((savedH / 200) * 100, 100) + '%';
         bar.style.background = savedH >= 200 ? 'var(--danger)' : savedH >= 150 ? 'var(--warning)' : 'var(--primary)';
@@ -328,6 +717,7 @@
 
     function confirmSale() {
         const order = computeOrder();
+
         if (order.finalPrice <= 0) {
             alert('الرجاء إدخال بيانات الطلب لحساب السعر أولاً!');
             return;
@@ -359,6 +749,7 @@
     function loadSales() {
         const table = document.getElementById('salesTable');
         table.innerHTML = '';
+
         let totalSales = 0, totalHours = 0, totalWeight = 0, totalWaste = 0;
 
         sales.forEach(sale => {
@@ -375,10 +766,12 @@
             const clientTd = document.createElement('td');
             const strong = document.createElement('strong');
             strong.textContent = sale.client;
+
             const modelSpan = document.createElement('span');
             modelSpan.style.color = 'var(--text-muted)';
             modelSpan.style.fontSize = '11px';
             modelSpan.textContent = sale.model;
+
             clientTd.appendChild(strong);
             clientTd.appendChild(document.createElement('br'));
             clientTd.appendChild(modelSpan);
@@ -390,6 +783,7 @@
 
             const deleteTd = document.createElement('td');
             deleteTd.style.textAlign = 'center';
+
             const btn = document.createElement('button');
             btn.className = 'btn-del';
             btn.textContent = 'مسح';
@@ -423,7 +817,9 @@
             alert('السجل فارغ!');
             return;
         }
+
         let csv = 'التاريخ,اسم العميل,المجسم,سعر البيع,الربح الصافي,ساعات الطباعة,وزن المجسم(جرام),الهالك(جرام)\n';
+
         sales.forEach(s => {
             csv += [
                 csvEscape(s.date),
@@ -457,6 +853,7 @@
 
     function saveDefaults() {
         localStorage.setItem(STORAGE_KEYS.defaultRate, document.getElementById('hRate').value || '0');
+
         const filaments = [];
         document.querySelectorAll('.filament-row').forEach(row => {
             filaments.push({
@@ -464,6 +861,7 @@
                 p: sanitizeNumber(row.querySelector('.f-p').value)
             });
         });
+
         localStorage.setItem(STORAGE_KEYS.defaultFilaments, JSON.stringify(filaments));
         alert('✅ تم حفظ أسعارك وإعداداتك بنجاح!');
     }
@@ -485,6 +883,7 @@
 
     async function copyInvoiceText() {
         const text = buildInvoiceText();
+
         try {
             if (navigator.clipboard && window.isSecureContext) {
                 await navigator.clipboard.writeText(text);
@@ -509,6 +908,23 @@
     }
 
     function generatePDFNative() {
+        document.getElementById('pdf-date').innerText = new Date().toLocaleDateString('ar-EG');
+        document.getElementById('pdf-client').innerText = getText('cName') || 'عميل';
+        document.getElementById('pdf-model').innerText = getText('mName') || 'مجسم ثلاثي الأبعاد';
+
+        const final = sanitizeNumber(document.getElementById('finalP').innerText);
+        const discount = sanitizeNumber(document.getElementById('disc').value);
+
+        document.getElementById('pdf-total').innerText = (final + discount).toFixed(0);
+        document.getElementById('pdf-final').innerText = final.toFixed(0);
+
+        if (discount > 0) {
+            document.getElementById('pdf-discount-row').style.display = 'table-row';
+            document.getElementById('pdf-disc-val').innerText = discount.toFixed(0);
+        } else {
+            document.getElementById('pdf-discount-row').style.display = 'none';
+        }
+
         if (window.Android && typeof Android.printPage === 'function') {
             Android.printPage();
         } else {
