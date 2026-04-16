@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bambu Business Manager v7.0</title>
+    <style>
+        :root {
+            --bg-dark: #0a0c10;
+            --card-bg: rgba(23, 27, 34, 0.9);
+            --primary: #00E676;
+            --secondary: #2979FF;
+            --danger: #ff5252;
+            --warning: #ffeb3b;
+            --text-light: #f0f6fc;
+            --text-muted: #8b949e;
+            --border-radius: 14px;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-dark); color: var(--text-light); margin: 0; padding-bottom: 70px; }
+        .container { max-width: 600px; margin: 0 auto; padding: 15px; }
+        .icon-3d-printer { width: 32px; height: 32px; fill: var(--primary); vertical-align: middle; margin-left: 8px; }
+        .tab-bar { display: flex; background: #161b22; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #30363d; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .tab-btn { flex: 1; padding: 15px; border: none; background: none; color: var(--text-muted); font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 15px; }
+        .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: rgba(0, 230, 118, 0.05); }
+        .page { display: none; }
+        .page.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .section { background: var(--card-bg); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--border-radius); padding: 15px; margin-bottom: 15px; }
+        .section-title { font-size: 16px; color: var(--primary); margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; }
+        .input-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .input-group { flex: 1; }
+        label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+        input { width: 100%; background: #000; border: 1px solid #30363d; color: #fff; padding: 12px; border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box; transition: 0.3s; }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.1); }
+        .filament-row { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 10px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .filament-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .btn-remove { background: transparent; color: var(--danger); border: 1px solid var(--danger); border-radius: 6px; font-size: 11px; padding: 4px 8px; cursor: pointer; }
+        .btn-add-color { background: rgba(0, 230, 118, 0.1); color: var(--primary); border: 1px dashed var(--primary); width: 100%; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; margin-bottom: 10px; font-size: 14px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .stat-card { background: #161b22; padding: 15px; border-radius: 12px; border-right: 4px solid var(--primary); box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        .stat-card h3 { font-size: 13px; color: var(--text-muted); margin: 0; }
+        .stat-card p { font-size: 22px; font-weight: bold; margin: 8px 0 0 0; color: #fff; }
+        .result-card { background: linear-gradient(145deg, #161b22, #0d1117); border: 2px solid var(--primary); border-radius: 20px; padding: 20px; text-align: center; margin-top: 20px; }
+        .price-value { font-size: 38px; font-weight: 800; color: var(--primary); margin: 5px 0; }
+        .details-box { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #30363d; font-size: 13px; }
+        .detail-item { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; text-align: center; }
+        .detail-item span { display: block; color: #fff; font-weight: bold; font-size: 18px; margin-top: 5px; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .btn { border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px; transition: 0.2s; }
+        .btn:active { transform: scale(0.97); }
+        .btn-save { background: #161b22; color: var(--primary); border: 1px solid var(--primary); width: 100%; margin-top: 10px; }
+        .btn-copy { background: #fff; color: #000; }
+        .btn-whatsapp { background: #25D366; color: white; }
+        .btn-pdf { background: #ff4757; color: white; grid-column: span 2; }
+        .btn-confirm { background: var(--primary); color: #000; width: 100%; margin-top: 15px; font-size: 16px; box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3); }
+        .btn-export { background: var(--secondary); color: #fff; width: 100%; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; background: #161b22; border-radius: 10px; overflow: hidden; }
+        th { text-align: right; color: var(--text-muted); padding: 12px; border-bottom: 2px solid #30363d; background: rgba(0,0,0,0.2); }
+        td { padding: 12px; border-bottom: 1px solid #30363d; }
+        .btn-del { background: rgba(255, 82, 82, 0.1); border: 1px solid var(--danger); color: var(--danger); cursor: pointer; padding: 6px 10px; border-radius: 6px; }
+        .maint-box { background: rgba(0,0,0,0.4); padding: 12px; border-radius: 10px; }
+        .maint-bar-bg { width: 100%; height: 8px; background: #30363d; border-radius: 4px; overflow: hidden; margin: 8px 0; }
+        .maint-bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.5s ease; }
+        .maint-preview { color: var(--text-muted); font-size: 12px; margin-top: 6px; }
+        #pdf-template { display: none; }
+        @media print {
+            body { background: #fff; color: #000; padding: 0; margin: 0; }
+            .tab-bar, .container { display: none !important; }
+            #pdf-template { display: block !important; padding: 20px; }
+            .print-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 16px; }
+            .print-table th, .print-table td { border: 1px solid #000; padding: 12px; text-align: right; }
+            .print-table th { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
+            .print-header { text-align: center; border-bottom: 2px solid #00E676; padding-bottom: 10px; margin-bottom: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="tab-bar">
+    <button class="tab-btn active" onclick="showPage('calc-page', this)">🖩 الحاسبة السريعة</button>
+    <button class="tab-btn" onclick="showPage('sales-page', this); loadSales();">📊 السجل والأرباح</button>
+</div>
+
+<div class="container">
+    <div class="header" style="text-align: center; margin: 15px 0;">
+        <h1>Bambu Business <span style="color:var(--primary)">
+            <svg class="icon-3d-printer" viewBox="0 0 24 24"><path d="M12,2L2,7V17L12,22L22,17V7L12,2ZM12,4.2L19.5,8L12,11.8L4.5,8L12,4.2ZM4,10.1L11,13.6V20L4,16.5V10.1ZM13,20V13.6L20,10.1V16.5L13,20Z"/></svg>
+        Manager</span></h1>
+    </div>
+
+    <div id="calc-page" class="page active">
+        <div class="section">
+            <h2 class="section-title">🛠️ حالة الماكينة</h2>
+            <div class="maint-box">
+                <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                    <span>الساعات المسجلة: <span id="maintHours">0</span> / 200 س</span>
+                    <button onclick="resetMaint()" style="background:none; border:none; color:var(--danger); text-decoration:underline; font-size:12px; cursor:pointer;">تصفير الصيانة</button>
+                </div>
+                <div class="maint-bar-bg"><div class="maint-bar-fill" id="maintBar"></div></div>
+                <div class="maint-preview" id="maintPreview">بعد الطلب الحالي: 0.0 س</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">👤 العميل والطلب</h2>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>اسم العميل</label>
+                    <input type="text" id="cName" placeholder="اختياري" maxlength="100">
+                </div>
+                <div class="input-group">
+                    <label>اسم المجسم</label>
+                    <input type="text" id="mName" placeholder="اختياري" maxlength="100">
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">⚙️ التشغيل والخامات</h2>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>وقت الطباعة (ساعات)</label>
+                    <input type="number" id="pTime" class="calc-trigger" placeholder="0" min="0" step="0.1">
+                </div>
+                <div class="input-group">
+                    <label>سعر الساعة (الماكينة)</label>
+                    <input type="number" id="hRate" class="calc-trigger" value="20" min="0" step="0.01">
+                </div>
+            </div>
+
+            <datalist id="filamentTypes">
+                <option value="PLA"><option value="PLA Silk"><option value="PLA Matte"><option value="PETG"><option value="TPU"><option value="ABS">
+            </datalist>
+
+            <div id="filaments-container"></div>
+            <button onclick="addFil()" class="btn-add-color">➕ إضافة لون جديد</button>
+
+            <div class="input-group" style="margin-top:15px;">
+                <label>🗑️ وزن الهالك الإجمالي (جرام)</label>
+                <input type="number" id="waste" class="calc-trigger" placeholder="0" min="0" step="0.1">
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">💰 الربح والخصم</h2>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>نسبة الربح على التكلفة (%)</label>
+                    <input type="number" id="prof" class="calc-trigger" value="100" min="0" step="0.01">
+                </div>
+                <div class="input-group">
+                    <label>خصم (جنيه)</label>
+                    <input type="number" id="disc" class="calc-trigger" value="0" min="0" step="0.01">
+                </div>
+            </div>
+            <button onclick="saveDefaults()" class="btn btn-save">💾 حفظ الإعدادات كأساسي</button>
+        </div>
+
+        <div class="result-card">
+            <div style="font-size:14px; color:var(--text-muted);">السعر النهائي للعميل</div>
+            <div class="price-value"><span id="finalP">0</span> ج</div>
+            <div class="details-box">
+                <div class="detail-item" style="color: var(--text-muted);">التكلفة عليك:<span id="actualC">0 ج</span></div>
+                <div class="detail-item" style="color: var(--primary);">صافي ربحك:<span id="netP">0 ج</span></div>
+            </div>
+            <div class="btn-grid">
+                <button class="btn btn-copy" onclick="copyInvoiceText()">📋 نسخ الفاتورة</button>
+                <button class="btn btn-whatsapp" onclick="shareWA()">💬 واتساب</button>
+                <button class="btn btn-pdf" onclick="generatePDFNative()">📄 طباعة / PDF</button>
+            </div>
+            <button onclick="confirmSale()" class="btn btn-confirm">✅ تأكيد البيعة وتسجيلها في الدفتر</button>
+        </div>
+    </div>
+
+    <div id="sales-page" class="page">
+        <div class="stats-grid">
+            <div class="stat-card"><h3>💰 إجمالي المبيعات</h3><p id="statSales">0 ج</p></div>
+            <div class="stat-card"><h3>⏳ ساعات العمل</h3><p id="statHours">0 س</p></div>
+            <div class="stat-card"><h3>🧵 استهلاك خامات</h3><p id="statWeight">0 كجم</p></div>
+            <div class="stat-card"><h3>🗑️ إجمالي الهالك</h3><p id="statWaste">0 جرام</p></div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">📋 سجل المبيعات (الدفتر)</h2>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>العميل والمجسم</th>
+                            <th>الربح</th>
+                            <th style="text-align: center;">حذف</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salesTable"></tbody>
+                </table>
+            </div>
+            <button onclick="exportCSV()" class="btn btn-export">📥 تصدير السجل لملف إكسيل (Excel)</button>
+        </div>
+    </div>
+</div>
+
+<div id="pdf-template" dir="rtl">
+    <div class="print-header">
+        <h1 style="margin: 0; color: #1a1a1a;">فاتورة طلب طباعة 3D <svg class="icon-3d-printer" viewBox="0 0 24 24"><path d="M12,2C10.89,2 10,2.89 10,4C10,5.11 10.89,6 12,6C13.11,6 14,5.11 14,4C14,2.89 13.11,2 12,2M16,8C15.45,8 15,8.45 15,9V11H13V9C13,8.45 12.55,8 12,8H10C9.45,8 9,8.45 9,9V11H7V9C7,8.45 6.55,8 6,8C5.45,8 5,8.45 5,9V13A2,2 0 0,0 7,15V19A2,2 0 0,0 9,21V22H15V21A2,2 0 0,0 17,19V15A2,2 0 0,0 19,13V9C19,8.45 18.55,8 18,8C17.45,8 17,8.45 17,9V11H16V8M7,13V15H9V19H15V15H17V13H7Z" /></svg></h1>
+        <p style="color: #666; margin-top: 5px;">Bambu Lab Services</p>
+    </div>
+    <div style="margin-bottom: 20px; line-height: 1.8; font-size: 16px;">
+        <p><strong>التاريخ:</strong> <span id="pdf-date"></span></p>
+        <p><strong>اسم العميل:</strong> <span id="pdf-client"></span></p>
+        <p><strong>وصف المجسم:</strong> <span id="pdf-model"></span></p>
+    </div>
+    <table class="print-table">
+        <tr><th>البيان</th><th style="width: 150px; text-align: center;">المبلغ</th></tr>
+        <tr><td>إجمالي السعر للطباعة والخامات</td><td style="text-align: center;"><span id="pdf-total"></span> ج.م</td></tr>
+        <tr id="pdf-discount-row" style="display: none;"><td style="color: red;">قيمة الخصم</td><td style="text-align: center; color: red;">- <span id="pdf-disc-val"></span> ج.م</td></tr>
+        <tr><th style="font-size: 20px; text-align: right;">الإجمالي النهائي المستحق</th><th style="font-size: 20px; text-align: center; color: #00E676; -webkit-print-color-adjust: exact;"><span id="pdf-final"></span> ج.م</th></tr>
+    </table>
+</div>
+
+<script>
+    const STORAGE_KEYS = {
+        sales: 'bambu_sales',
+        maintenance: 'bambu_maint',
+        defaultRate: 'def_rate',
+        defaultFilaments: 'def_fils'
+    };
+
+    let sales = safeJSONParse(localStorage.getItem(STORAGE_KEYS.sales), []);
+
+    function safeJSONParse(value, fallback) {
+        try { return JSON.parse(value) ?? fallback; } catch { return fallback; }
+    }
+
+    function sanitizeNumber(value, min = 0) {
+        const parsed = parseFloat(value);
+        if (!Number.isFinite(parsed)) return min;
+        return Math.max(min, parsed);
+    }
+
+    function getText(id) {
+        return document.getElementById(id).value.trim();
+    }
+
+    function computeOrder() {
+        const time = sanitizeNumber(document.getElementById('pTime').value);
+        const rate = sanitizeNumber(document.getElementById('hRate').value);
+        const wasteW = sanitizeNumber(document.getElementById('waste').value);
+        const profit = sanitizeNumber(document.getElementById('prof').value);
+        let discount = sanitizeNumber(document.getElementById('disc').value);
+
+        let filamentCost = 0;
+        let totalWeight = 0;
+
+        document.querySelectorAll('.filament-row').forEach(row => {
+            const weight = sanitizeNumber(row.querySelector('.f-w').value);
+            const pricePerKg = sanitizeNumber(row.querySelector('.f-p').value);
+            filamentCost += weight * (pricePerKg / 1000);
+            totalWeight += weight;
+        });
+
+        const wasteCost = wasteW * (totalWeight > 0 ? filamentCost / totalWeight : 0);
+        const totalCost = (time * rate) + filamentCost + wasteCost;
+        discount = Math.min(discount, totalCost * (1 + profit / 100));
+
+        let finalPrice = (totalCost * (1 + profit / 100)) - discount;
+        finalPrice = Math.ceil(finalPrice / 5) * 5;
+        if (finalPrice < 0) finalPrice = 0;
+
+        return {
+            time,
+            rate,
+            totalWeight,
+            wasteW,
+            wasteCost,
+            totalCost,
+            profit,
+            discount,
+            finalPrice,
+            netProfit: finalPrice - totalCost
+        };
+    }
+
+    function calculate() {
+        const order = computeOrder();
+        document.getElementById('finalP').innerText = order.finalPrice.toFixed(0);
+        document.getElementById('actualC').innerText = order.totalCost.toFixed(2) + ' ج';
+        document.getElementById('netP').innerText = order.netProfit.toFixed(2) + ' ج';
+        updateMaintUI(order.time);
+    }
+
+    function showPage(id, btn) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if (btn) btn.classList.add('active');
+    }
+
+    function addFil(type = '', weight = '', price = '') {
+        const div = document.createElement('div');
+        div.className = 'filament-row';
+        div.innerHTML = `
+            <div class="filament-header">
+                <span style="font-size:13px; font-weight:bold; color:var(--text-light)">🎨 لون الخيط</span>
+                <button class="btn-remove" type="button">❌ حذف</button>
+            </div>
+            <div class="input-row" style="margin-bottom:0;">
+                <div class="input-group" style="flex: 2;">
+                    <input type="text" class="f-t" list="filamentTypes" placeholder="النوع (PLA...)" maxlength="50">
+                </div>
+                <div class="input-group">
+                    <input type="number" class="f-w calc-trigger" placeholder="الوزن (g)" min="0" step="0.1">
+                </div>
+                <div class="input-group">
+                    <input type="number" class="f-p calc-trigger" placeholder="السعر / كجم" min="0" step="0.01">
+                </div>
+            </div>
+        `;
+
+        div.querySelector('.f-t').value = type;
+        div.querySelector('.f-w').value = weight;
+        div.querySelector('.f-p').value = price;
+
+        div.querySelector('.btn-remove').addEventListener('click', () => {
+            div.remove();
+            calculate();
+        });
+
+        document.getElementById('filaments-container').appendChild(div);
+        bindAutoCalc();
+    }
+
+    function bindAutoCalc() {
+        document.querySelectorAll('.calc-trigger').forEach(input => {
+            input.removeEventListener('input', calculate);
+            input.addEventListener('input', calculate);
+        });
+    }
+
+    function updateMaintUI(currentOrderHours = 0) {
+        const savedH = sanitizeNumber(localStorage.getItem(STORAGE_KEYS.maintenance));
+        document.getElementById('maintHours').innerText = savedH.toFixed(1);
+        document.getElementById('maintPreview').innerText = `بعد الطلب الحالي: ${(savedH + currentOrderHours).toFixed(1)} س`;
+        const bar = document.getElementById('maintBar');
+        bar.style.width = Math.min((savedH / 200) * 100, 100) + '%';
+        bar.style.background = savedH >= 200 ? 'var(--danger)' : savedH >= 150 ? 'var(--warning)' : 'var(--primary)';
+    }
+
+    function resetMaint() {
+        if (confirm('هل متأكد أنك قمت بصيانة الماكينة؟')) {
+            localStorage.setItem(STORAGE_KEYS.maintenance, '0');
+            updateMaintUI(sanitizeNumber(document.getElementById('pTime').value));
+        }
+    }
+
+    function confirmSale() {
+        const order = computeOrder();
+        if (order.finalPrice <= 0) {
+            alert('الرجاء إدخال بيانات الطلب لحساب السعر أولاً!');
+            return;
+        }
+
+        const entry = {
+            id: Date.now(),
+            date: new Date().toLocaleDateString('ar-EG'),
+            client: getText('cName') || 'عميل',
+            model: getText('mName') || 'مجسم',
+            sale: order.finalPrice,
+            profit: order.netProfit,
+            hours: order.time,
+            weight: order.totalWeight,
+            waste: order.wasteW
+        };
+
+        sales.unshift(entry);
+        localStorage.setItem(STORAGE_KEYS.sales, JSON.stringify(sales));
+
+        const currentH = sanitizeNumber(localStorage.getItem(STORAGE_KEYS.maintenance));
+        localStorage.setItem(STORAGE_KEYS.maintenance, String(currentH + entry.hours));
+
+        alert('✅ تمت إضافة البيعة إلى السجل بنجاح!');
+        resetCurrentOrder();
+        loadSales();
+    }
+
+    function loadSales() {
+        const table = document.getElementById('salesTable');
+        table.innerHTML = '';
+        let totalSales = 0, totalHours = 0, totalWeight = 0, totalWaste = 0;
+
+        sales.forEach(sale => {
+            totalSales += sanitizeNumber(sale.sale);
+            totalHours += sanitizeNumber(sale.hours);
+            totalWeight += sanitizeNumber(sale.weight);
+            totalWaste += sanitizeNumber(sale.waste);
+
+            const row = document.createElement('tr');
+
+            const dateTd = document.createElement('td');
+            dateTd.textContent = sale.date;
+
+            const clientTd = document.createElement('td');
+            const strong = document.createElement('strong');
+            strong.textContent = sale.client;
+            const modelSpan = document.createElement('span');
+            modelSpan.style.color = 'var(--text-muted)';
+            modelSpan.style.fontSize = '11px';
+            modelSpan.textContent = sale.model;
+            clientTd.appendChild(strong);
+            clientTd.appendChild(document.createElement('br'));
+            clientTd.appendChild(modelSpan);
+
+            const profitTd = document.createElement('td');
+            profitTd.style.color = 'var(--primary)';
+            profitTd.style.fontWeight = 'bold';
+            profitTd.textContent = `+${sanitizeNumber(sale.profit).toFixed(0)} ج`;
+
+            const deleteTd = document.createElement('td');
+            deleteTd.style.textAlign = 'center';
+            const btn = document.createElement('button');
+            btn.className = 'btn-del';
+            btn.textContent = 'مسح';
+            btn.addEventListener('click', () => delSale(sale.id));
+            deleteTd.appendChild(btn);
+
+            row.append(dateTd, clientTd, profitTd, deleteTd);
+            table.appendChild(row);
+        });
+
+        document.getElementById('statSales').innerText = totalSales.toFixed(0) + ' ج';
+        document.getElementById('statHours').innerText = totalHours.toFixed(1) + ' س';
+        document.getElementById('statWeight').innerText = (totalWeight / 1000).toFixed(2) + ' كجم';
+        document.getElementById('statWaste').innerText = totalWaste.toFixed(0) + ' جرام';
+    }
+
+    function delSale(id) {
+        if (confirm('هل أنت متأكد من مسح هذه البيعة من السجل؟')) {
+            sales = sales.filter(s => s.id !== id);
+            localStorage.setItem(STORAGE_KEYS.sales, JSON.stringify(sales));
+            loadSales();
+        }
+    }
+
+    function csvEscape(value) {
+        return `"${String(value ?? '').replace(/"/g, '""')}"`;
+    }
+
+    function exportCSV() {
+        if (sales.length === 0) {
+            alert('السجل فارغ!');
+            return;
+        }
+        let csv = 'التاريخ,اسم العميل,المجسم,سعر البيع,الربح الصافي,ساعات الطباعة,وزن المجسم(جرام),الهالك(جرام)\n';
+        sales.forEach(s => {
+            csv += [
+                csvEscape(s.date),
+                csvEscape(s.client),
+                csvEscape(s.model),
+                csvEscape(s.sale),
+                csvEscape(s.profit),
+                csvEscape(s.hours),
+                csvEscape(s.weight),
+                csvEscape(s.waste)
+            ].join(',') + '\n';
+        });
+
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'سجل_مبيعات_الطباعة.csv';
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
+    function resetCurrentOrder() {
+        document.getElementById('pTime').value = '';
+        document.getElementById('waste').value = '';
+        document.getElementById('cName').value = '';
+        document.getElementById('mName').value = '';
+        document.getElementById('disc').value = '0';
+        document.querySelectorAll('.f-w').forEach(i => i.value = '');
+        calculate();
+    }
+
+    function saveDefaults() {
+        localStorage.setItem(STORAGE_KEYS.defaultRate, document.getElementById('hRate').value || '0');
+        const filaments = [];
+        document.querySelectorAll('.filament-row').forEach(row => {
+            filaments.push({
+                t: row.querySelector('.f-t').value.trim(),
+                p: sanitizeNumber(row.querySelector('.f-p').value)
+            });
+        });
+        localStorage.setItem(STORAGE_KEYS.defaultFilaments, JSON.stringify(filaments));
+        alert('✅ تم حفظ أسعارك وإعداداتك بنجاح!');
+    }
+
+    function buildInvoiceText() {
+        const client = getText('cName');
+        const model = getText('mName');
+        const finalPrice = document.getElementById('finalP').innerText;
+        const discount = sanitizeNumber(document.getElementById('disc').value);
+
+        let text = 'مرحباً بك! ✨\n';
+        if (client) text += `عزيزي ${client}،\n`;
+        text += model ? `تفاصيل تسعير طلب الطباعة (3D) الخاص بك (${model}):\n` : 'تفاصيل تسعير طلب الطباعة (3D) الخاص بك:\n';
+        text += '------------------------\n';
+        text += `إجمالي السعر النهائي: ${finalPrice} جنيه\n`;
+        if (discount > 0) text += `(تم تطبيق خصم بقيمة ${discount} ج 🎉)\n`;
+        text += '------------------------\n';
+        text += 'مدة التنفيذ والشحن سيتم تحديدها لاحقاً.\n';
+        text += 'شكراً لاختياركم خدماتنا! 🤍';
+        return text;
+    }
+
+    async function copyInvoiceText() {
+        const text = buildInvoiceText();
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(text);
+            } else {
+                const dummy = document.createElement('textarea');
+                dummy.value = text;
+                document.body.appendChild(dummy);
+                dummy.select();
+                document.execCommand('copy');
+                document.body.removeChild(dummy);
+            }
+            alert('✅ تم نسخ الفاتورة كاملة!');
+        } catch {
+            alert('فشل النسخ. حاول مرة أخرى.');
+        }
+    }
+
+    function shareWA() {
+        const text = buildInvoiceText();
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    function generatePDFNative() {
+        document.getElementById('pdf-date').innerText = new Date().toLocaleDateString('ar-EG');
+        document.getElementById('pdf-client').innerText = getText('cName') || 'عميل';
+        document.getElementById('pdf-model').innerText = getText('mName') || 'مجسم ثلاثي الأبعاد';
+        const final = sanitizeNumber(document.getElementById('finalP').innerText);
+        const discount = sanitizeNumber(document.getElementById('disc').value);
+
+        document.getElementById('pdf-total').innerText = (final + discount).toFixed(0);
+        document.getElementById('pdf-final').innerText = final.toFixed(0);
+
+        if (discount > 0) {
+            document.getElementById('pdf-discount-row').style.display = 'table-row';
+            document.getElementById('pdf-disc-val').innerText = discount.toFixed(0);
+        } else {
+            document.getElementById('pdf-discount-row').style.display = 'none';
+        }
+        window.print();
+    }
+
+    window.onload = () => {
+        const rate = localStorage.getItem(STORAGE_KEYS.defaultRate);
+        if (rate !== null) document.getElementById('hRate').value = rate;
+
+        const filaments = safeJSONParse(localStorage.getItem(STORAGE_KEYS.defaultFilaments), []);
+        if (filaments.length > 0) {
+            filaments.forEach(f => addFil(f.t, '', f.p));
+        } else {
+            addFil('PLA', '', '1000');
+        }
+
+        bindAutoCalc();
+        calculate();
+        loadSales();
+    };
+</script>
+</body>
+</html>
