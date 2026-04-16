@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bambu Business Manager v7.1</title>
+    <title>Bambu Business Manager v8.0</title>
     <style>
         :root {
             --bg-dark: #0a0c10;
@@ -583,8 +583,12 @@
         defaultFilaments: 'def_fils'
     };
 
-    let sales = safeJSONParse(localStorage.getItem(STORAGE_KEYS.sales), []);
+    let sales = [];
     let calcTimer = null;
+
+    function hasAndroidBridge() {
+        return !!(window.Android);
+    }
 
     function safeJSONParse(value, fallback) {
         try {
@@ -609,8 +613,82 @@
         calcTimer = setTimeout(calculate, 80);
     }
 
-    function persistSales() {
-        localStorage.setItem(STORAGE_KEYS.sales, JSON.stringify(sales));
+    function getMaintenanceHoursValue() {
+        if (hasAndroidBridge() && typeof Android.getMaintenanceHours === 'function') {
+            return sanitizeNumber(Android.getMaintenanceHours());
+        }
+        return sanitizeNumber(localStorage.getItem(STORAGE_KEYS.maintenance));
+    }
+
+    function setMaintenanceHoursValue(value) {
+        const safeValue = sanitizeNumber(value);
+        if (hasAndroidBridge() && typeof Android.setMaintenanceHours === 'function') {
+            Android.setMaintenanceHours(String(safeValue));
+        } else {
+            localStorage.setItem(STORAGE_KEYS.maintenance, String(safeValue));
+        }
+    }
+
+    function getDefaultRateValue() {
+        if (hasAndroidBridge() && typeof Android.getDefaultRate === 'function') {
+            const value = Android.getDefaultRate();
+            return value !== null && value !== undefined ? value : null;
+        }
+        return localStorage.getItem(STORAGE_KEYS.defaultRate);
+    }
+
+    function setDefaultRateValue(value) {
+        const safeValue = value || '0';
+        if (hasAndroidBridge() && typeof Android.setDefaultRate === 'function') {
+            Android.setDefaultRate(safeValue);
+        } else {
+            localStorage.setItem(STORAGE_KEYS.defaultRate, safeValue);
+        }
+    }
+
+    function getDefaultFilamentsValue() {
+        if (hasAndroidBridge() && typeof Android.getDefaultFilaments === 'function') {
+            return safeJSONParse(Android.getDefaultFilaments(), []);
+        }
+        return safeJSONParse(localStorage.getItem(STORAGE_KEYS.defaultFilaments), []);
+    }
+
+    function setDefaultFilamentsValue(filaments) {
+        const json = JSON.stringify(filaments || []);
+        if (hasAndroidBridge() && typeof Android.setDefaultFilaments === 'function') {
+            Android.setDefaultFilaments(json);
+        } else {
+            localStorage.setItem(STORAGE_KEYS.defaultFilaments, json);
+        }
+    }
+
+    function getSalesFromStorage() {
+        if (hasAndroidBridge() && typeof Android.getSales === 'function') {
+            return safeJSONParse(Android.getSales(), []);
+        }
+        return safeJSONParse(localStorage.getItem(STORAGE_KEYS.sales), []);
+    }
+
+    function saveSaleToStorage(entry) {
+        if (hasAndroidBridge() && typeof Android.saveSale === 'function') {
+            Android.saveSale(JSON.stringify(entry));
+        } else {
+            sales.unshift(entry);
+            localStorage.setItem(STORAGE_KEYS.sales, JSON.stringify(sales));
+        }
+    }
+
+    function deleteSaleFromStorage(id) {
+        if (hasAndroidBridge() && typeof Android.deleteSale === 'function') {
+            Android.deleteSale(String(id));
+        } else {
+            sales = sales.filter(s => s.id !== id);
+            localStorage.setItem(STORAGE_KEYS.sales, JSON.stringify(sales));
+        }
+    }
+
+    function refreshSalesFromStorage() {
+        sales = getSalesFromStorage();
     }
 
     function computeOrder() {
@@ -723,7 +801,7 @@
     }
 
     function updateMaintUI(currentOrderHours = 0) {
-        const savedH = sanitizeNumber(localStorage.getItem(STORAGE_KEYS.maintenance));
+        const savedH = getMaintenanceHoursValue();
         document.getElementById('maintHours').innerText = savedH.toFixed(1);
         document.getElementById('maintPreview').innerText = `بعد الطلب الحالي: ${(savedH + currentOrderHours).toFixed(1)} س`;
 
@@ -734,7 +812,7 @@
 
     function resetMaint() {
         if (confirm('هل متأكد أنك قمت بصيانة الماكينة؟')) {
-            localStorage.setItem(STORAGE_KEYS.maintenance, '0');
+            setMaintenanceHoursValue(0);
             updateMaintUI(sanitizeNumber(document.getElementById('pTime').value));
         }
     }
@@ -759,18 +837,24 @@
             waste: order.wasteW
         };
 
+        saveSaleToStorage(entry);
         sales.unshift(entry);
-        persistSales();
 
-        const currentH = sanitizeNumber(localStorage.getItem(STORAGE_KEYS.maintenance));
-        localStorage.setItem(STORAGE_KEYS.maintenance, String(currentH + entry.hours));
+        const currentH = getMaintenanceHoursValue();
+        setMaintenanceHoursValue(currentH + entry.hours);
 
         alert('✅ تمت إضافة البيعة إلى السجل بنجاح!');
         resetCurrentOrder();
-        loadSales();
+
+        setTimeout(() => {
+            refreshSalesFromStorage();
+            loadSales();
+        }, hasAndroidBridge() ? 120 : 0);
     }
 
     function loadSales() {
+        refreshSalesFromStorage();
+
         const table = document.getElementById('salesTable');
         table.innerHTML = '';
 
@@ -829,9 +913,12 @@
 
     function delSale(id) {
         if (confirm('هل أنت متأكد من مسح هذه البيعة من السجل؟')) {
-            sales = sales.filter(s => s.id !== id);
-            persistSales();
-            loadSales();
+            deleteSaleFromStorage(id);
+
+            setTimeout(() => {
+                refreshSalesFromStorage();
+                loadSales();
+            }, hasAndroidBridge() ? 120 : 0);
         }
     }
 
@@ -840,6 +927,8 @@
     }
 
     function exportCSV() {
+        refreshSalesFromStorage();
+
         if (sales.length === 0) {
             alert('السجل فارغ!');
             return;
@@ -880,7 +969,7 @@
     }
 
     function saveDefaults() {
-        localStorage.setItem(STORAGE_KEYS.defaultRate, document.getElementById('hRate').value || '0');
+        setDefaultRateValue(document.getElementById('hRate').value || '0');
 
         const filaments = [];
         document.querySelectorAll('.filament-row').forEach(row => {
@@ -890,7 +979,7 @@
             });
         });
 
-        localStorage.setItem(STORAGE_KEYS.defaultFilaments, JSON.stringify(filaments));
+        setDefaultFilamentsValue(filaments);
         alert('✅ تم حفظ أسعارك وإعداداتك بنجاح!');
     }
 
@@ -961,10 +1050,10 @@
     }
 
     window.onload = () => {
-        const rate = localStorage.getItem(STORAGE_KEYS.defaultRate);
+        const rate = getDefaultRateValue();
         if (rate !== null) document.getElementById('hRate').value = rate;
 
-        const filaments = safeJSONParse(localStorage.getItem(STORAGE_KEYS.defaultFilaments), []);
+        const filaments = getDefaultFilamentsValue();
         if (filaments.length > 0) {
             filaments.forEach(f => addFil(f.t, '', f.p));
         } else {
@@ -972,6 +1061,7 @@
         }
 
         bindStaticEvents();
+        refreshSalesFromStorage();
         calculate();
         loadSales();
     };
