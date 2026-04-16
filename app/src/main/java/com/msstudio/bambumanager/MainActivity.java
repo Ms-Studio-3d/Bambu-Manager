@@ -25,19 +25,24 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         webView = findViewById(R.id.webView);
-
+webView.getSettings().setRenderPriority(WebSettings.RenderPriority.HIGH);
+webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         WebSettings settings = webView.getSettings();
-        settings.setJavaScriptEnabled(true);
-        settings.setDomStorageEnabled(true);
-        settings.setDatabaseEnabled(true);
-        settings.setAllowFileAccess(false);
-        settings.setAllowContentAccess(false);
-        settings.setUseWideViewPort(true);
-        settings.setLoadWithOverviewMode(true);
-        settings.setBuiltInZoomControls(false);
-        settings.setDisplayZoomControls(false);
-        settings.setSupportZoom(false);
-        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
+settings.setJavaScriptEnabled(true);
+settings.setDomStorageEnabled(true);
+settings.setDatabaseEnabled(true);
+settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+settings.setLoadsImagesAutomatically(true);
+settings.setBlockNetworkImage(false);
+settings.setAllowFileAccess(false);
+settings.setAllowContentAccess(false);
+settings.setUseWideViewPort(true);
+settings.setLoadWithOverviewMode(true);
+settings.setBuiltInZoomControls(false);
+settings.setDisplayZoomControls(false);
+settings.setSupportZoom(false);
+settings.setMediaPlaybackRequiresUserGesture(false);
+settings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
 
         webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
         webView.setWebChromeClient(new WebChromeClient());
