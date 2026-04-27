@@ -512,7 +512,7 @@
             }
         }
 
-                @media (max-width: 720px) {
+        @media (max-width: 720px) {
             .app {
                 padding: 10px;
                 padding-bottom: 32px;
@@ -642,7 +642,7 @@
             }
         }
 
-                @media (max-width: 380px) {
+        @media (max-width: 380px) {
             .grid,
             .grid-3 {
                 gap: 6px;
@@ -875,7 +875,10 @@
                 </div>
             </div>
             <div style="height:12px"></div>
-            <button onclick="addPrinter()">إضافة ماكينة</button>
+            <div class="btn-row">
+                <button id="printerSaveBtn" onclick="savePrinter()">إضافة ماكينة</button>
+                <button id="printerCancelBtn" class="secondary" onclick="cancelPrinterEdit()" style="display:none">إلغاء التعديل</button>
+            </div>
             <div style="height:12px"></div>
             <div id="printersList"></div>
         </div>
@@ -901,7 +904,10 @@
                 </div>
             </div>
             <div style="height:12px"></div>
-            <button onclick="addMaterial()">إضافة خامة</button>
+            <div class="btn-row">
+                <button id="materialSaveBtn" onclick="saveMaterial()">إضافة خامة</button>
+                <button id="materialCancelBtn" class="secondary" onclick="cancelMaterialEdit()" style="display:none">إلغاء التعديل</button>
+            </div>
             <div style="height:12px"></div>
             <div id="materialsList"></div>
         </div>
@@ -938,6 +944,8 @@
     let salesCache = [];
     let lastCalc = {};
     let orderRowCounter = 0;
+    let editingPrinterId = "";
+    let editingMaterialId = "";
 
     document.addEventListener("DOMContentLoaded", function () {
         loadSettings();
@@ -1864,7 +1872,7 @@
         toast("تم حفظ الإعدادات العامة");
     }
 
-    function addPrinter() {
+    function savePrinter() {
         const name = document.getElementById("printerName").value.trim();
         const hourlyRate = num(document.getElementById("printerRate").value);
         const maintenanceLimit = num(document.getElementById("printerMaintenanceLimit").value);
@@ -1875,54 +1883,87 @@
             return;
         }
 
-        settings.printers.push({
-            id: makeId("printer"),
-            name,
-            hourlyRate,
-            maintenanceLimit: maintenanceLimit || 200,
-            currentHours
-        });
+        if (editingPrinterId) {
+            const printer = settings.printers.find(p => p.id === editingPrinterId);
 
-        settings.selectedPrinterId = settings.printers[settings.printers.length - 1].id;
+            if (!printer) {
+                toast("لم يتم العثور على الماكينة");
+                cancelPrinterEdit();
+                return;
+            }
+
+            printer.name = name;
+            printer.hourlyRate = hourlyRate;
+            printer.maintenanceLimit = maintenanceLimit || 200;
+            printer.currentHours = currentHours;
+
+            toast("تم حفظ تعديل الماكينة");
+        } else {
+            const newPrinter = {
+                id: makeId("printer"),
+                name,
+                hourlyRate,
+                maintenanceLimit: maintenanceLimit || 200,
+                currentHours
+            };
+
+            settings.printers.push(newPrinter);
+            settings.selectedPrinterId = newPrinter.id;
+
+            toast("تمت إضافة الماكينة");
+        }
+
+        clearPrinterForm();
+        saveSettings();
+        renderAll();
+        calculate();
+    }
+
+    function editPrinter(id) {
+        const printer = settings.printers.find(p => p.id === id);
+
+        if (!printer) {
+            toast("لم يتم العثور على الماكينة");
+            return;
+        }
+
+        editingPrinterId = id;
+
+        document.getElementById("printerName").value = printer.name || "";
+        document.getElementById("printerRate").value = printer.hourlyRate || "";
+        document.getElementById("printerMaintenanceLimit").value = printer.maintenanceLimit || "";
+        document.getElementById("printerCurrentHours").value = printer.currentHours || "";
+
+        document.getElementById("printerSaveBtn").textContent = "حفظ تعديل الماكينة";
+        document.getElementById("printerCancelBtn").style.display = "inline-flex";
+
+        showPage("settings");
+        toast("عدّل بيانات الماكينة ثم اضغط حفظ");
+    }
+
+    function cancelPrinterEdit() {
+        clearPrinterForm();
+        toast("تم إلغاء تعديل الماكينة");
+    }
+
+    function clearPrinterForm() {
+        editingPrinterId = "";
 
         document.getElementById("printerName").value = "";
         document.getElementById("printerRate").value = "";
         document.getElementById("printerMaintenanceLimit").value = "";
         document.getElementById("printerCurrentHours").value = "";
 
-        saveSettings();
-        renderAll();
-        calculate();
+        const saveBtn = document.getElementById("printerSaveBtn");
+        const cancelBtn = document.getElementById("printerCancelBtn");
 
-        toast("تمت إضافة الماكينة");
-    }
+        if (saveBtn) {
+            saveBtn.textContent = "إضافة ماكينة";
+        }
 
-    function editPrinter(id) {
-        const printer = settings.printers.find(p => p.id === id);
-        if (!printer) return;
-
-        const name = prompt("اسم الماكينة", printer.name);
-        if (name === null) return;
-
-        const hourlyRate = prompt("سعر ساعة التشغيل", printer.hourlyRate);
-        if (hourlyRate === null) return;
-
-        const maintenanceLimit = prompt("حد الصيانة بالساعات", printer.maintenanceLimit);
-        if (maintenanceLimit === null) return;
-
-        const currentHours = prompt("الساعات الحالية", printer.currentHours);
-        if (currentHours === null) return;
-
-        printer.name = name.trim() || printer.name;
-        printer.hourlyRate = num(hourlyRate);
-        printer.maintenanceLimit = num(maintenanceLimit) || 200;
-        printer.currentHours = num(currentHours);
-
-        saveSettings();
-        renderAll();
-        calculate();
-
-        toast("تم تعديل الماكينة");
+        if (cancelBtn) {
+            cancelBtn.style.display = "none";
+        }
     }
 
     function deletePrinter(id) {
@@ -1937,6 +1978,10 @@
 
         if (settings.selectedPrinterId === id) {
             settings.selectedPrinterId = settings.printers[0].id;
+        }
+
+        if (editingPrinterId === id) {
+            clearPrinterForm();
         }
 
         saveSettings();
@@ -1978,7 +2023,7 @@
         });
     }
 
-    function addMaterial() {
+    function saveMaterial() {
         const name = document.getElementById("matName").value.trim();
         const color = document.getElementById("matColor").value.trim();
         const brand = document.getElementById("matBrand").value.trim();
@@ -1994,18 +2039,34 @@
             return;
         }
 
-        settings.materials.push({
-            id: makeId("mat"),
-            name,
-            color,
-            brand,
-            kgPrice
-        });
+        if (editingMaterialId) {
+            const mat = settings.materials.find(m => m.id === editingMaterialId);
 
-        document.getElementById("matName").value = "";
-        document.getElementById("matColor").value = "";
-        document.getElementById("matBrand").value = "";
-        document.getElementById("matKgPrice").value = "";
+            if (!mat) {
+                toast("لم يتم العثور على الخامة");
+                cancelMaterialEdit();
+                return;
+            }
+
+            mat.name = name;
+            mat.color = color;
+            mat.brand = brand;
+            mat.kgPrice = kgPrice;
+
+            toast("تم حفظ تعديل الخامة");
+        } else {
+            settings.materials.push({
+                id: makeId("mat"),
+                name,
+                color,
+                brand,
+                kgPrice
+            });
+
+            toast("تمت إضافة الخامة");
+        }
+
+        clearMaterialForm();
 
         saveSettings();
 
@@ -2016,42 +2077,63 @@
 
         renderAll();
         calculate();
-
-        toast("تمت إضافة الخامة");
     }
 
     function editMaterial(id) {
         const mat = settings.materials.find(m => m.id === id);
-        if (!mat) return;
 
-        const name = prompt("اسم / نوع الخامة", mat.name);
-        if (name === null) return;
+        if (!mat) {
+            toast("لم يتم العثور على الخامة");
+            return;
+        }
 
-        const color = prompt("اللون", mat.color);
-        if (color === null) return;
+        editingMaterialId = id;
 
-        const brand = prompt("الشركة", mat.brand);
-        if (brand === null) return;
+        document.getElementById("matName").value = mat.name || "";
+        document.getElementById("matColor").value = mat.color || "";
+        document.getElementById("matBrand").value = mat.brand || "";
+        document.getElementById("matKgPrice").value = mat.kgPrice || "";
 
-        const kgPrice = prompt("السعر لكل كجم / 1000 جرام", mat.kgPrice);
-        if (kgPrice === null) return;
+        document.getElementById("materialSaveBtn").textContent = "حفظ تعديل الخامة";
+        document.getElementById("materialCancelBtn").style.display = "inline-flex";
 
-        mat.name = name.trim() || mat.name;
-        mat.color = color.trim();
-        mat.brand = brand.trim();
-        mat.kgPrice = num(kgPrice);
+        showPage("settings");
+        toast("عدّل بيانات الخامة ثم اضغط حفظ");
+    }
 
-        saveSettings();
-        renderAll();
-        calculate();
+    function cancelMaterialEdit() {
+        clearMaterialForm();
+        toast("تم إلغاء تعديل الخامة");
+    }
 
-        toast("تم تعديل الخامة");
+    function clearMaterialForm() {
+        editingMaterialId = "";
+
+        document.getElementById("matName").value = "";
+        document.getElementById("matColor").value = "";
+        document.getElementById("matBrand").value = "";
+        document.getElementById("matKgPrice").value = "";
+
+        const saveBtn = document.getElementById("materialSaveBtn");
+        const cancelBtn = document.getElementById("materialCancelBtn");
+
+        if (saveBtn) {
+            saveBtn.textContent = "إضافة خامة";
+        }
+
+        if (cancelBtn) {
+            cancelBtn.style.display = "none";
+        }
     }
 
     function deleteMaterial(id) {
         if (!confirm("حذف هذه الخامة؟")) return;
 
         settings.materials = settings.materials.filter(m => m.id !== id);
+
+        if (editingMaterialId === id) {
+            clearMaterialForm();
+        }
 
         const orderBox = document.getElementById("orderMaterials");
         if (orderBox) {
