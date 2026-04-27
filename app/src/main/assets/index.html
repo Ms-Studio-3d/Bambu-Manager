@@ -51,14 +51,14 @@
 
         .tab-btn {
             flex: 1;
-            padding: 14px 8px;
+            padding: 14px 6px;
             border: none;
             background: none;
             color: var(--text-muted);
             font-weight: bold;
             cursor: pointer;
             transition: 0.3s;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .tab-btn.active {
@@ -98,9 +98,7 @@
             margin-bottom: 10px;
         }
 
-        .input-group {
-            flex: 1;
-        }
+        .input-group { flex: 1; }
 
         label {
             display: block;
@@ -270,21 +268,9 @@
             margin-top: 10px;
         }
 
-        .btn-copy {
-            background: #fff;
-            color: #000;
-        }
-
-        .btn-whatsapp {
-            background: #25D366;
-            color: white;
-        }
-
-        .btn-pdf {
-            background: #ff4757;
-            color: white;
-            grid-column: span 2;
-        }
+        .btn-copy { background: #fff; color: #000; }
+        .btn-whatsapp { background: #25D366; color: white; }
+        .btn-pdf { background: #ff4757; color: white; grid-column: span 2; }
 
         .btn-confirm {
             background: var(--primary);
@@ -435,67 +421,22 @@
             margin-right: 4px;
         }
 
-        #pdf-template {
-            display: none;
-        }
+        #pdf-template { display: none; }
 
         @media (max-width: 430px) {
-            .input-row {
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .tab-btn {
-                font-size: 12px;
-                padding: 12px 4px;
-            }
-
-            .price-value {
-                font-size: 34px;
-            }
+            .input-row { flex-direction: column; gap: 8px; }
+            .tab-btn { font-size: 12px; padding: 12px 4px; }
+            .price-value { font-size: 34px; }
         }
 
         @media print {
-            body {
-                background: #fff;
-                color: #000;
-                padding: 0;
-                margin: 0;
-            }
-
-            .tab-bar, .container {
-                display: none !important;
-            }
-
-            #pdf-template {
-                display: block !important;
-                padding: 20px;
-            }
-
-            .print-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 20px;
-                font-size: 16px;
-            }
-
-            .print-table th, .print-table td {
-                border: 1px solid #000;
-                padding: 12px;
-                text-align: right;
-            }
-
-            .print-table th {
-                background-color: #f2f2f2 !important;
-                -webkit-print-color-adjust: exact;
-            }
-
-            .print-header {
-                text-align: center;
-                border-bottom: 2px solid #00E676;
-                padding-bottom: 10px;
-                margin-bottom: 20px;
-            }
+            body { background: #fff; color: #000; padding: 0; margin: 0; }
+            .tab-bar, .container { display: none !important; }
+            #pdf-template { display: block !important; padding: 20px; }
+            .print-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 16px; }
+            .print-table th, .print-table td { border: 1px solid #000; padding: 12px; text-align: right; }
+            .print-table th { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
+            .print-header { text-align: center; border-bottom: 2px solid #00E676; padding-bottom: 10px; margin-bottom: 20px; }
         }
     </style>
 </head>
@@ -599,7 +540,8 @@
             </div>
             <div class="hint">ممكن تسيب الشغل اليدوي أو التغليف بصفر لو الطلب مش محتاجهم.</div>
         </div>
-                <div class="section">
+
+        <div class="section">
             <h2 class="section-title">💰 الربح والخصم</h2>
             <div class="input-row">
                 <div class="input-group">
@@ -801,7 +743,7 @@
     let editingFilamentId = null;
 
     function hasAndroidBridge() {
-        return !!(window.Android);
+        return !!window.Android;
     }
 
     function safeJSONParse(value, fallback) {
@@ -831,6 +773,28 @@
         return JSON.parse(JSON.stringify(obj));
     }
 
+    function getOldDefaultRate() {
+        if (hasAndroidBridge() && typeof Android.getDefaultRate === 'function') {
+            const value = Android.getDefaultRate();
+            return value !== null && value !== undefined ? value : null;
+        }
+        return localStorage.getItem(STORAGE_KEYS.defaultRate);
+    }
+
+    function getOldMaintenanceHours() {
+        if (hasAndroidBridge() && typeof Android.getMaintenanceHours === 'function') {
+            return sanitizeNumber(Android.getMaintenanceHours());
+        }
+        return sanitizeNumber(localStorage.getItem(STORAGE_KEYS.maintenance));
+    }
+
+    function getOldDefaultFilaments() {
+        if (hasAndroidBridge() && typeof Android.getDefaultFilaments === 'function') {
+            return safeJSONParse(Android.getDefaultFilaments(), []);
+        }
+        return safeJSONParse(localStorage.getItem(STORAGE_KEYS.defaultFilaments), []);
+    }
+
     function loadAppState() {
         const saved = safeJSONParse(localStorage.getItem(STORAGE_KEYS.appSettings), null);
         let state = saved || clone(DEFAULT_STATE);
@@ -839,26 +803,24 @@
         if (!Array.isArray(state.machines) || state.machines.length === 0) state.machines = clone(DEFAULT_STATE.machines);
         if (!Array.isArray(state.filaments) || state.filaments.length === 0) state.filaments = clone(DEFAULT_STATE.filaments);
 
-        const oldRate = getDefaultRateValueRaw();
-        if (!saved && oldRate !== null) {
-            state.machines[0].hourlyRate = sanitizeNumber(oldRate, 20);
-        }
+        if (!saved) {
+            const oldRate = getOldDefaultRate();
+            if (oldRate !== null) state.machines[0].hourlyRate = sanitizeNumber(oldRate, 20);
 
-        const oldMaint = getMaintenanceHoursValueRaw();
-        if (!saved && oldMaint > 0) {
-            state.machines[0].maintenanceHours = oldMaint;
-        }
+            const oldMaint = getOldMaintenanceHours();
+            if (oldMaint > 0) state.machines[0].maintenanceHours = oldMaint;
 
-        const oldFils = getDefaultFilamentsValueRaw();
-        if (!saved && oldFils.length > 0) {
-            state.filaments = oldFils
-                .filter(f => String(f.t || '').trim() !== '' || sanitizeNumber(f.p) > 0)
-                .map((f, index) => ({
-                    id: 'old_fil_' + index + '_' + Date.now(),
-                    name: String(f.t || 'PLA').trim() || 'PLA',
-                    pricePerKg: sanitizeNumber(f.p, 1000)
-                }));
-            if (state.filaments.length === 0) state.filaments = clone(DEFAULT_STATE.filaments);
+            const oldFils = getOldDefaultFilaments();
+            if (oldFils.length > 0) {
+                state.filaments = oldFils
+                    .filter(f => String(f.t || '').trim() !== '' || sanitizeNumber(f.p) > 0)
+                    .map((f, index) => ({
+                        id: 'old_fil_' + index + '_' + Date.now(),
+                        name: String(f.t || 'PLA').trim() || 'PLA',
+                        pricePerKg: sanitizeNumber(f.p, 1000)
+                    }));
+                if (state.filaments.length === 0) state.filaments = clone(DEFAULT_STATE.filaments);
+            }
         }
 
         if (!state.general.activeMachineId || !state.machines.some(m => m.id === state.general.activeMachineId)) {
@@ -872,13 +834,29 @@
         localStorage.setItem(STORAGE_KEYS.appSettings, JSON.stringify(appState));
 
         const machine = getActiveMachine();
-        setDefaultRateValue(String(machine ? machine.hourlyRate : 20));
-        setMaintenanceHoursValue(machine ? machine.maintenanceHours : 0);
+        const rate = machine ? machine.hourlyRate : 20;
+        const hours = machine ? machine.maintenanceHours : 0;
 
-        setDefaultFilamentsValue(appState.filaments.map(f => ({
-            t: f.name,
-            p: f.pricePerKg
-        })));
+        if (hasAndroidBridge() && typeof Android.setDefaultRate === 'function') {
+            Android.setDefaultRate(String(rate));
+        } else {
+            localStorage.setItem(STORAGE_KEYS.defaultRate, String(rate));
+        }
+
+        if (hasAndroidBridge() && typeof Android.setMaintenanceHours === 'function') {
+            Android.setMaintenanceHours(String(hours));
+        } else {
+            localStorage.setItem(STORAGE_KEYS.maintenance, String(hours));
+        }
+
+        const filaments = appState.filaments.map(f => ({ t: f.name, p: f.pricePerKg }));
+        const json = JSON.stringify(filaments);
+
+        if (hasAndroidBridge() && typeof Android.setDefaultFilaments === 'function') {
+            Android.setDefaultFilaments(json);
+        } else {
+            localStorage.setItem(STORAGE_KEYS.defaultFilaments, json);
+        }
     }
 
     function getActiveMachine() {
@@ -888,76 +866,6 @@
     function debounceCalculate() {
         clearTimeout(calcTimer);
         calcTimer = setTimeout(calculate, 80);
-    }
-
-    function getMaintenanceHoursValueRaw() {
-        if (hasAndroidBridge() && typeof Android.getMaintenanceHours === 'function') {
-            return sanitizeNumber(Android.getMaintenanceHours());
-        }
-        return sanitizeNumber(localStorage.getItem(STORAGE_KEYS.maintenance));
-    }
-
-    function getMaintenanceHoursValue() {
-        const machine = getActiveMachine();
-        return machine ? sanitizeNumber(machine.maintenanceHours) : getMaintenanceHoursValueRaw();
-    }
-
-    function setMaintenanceHoursValue(value) {
-        const safeValue = sanitizeNumber(value);
-        const machine = getActiveMachine();
-
-        if (machine) {
-            machine.maintenanceHours = safeValue;
-            localStorage.setItem(STORAGE_KEYS.appSettings, JSON.stringify(appState));
-        }
-
-        if (hasAndroidBridge() && typeof Android.setMaintenanceHours === 'function') {
-            Android.setMaintenanceHours(String(safeValue));
-        } else {
-            localStorage.setItem(STORAGE_KEYS.maintenance, String(safeValue));
-        }
-    }
-
-    function getDefaultRateValueRaw() {
-        if (hasAndroidBridge() && typeof Android.getDefaultRate === 'function') {
-            const value = Android.getDefaultRate();
-            return value !== null && value !== undefined ? value : null;
-        }
-        return localStorage.getItem(STORAGE_KEYS.defaultRate);
-    }
-
-    function getDefaultRateValue() {
-        const machine = getActiveMachine();
-        if (machine) return String(machine.hourlyRate);
-        return getDefaultRateValueRaw();
-    }
-
-    function setDefaultRateValue(value) {
-        const safeValue = value || '0';
-        if (hasAndroidBridge() && typeof Android.setDefaultRate === 'function') {
-            Android.setDefaultRate(safeValue);
-        } else {
-            localStorage.setItem(STORAGE_KEYS.defaultRate, safeValue);
-        }
-    }
-        function getDefaultFilamentsValueRaw() {
-        if (hasAndroidBridge() && typeof Android.getDefaultFilaments === 'function') {
-            return safeJSONParse(Android.getDefaultFilaments(), []);
-        }
-        return safeJSONParse(localStorage.getItem(STORAGE_KEYS.defaultFilaments), []);
-    }
-
-    function getDefaultFilamentsValue() {
-        return appState.filaments.map(f => ({ t: f.name, p: f.pricePerKg }));
-    }
-
-    function setDefaultFilamentsValue(filaments) {
-        const json = JSON.stringify(filaments || []);
-        if (hasAndroidBridge() && typeof Android.setDefaultFilaments === 'function') {
-            Android.setDefaultFilaments(json);
-        } else {
-            localStorage.setItem(STORAGE_KEYS.defaultFilaments, json);
-        }
     }
 
     function getSalesFromStorage() {
@@ -1071,8 +979,8 @@
     }
 
     function handleMachineChange() {
-        const select = document.getElementById('machineSelect');
-        const machine = appState.machines.find(m => m.id === select.value);
+        const id = document.getElementById('machineSelect').value;
+        const machine = appState.machines.find(m => m.id === id);
         if (!machine) return;
 
         appState.general.activeMachineId = machine.id;
@@ -1128,17 +1036,13 @@
 
         div.querySelector('.btn-remove').addEventListener('click', () => {
             div.remove();
-            if (document.querySelectorAll('.filament-row').length === 0) {
-                addFilFromInventory();
-            }
+            if (document.querySelectorAll('.filament-row').length === 0) addFilFromInventory();
             calculate();
         });
 
         div.querySelector('.f-t').addEventListener('change', () => {
             const found = findFilamentByName(div.querySelector('.f-t').value);
-            if (found) {
-                div.querySelector('.f-p').value = sanitizeNumber(found.pricePerKg).toString();
-            }
+            if (found) div.querySelector('.f-p').value = sanitizeNumber(found.pricePerKg).toString();
             calculate();
         });
 
@@ -1167,16 +1071,38 @@
 
         document.getElementById('machineSelect').addEventListener('change', handleMachineChange);
 
-        document.getElementById('filaments-container').addEventListener('input', (e) => {
-            if (e.target.closest('.filament-row')) {
-                debounceCalculate();
-            }
+        document.getElementById('filaments-container').addEventListener('input', e => {
+            if (e.target.closest('.filament-row')) debounceCalculate();
         });
 
-        document.getElementById('salesTable').addEventListener('click', (e) => {
+        document.getElementById('salesTable').addEventListener('click', e => {
             const btn = e.target.closest('.btn-del');
             if (!btn) return;
             delSale(btn.dataset.id);
+        });
+
+        document.getElementById('machinesList').addEventListener('click', e => {
+            const btn = e.target.closest('button[data-action]');
+            if (!btn) return;
+            const id = btn.dataset.id;
+            if (btn.dataset.action === 'select') selectMachine(id);
+            if (btn.dataset.action === 'edit') editMachine(id);
+            if (btn.dataset.action === 'delete') deleteMachine(id);
+        });
+
+        document.getElementById('filamentsList').addEventListener('click', e => {
+            const btn = e.target.closest('button[data-action]');
+            if (!btn) return;
+            const id = btn.dataset.id;
+            if (btn.dataset.action === 'add') {
+                const f = appState.filaments.find(x => x.id === id);
+                if (f) {
+                    addFil(f.name, '', f.pricePerKg);
+                    showPage('calc-page', document.querySelector('.tab-btn'));
+                }
+            }
+            if (btn.dataset.action === 'edit') editFilamentItem(id);
+            if (btn.dataset.action === 'delete') deleteFilamentItem(id);
         });
     }
 
@@ -1200,7 +1126,8 @@
         const name = machine ? machine.name : 'الماكينة';
 
         if (confirm(`هل متأكد أنك قمت بصيانة ${name} وتريد تصفير عدادها؟`)) {
-            setMaintenanceHoursValue(0);
+            if (machine) machine.maintenanceHours = 0;
+            saveAppState();
             renderSettings();
             updateMaintUI(sanitizeNumber(document.getElementById('pTime').value));
         }
@@ -1238,8 +1165,10 @@
         saveSaleToStorage(entry);
         sales.unshift(entry);
 
-        const currentH = getMaintenanceHoursValue();
-        setMaintenanceHoursValue(currentH + entry.hours);
+        if (machine) {
+            machine.maintenanceHours = sanitizeNumber(machine.maintenanceHours) + order.time;
+            saveAppState();
+        }
 
         alert('✅ تمت إضافة البيعة إلى السجل بنجاح!');
         resetCurrentOrder();
@@ -1378,9 +1307,7 @@
 
     function saveDefaults() {
         const machine = getActiveMachine();
-        if (machine) {
-            machine.hourlyRate = sanitizeNumber(document.getElementById('hRate').value);
-        }
+        if (machine) machine.hourlyRate = sanitizeNumber(document.getElementById('hRate').value);
 
         appState.general.profit = sanitizeNumber(document.getElementById('prof').value);
         appState.general.laborRate = sanitizeNumber(document.getElementById('laborRate').value);
@@ -1505,9 +1432,7 @@
         document.getElementById('laborRate').value = sanitizeNumber(appState.general.laborRate).toString();
         document.getElementById('packagingCost').value = sanitizeNumber(appState.general.packagingCost).toString();
 
-        if (!keepDiscount) {
-            document.getElementById('disc').value = '0';
-        }
+        if (!keepDiscount) document.getElementById('disc').value = '0';
     }
 
     function renderMachinesList() {
@@ -1528,9 +1453,9 @@
                     الصيانة: ${sanitizeNumber(machine.maintenanceHours).toFixed(1)} / ${sanitizeNumber(machine.maintenanceLimit).toFixed(0)} س
                 </div>
                 <div class="action-row">
-                    <button class="btn btn-small btn-secondary" onclick="selectMachine('${machine.id}')">اختيار</button>
-                    <button class="btn btn-small btn-warning" onclick="editMachine('${machine.id}')">تعديل</button>
-                    <button class="btn btn-small btn-danger" onclick="deleteMachine('${machine.id}')">حذف</button>
+                    <button class="btn btn-small btn-secondary" data-action="select" data-id="${machine.id}">اختيار</button>
+                    <button class="btn btn-small btn-warning" data-action="edit" data-id="${machine.id}">تعديل</button>
+                    <button class="btn btn-small btn-danger" data-action="delete" data-id="${machine.id}">حذف</button>
                 </div>
             `;
 
@@ -1580,6 +1505,7 @@
 
         saveAppState();
         refreshMachineSelect();
+
         const active = getActiveMachine();
         if (active) {
             document.getElementById('machineSelect').value = active.id;
@@ -1631,14 +1557,17 @@
         if (!confirm(`هل تريد حذف ماكينة "${machine.name}"؟`)) return;
 
         appState.machines = appState.machines.filter(m => m.id !== id);
+
         if (appState.general.activeMachineId === id) {
             appState.general.activeMachineId = appState.machines[0].id;
         }
 
         saveAppState();
         refreshMachineSelect();
+
         const active = getActiveMachine();
         document.getElementById('hRate').value = sanitizeNumber(active.hourlyRate).toString();
+
         clearMachineForm();
         renderSettings();
         calculate();
@@ -1661,18 +1590,14 @@
                     سعر الجرام: ${(sanitizeNumber(filament.pricePerKg) / 1000).toFixed(3)} ج
                 </div>
                 <div class="action-row">
-                    <button class="btn btn-small btn-secondary" onclick="addFil('${escapeForAttr(filament.name)}', '', '${sanitizeNumber(filament.pricePerKg)}'); showPage('calc-page', document.querySelector('.tab-btn'));">إضافة للطلب</button>
-                    <button class="btn btn-small btn-warning" onclick="editFilamentItem('${filament.id}')">تعديل</button>
-                    <button class="btn btn-small btn-danger" onclick="deleteFilamentItem('${filament.id}')">حذف</button>
+                    <button class="btn btn-small btn-secondary" data-action="add" data-id="${filament.id}">إضافة للطلب</button>
+                    <button class="btn btn-small btn-warning" data-action="edit" data-id="${filament.id}">تعديل</button>
+                    <button class="btn btn-small btn-danger" data-action="delete" data-id="${filament.id}">حذف</button>
                 </div>
             `;
 
             list.appendChild(div);
         });
-    }
-
-    function escapeForAttr(value) {
-        return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     }
 
     function clearFilamentForm() {
@@ -1755,8 +1680,8 @@
 
         const active = getActiveMachine();
         document.getElementById('hRate').value = sanitizeNumber(active.hourlyRate).toString();
-        applyGeneralSettingsToCalc(false);
 
+        applyGeneralSettingsToCalc(false);
         clearMachineForm();
         clearFilamentForm();
         renderSettings();
@@ -1767,7 +1692,6 @@
 
     function initializeApp() {
         refreshSalesFromStorage();
-
         refreshMachineSelect();
         refreshFilamentDatalist();
 
@@ -1779,9 +1703,8 @@
 
         applyGeneralSettingsToCalc(true);
 
-        const filaments = getDefaultFilamentsValue();
-        if (filaments.length > 0) {
-            filaments.slice(0, 1).forEach(f => addFil(f.t, '', f.p));
+        if (appState.filaments.length > 0) {
+            addFil(appState.filaments[0].name, '', appState.filaments[0].pricePerKg);
         } else {
             addFilFromInventory();
         }
