@@ -2,1720 +2,1666 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bambu Business Manager v9.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bambu Business Manager</title>
     <style>
         :root {
-            --bg-dark: #0a0c10;
-            --card-bg: rgba(23, 27, 34, 0.9);
-            --primary: #00E676;
-            --secondary: #2979FF;
-            --danger: #ff5252;
-            --warning: #ffeb3b;
-            --text-light: #f0f6fc;
-            --text-muted: #8b949e;
-            --border-radius: 14px;
+            --bg: #f4f7f6;
+            --card: #ffffff;
+            --main: #11a36a;
+            --main-dark: #0a7a4d;
+            --text: #1f2933;
+            --muted: #667085;
+            --border: #dde5e2;
+            --danger: #d92d20;
+            --warning: #f59e0b;
+            --shadow: 0 10px 25px rgba(16, 24, 40, 0.08);
+            --radius: 18px;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-light);
             margin: 0;
-            padding-bottom: 70px;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
         }
 
-        .container {
-            max-width: 600px;
+        .app {
+            max-width: 980px;
             margin: 0 auto;
-            padding: 15px;
+            padding: 14px;
+            padding-bottom: 42px;
         }
 
-        .icon-3d-printer {
-            width: 32px;
-            height: 32px;
-            fill: var(--primary);
-            vertical-align: middle;
-            margin-left: 8px;
-        }
-
-        .tab-bar {
-            display: flex;
-            background: #161b22;
+        .top-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 14px;
             position: sticky;
             top: 0;
-            z-index: 100;
-            border-bottom: 1px solid #30363d;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 10;
+            background: rgba(244, 247, 246, 0.94);
+            backdrop-filter: blur(8px);
+            padding: 8px 0;
         }
 
         .tab-btn {
-            flex: 1;
-            padding: 14px 6px;
-            border: none;
-            background: none;
-            color: var(--text-muted);
-            font-weight: bold;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+            padding: 11px 8px;
+            border-radius: 999px;
+            font-weight: 800;
             cursor: pointer;
-            transition: 0.3s;
-            font-size: 13px;
+            box-shadow: 0 4px 14px rgba(16, 24, 40, 0.04);
         }
 
         .tab-btn.active {
-            color: var(--primary);
-            border-bottom: 3px solid var(--primary);
-            background: rgba(0, 230, 118, 0.05);
+            background: var(--main);
+            color: #fff;
+            border-color: var(--main);
         }
 
-        .page { display: none; }
-        .page.active { display: block; animation: fadeIn 0.3s ease; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
+        .page {
+            display: none;
         }
 
-        .section {
-            background: var(--card-bg);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: var(--border-radius);
-            padding: 15px;
-            margin-bottom: 15px;
+        .page.active {
+            display: block;
         }
 
-        .section-title {
+        h1 {
+            margin: 10px 0 16px;
+            text-align: center;
+            font-size: 26px;
+            letter-spacing: -0.5px;
+        }
+
+        h2 {
+            font-size: 19px;
+            margin: 0 0 14px;
+        }
+
+        h3 {
             font-size: 16px;
-            color: var(--primary);
-            margin: 0 0 15px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            margin: 0 0 10px;
         }
 
-        .input-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: var(--shadow);
         }
 
-        .input-group { flex: 1; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
 
         label {
-            display: block;
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-        }
-
-        input, select {
-            width: 100%;
-            background: #000;
-            border: 1px solid #30363d;
-            color: #fff;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
-            box-sizing: border-box;
-            transition: 0.3s;
-        }
-
-        select option {
-            background: #000;
-            color: #fff;
-        }
-
-        input:focus, select:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.1);
-        }
-
-        .filament-row {
-            background: rgba(0,0,0,0.3);
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 12px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .filament-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .btn-remove {
-            background: transparent;
-            color: var(--danger);
-            border: 1px solid var(--danger);
-            border-radius: 6px;
-            font-size: 11px;
-            padding: 4px 8px;
-            cursor: pointer;
-        }
-
-        .btn-add-color {
-            background: rgba(0, 230, 118, 0.1);
-            color: var(--primary);
-            border: 1px dashed var(--primary);
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background: #161b22;
-            padding: 15px;
-            border-radius: 12px;
-            border-right: 4px solid var(--primary);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-        }
-
-        .stat-card h3 {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin: 0;
-        }
-
-        .stat-card p {
-            font-size: 22px;
-            font-weight: bold;
-            margin: 8px 0 0 0;
-            color: #fff;
-        }
-
-        .result-card {
-            background: linear-gradient(145deg, #161b22, #0d1117);
-            border: 2px solid var(--primary);
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .price-value {
-            font-size: 38px;
             font-weight: 800;
-            color: var(--primary);
-            margin: 5px 0;
+            color: #344054;
+            font-size: 14px;
         }
 
-        .details-box {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px dashed #30363d;
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px;
+            background: #fff;
+            color: var(--text);
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--main);
+            box-shadow: 0 0 0 3px rgba(17, 163, 106, 0.13);
+        }
+
+        .muted {
+            color: var(--muted);
             font-size: 13px;
         }
 
-        .detail-item {
-            background: rgba(0,0,0,0.2);
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .detail-item span {
-            display: block;
-            color: #fff;
-            font-weight: bold;
-            font-size: 18px;
-            margin-top: 5px;
-        }
-
-        .btn-grid {
+        .machine-status {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 15px;
+            grid-template-columns: 1fr;
+            gap: 8px;
         }
 
-        .btn {
-            border: none;
-            padding: 12px;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
+        .status-line {
             display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: #f8faf9;
+            border: 1px solid var(--border);
+        }
+
+        .progress {
+            height: 10px;
+            background: #e7efec;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress span {
+            display: block;
+            height: 100%;
+            width: 0;
+            background: var(--main);
+            border-radius: 999px;
+            transition: 0.25s;
+        }
+
+        .btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        button,
+        .download-btn {
+            border: 0;
+            background: var(--main);
+            color: #fff;
+            padding: 11px 14px;
+            border-radius: 14px;
+            font-weight: 900;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
             font-size: 14px;
-            transition: 0.2s;
         }
 
-        .btn:active { transform: scale(0.97); }
-
-        .btn-save {
-            background: #161b22;
-            color: var(--primary);
-            border: 1px solid var(--primary);
-            width: 100%;
-            margin-top: 10px;
+        button.secondary,
+        .download-btn.secondary {
+            background: #eef6f2;
+            color: var(--main-dark);
+            border: 1px solid #cae7da;
         }
 
-        .btn-copy { background: #fff; color: #000; }
-        .btn-whatsapp { background: #25D366; color: white; }
-        .btn-pdf { background: #ff4757; color: white; grid-column: span 2; }
-
-        .btn-confirm {
-            background: var(--primary);
-            color: #000;
-            width: 100%;
-            margin-top: 15px;
-            font-size: 16px;
-            box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3);
-        }
-
-        .btn-export {
-            background: var(--secondary);
-            color: #fff;
-            width: 100%;
-            margin-top: 15px;
-        }
-
-        .btn-small {
-            padding: 8px 10px;
-            border-radius: 8px;
-            font-size: 12px;
-        }
-
-        .btn-secondary {
-            background: rgba(41, 121, 255, 0.12);
-            color: var(--secondary);
-            border: 1px solid var(--secondary);
-        }
-
-        .btn-danger {
-            background: rgba(255, 82, 82, 0.1);
-            border: 1px solid var(--danger);
+        button.danger {
+            background: #fff0ee;
             color: var(--danger);
+            border: 1px solid #ffd0ca;
         }
 
-        .btn-warning {
-            background: rgba(255, 235, 59, 0.08);
-            color: var(--warning);
-            border: 1px solid rgba(255, 235, 59, 0.5);
+        button.warning {
+            background: #fff7e8;
+            color: #a15c00;
+            border: 1px solid #fde3a8;
+        }
+
+        button.full {
+            width: 100%;
+        }
+
+        .filament-row {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr 42px;
+            gap: 8px;
+            align-items: end;
+            margin-bottom: 8px;
+        }
+
+        .result-card {
+            background: linear-gradient(160deg, #0f8f5d, #11a36a);
+            color: #fff;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 14px 34px rgba(17, 163, 106, 0.28);
+            margin-bottom: 14px;
+        }
+
+        .result-title {
+            font-size: 15px;
+            opacity: 0.92;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .final-price {
+            font-size: 42px;
+            line-height: 1.1;
+            font-weight: 1000;
+            margin-bottom: 14px;
+        }
+
+        .result-mini {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .result-mini div {
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 16px;
+            padding: 10px;
+        }
+
+        .result-mini span {
+            display: block;
+            opacity: 0.88;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .result-mini strong {
+            font-size: 18px;
+        }
+
+        .result-card button {
+            background: #fff;
+            color: var(--main-dark);
+        }
+
+        .result-card button.secondary {
+            background: rgba(255, 255, 255, 0.14);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.26);
+        }
+
+        .confirm-btn {
+            margin-top: 8px;
+            width: 100%;
+            background: #fff !important;
+            color: var(--main-dark) !important;
+            font-size: 16px;
+            padding: 14px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .stat {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 12px;
+            box-shadow: 0 6px 15px rgba(16, 24, 40, 0.04);
+        }
+
+        .stat small {
+            display: block;
+            color: var(--muted);
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .stat strong {
+            font-size: 18px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
-            margin-top: 10px;
-            background: #161b22;
-            border-radius: 10px;
             overflow: hidden;
+            border-radius: 16px;
+        }
+
+        th,
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--border);
+            text-align: right;
+            vertical-align: top;
+            font-size: 13px;
         }
 
         th {
-            text-align: right;
-            color: var(--text-muted);
-            padding: 12px;
-            border-bottom: 2px solid #30363d;
-            background: rgba(0,0,0,0.2);
+            background: #f8faf9;
+            font-weight: 900;
+            color: #344054;
         }
 
-        td {
-            padding: 12px;
-            border-bottom: 1px solid #30363d;
-            vertical-align: top;
+        tr:last-child td {
+            border-bottom: 0;
         }
 
-        .btn-del {
-            background: rgba(255, 82, 82, 0.1);
-            border: 1px solid var(--danger);
-            color: var(--danger);
-            cursor: pointer;
-            padding: 6px 10px;
-            border-radius: 6px;
-        }
-
-        .maint-box {
-            background: rgba(0,0,0,0.4);
-            padding: 12px;
-            border-radius: 10px;
-        }
-
-        .maint-bar-bg {
-            width: 100%;
-            height: 8px;
-            background: #30363d;
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 8px 0;
-        }
-
-        .maint-bar-fill {
-            height: 100%;
-            background: var(--primary);
-            width: 0%;
-            transition: width 0.5s ease;
-        }
-
-        .maint-preview {
-            color: var(--text-muted);
-            font-size: 12px;
-            margin-top: 6px;
-        }
-
-        .hint {
-            color: var(--text-muted);
-            font-size: 12px;
-            line-height: 1.7;
-            margin-top: 8px;
-        }
-
-        .list-card {
-            background: rgba(0,0,0,0.28);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 10px;
-        }
-
-        .list-card-title {
-            display: flex;
+        .list-item {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
             align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            font-weight: bold;
+            border: 1px solid var(--border);
+            background: #fff;
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 8px;
         }
 
-        .list-card-sub {
-            color: var(--text-muted);
-            font-size: 12px;
-            margin-top: 6px;
-            line-height: 1.6;
+        .list-title {
+            font-weight: 900;
         }
 
-        .action-row {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-            flex-wrap: wrap;
+        .list-sub {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 3px;
         }
 
-        .badge {
-            display: inline-block;
-            background: rgba(0, 230, 118, 0.12);
-            color: var(--primary);
-            border: 1px solid rgba(0, 230, 118, 0.4);
-            padding: 3px 7px;
-            border-radius: 999px;
-            font-size: 11px;
-            margin-right: 4px;
+        .toast {
+            position: fixed;
+            right: 14px;
+            left: 14px;
+            bottom: 14px;
+            background: #101828;
+            color: #fff;
+            padding: 12px 14px;
+            border-radius: 14px;
+            box-shadow: var(--shadow);
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+            transition: 0.25s;
+            z-index: 50;
+            text-align: center;
+            font-weight: 800;
         }
 
-        #pdf-template { display: none; }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
-        @media (max-width: 430px) {
-            .input-row { flex-direction: column; gap: 8px; }
-            .tab-btn { font-size: 12px; padding: 12px 4px; }
-            .price-value { font-size: 34px; }
+        #invoicePrintArea {
+            display: none;
         }
 
         @media print {
-            body { background: #fff; color: #000; padding: 0; margin: 0; }
-            .tab-bar, .container { display: none !important; }
-            #pdf-template { display: block !important; padding: 20px; }
-            .print-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 16px; }
-            .print-table th, .print-table td { border: 1px solid #000; padding: 12px; text-align: right; }
-            .print-table th { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
-            .print-header { text-align: center; border-bottom: 2px solid #00E676; padding-bottom: 10px; margin-bottom: 20px; }
+            body * {
+                visibility: hidden;
+            }
+
+            #invoicePrintArea,
+            #invoicePrintArea * {
+                visibility: visible;
+            }
+
+            #invoicePrintArea {
+                display: block;
+                position: absolute;
+                inset: 0;
+                padding: 24px;
+                background: #fff;
+                color: #000;
+                direction: rtl;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .grid,
+            .grid-3,
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .filament-row {
+                grid-template-columns: 1fr 0.8fr 42px;
+            }
+
+            .final-price {
+                font-size: 36px;
+            }
         }
     </style>
 </head>
 <body>
-
-<div class="tab-bar">
-    <button class="tab-btn active" onclick="showPage('calc-page', this)">🖩 الحاسبة</button>
-    <button class="tab-btn" onclick="showPage('sales-page', this); loadSales();">📊 السجل</button>
-    <button class="tab-btn" onclick="showPage('settings-page', this); renderSettings();">⚙️ الإعدادات</button>
-</div>
-
-<div class="container">
-    <div class="header" style="text-align: center; margin: 15px 0;">
-        <h1>Bambu Business
-            <span style="color:var(--primary)">
-                <svg class="icon-3d-printer" viewBox="0 0 24 24">
-                    <path d="M12,2L2,7V17L12,22L22,17V7L12,2ZM12,4.2L19.5,8L12,11.8L4.5,8L12,4.2ZM4,10.1L11,13.6V20L4,16.5V10.1ZM13,20V13.6L20,10.1V16.5L13,20Z"/>
-                </svg>
-                Manager
-            </span>
-        </h1>
+<div class="app">
+    <div class="top-tabs">
+        <button class="tab-btn active" onclick="showPage('calc')">الحاسبة السريعة</button>
+        <button class="tab-btn" onclick="showPage('log')">السجل والأرباح</button>
+        <button class="tab-btn" onclick="showPage('settings')">الإعدادات</button>
     </div>
 
-    <div id="calc-page" class="page active">
-        <div class="section">
-            <h2 class="section-title">🛠️ حالة الماكينة</h2>
-            <div class="input-group" style="margin-bottom:10px;">
-                <label>اختار الماكينة</label>
-                <select id="machineSelect" class="calc-trigger"></select>
-            </div>
-            <div class="maint-box">
-                <div style="display: flex; justify-content: space-between; font-size: 13px;">
-                    <span>الساعات المسجلة: <span id="maintHours">0</span> / <span id="maintLimit">200</span> س</span>
-                    <button onclick="resetMaint()" style="background:none; border:none; color:var(--danger); text-decoration:underline; font-size:12px; cursor:pointer;">تصفير الصيانة</button>
+    <section id="page-calc" class="page active">
+        <h1>Bambu Business Manager</h1>
+
+        <div class="card">
+            <h2>⚙️ حالة الماكينة</h2>
+            <div class="machine-status">
+                <div class="field">
+                    <label>اختيار ماكينة للحساب</label>
+                    <select id="machineSelect" onchange="onMachineChanged()"></select>
                 </div>
-                <div class="maint-bar-bg"><div class="maint-bar-fill" id="maintBar"></div></div>
-                <div class="maint-preview" id="maintPreview">بعد الطلب الحالي: 0.0 س</div>
+                <div class="status-line">
+                    <strong id="machineHoursText">الساعات المسجلة: 0 / 200 س</strong>
+                    <button class="secondary" onclick="resetSelectedMachineHours()">تصفير الصيانة</button>
+                </div>
+                <div class="progress"><span id="maintenanceProgress"></span></div>
+                <div class="status-line">
+                    <span>بعد الطلب الحالي:</span>
+                    <strong id="afterOrderHours">0.0 س</strong>
+                </div>
             </div>
         </div>
 
-        <div class="section">
-            <h2 class="section-title">👤 العميل والطلب</h2>
-            <div class="input-row">
-                <div class="input-group">
+        <div class="card">
+            <h2>👤 العميل والطلب</h2>
+            <div class="grid">
+                <div class="field">
                     <label>اسم العميل</label>
-                    <input type="text" id="cName" placeholder="اختياري" maxlength="100">
+                    <input id="clientName" type="text" placeholder="مثال: أحمد محمد">
                 </div>
-                <div class="input-group">
+                <div class="field">
                     <label>اسم المجسم</label>
-                    <input type="text" id="mName" placeholder="اختياري" maxlength="100">
+                    <input id="modelName" type="text" placeholder="مثال: حامل موبايل">
                 </div>
             </div>
         </div>
 
-        <div class="section">
-            <h2 class="section-title">⚙️ التشغيل والخامات</h2>
-            <div class="input-row">
-                <div class="input-group">
+        <div class="card">
+            <h2>⚙️ التشغيل والخامات</h2>
+            <div class="grid">
+                <div class="field">
                     <label>وقت الطباعة (ساعات)</label>
-                    <input type="number" id="pTime" class="calc-trigger" placeholder="0" min="0" step="0.1">
+                    <input id="printHours" type="number" min="0" step="0.1" value="0" oninput="calculate()">
                 </div>
-                <div class="input-group">
-                    <label>سعر ساعة التشغيل</label>
-                    <input type="number" id="hRate" class="calc-trigger" value="20" min="0" step="0.01">
+                <div class="field">
+                    <label>سعر الساعة (الماكينة)</label>
+                    <input id="machineRate" type="number" min="0" step="0.1" value="0" oninput="calculate()">
                 </div>
             </div>
 
-            <datalist id="filamentTypes">
-                <option value="PLA">
-                <option value="PLA Silk">
-                <option value="PLA Matte">
-                <option value="PETG">
-                <option value="TPU">
-                <option value="ABS">
-            </datalist>
+            <div style="height:12px"></div>
 
-            <div id="filaments-container"></div>
-            <button onclick="addFil()" class="btn-add-color">➕ إضافة لون / خامة للطلب</button>
+            <h3>الخامات المستخدمة في الطلب</h3>
+            <div id="orderMaterials"></div>
+            <button class="secondary" onclick="addOrderMaterialRow()">➕ إضافة خامة للطلب</button>
 
-            <div class="input-group" style="margin-top:15px;">
-                <label>🗑️ وزن الهالك الإجمالي (جرام)</label>
-                <input type="number" id="waste" class="calc-trigger" placeholder="0" min="0" step="0.1">
+            <div style="height:12px"></div>
+
+            <div class="grid">
+                <div class="field">
+                    <label>وزن الهالك الإجمالي (جرام)</label>
+                    <input id="wasteWeight" type="number" min="0" step="0.1" value="0" oninput="calculate()">
+                </div>
+                <div class="field">
+                    <label>دقائق الشغل اليدوي</label>
+                    <input id="manualMinutes" type="number" min="0" step="1" value="0" oninput="calculate()">
+                </div>
             </div>
         </div>
 
-        <div class="section">
-            <h2 class="section-title">🧰 شغل يدوي وتغليف</h2>
-            <div class="input-row">
-                <div class="input-group">
-                    <label>وقت الشغل اليدوي (دقائق)</label>
-                    <input type="number" id="manualMinutes" class="calc-trigger" value="0" min="0" step="1">
-                </div>
-                <div class="input-group">
-                    <label>سعر ساعة الشغل اليدوي</label>
-                    <input type="number" id="laborRate" class="calc-trigger" value="0" min="0" step="0.01">
-                </div>
-            </div>
-            <div class="input-group">
-                <label>تكلفة التغليف</label>
-                <input type="number" id="packagingCost" class="calc-trigger" value="0" min="0" step="0.01">
-            </div>
-            <div class="hint">ممكن تسيب الشغل اليدوي أو التغليف بصفر لو الطلب مش محتاجهم.</div>
-        </div>
-
-        <div class="section">
-            <h2 class="section-title">💰 الربح والخصم</h2>
-            <div class="input-row">
-                <div class="input-group">
+        <div class="card">
+            <h2>💰 الربح والخصم</h2>
+            <div class="grid">
+                <div class="field">
                     <label>نسبة الربح على التكلفة (%)</label>
-                    <input type="number" id="prof" class="calc-trigger" value="100" min="0" step="0.01">
+                    <input id="profitPercent" type="number" min="0" step="0.1" value="0" oninput="calculate()">
                 </div>
-                <div class="input-group">
+                <div class="field">
                     <label>خصم (جنيه)</label>
-                    <input type="number" id="disc" class="calc-trigger" value="0" min="0" step="0.01">
+                    <input id="discount" type="number" min="0" step="0.1" value="0" oninput="calculate()">
+                </div>
+                <div class="field">
+                    <label>سعر ساعة الشغل اليدوي</label>
+                    <input id="manualRate" type="number" min="0" step="0.1" value="0" oninput="calculate()">
+                </div>
+                <div class="field">
+                    <label>تكلفة التغليف</label>
+                    <input id="packagingCost" type="number" min="0" step="0.1" value="0" oninput="calculate()">
                 </div>
             </div>
-            <button onclick="saveDefaults()" class="btn btn-save">💾 حفظ الإعدادات كأساسي</button>
+            <div style="height:12px"></div>
+            <button class="secondary" onclick="saveGeneralFromCalculator()">حفظ الإعدادات كأساسي</button>
         </div>
 
         <div class="result-card">
-            <div style="font-size:14px; color:var(--text-muted);">السعر النهائي للعميل</div>
-            <div class="price-value"><span id="finalP">0</span> ج</div>
-            <div class="details-box">
-                <div class="detail-item" style="color: var(--text-muted);">التكلفة عليك:<span id="actualC">0 ج</span></div>
-                <div class="detail-item" style="color: var(--primary);">صافي ربحك:<span id="netP">0 ج</span></div>
-            </div>
-            <div class="btn-grid">
-                <button class="btn btn-copy" onclick="copyInvoiceText()">📋 نسخ الفاتورة</button>
-                <button class="btn btn-whatsapp" onclick="shareWA()">💬 واتساب</button>
-                <button class="btn btn-pdf" onclick="generatePDFNative()">📄 طباعة / PDF</button>
-            </div>
-            <button onclick="confirmSale()" class="btn btn-confirm">✅ تأكيد البيعة وتسجيلها في الدفتر</button>
-        </div>
-    </div>
+            <div class="result-title">السعر النهائي للعميل</div>
+            <div class="final-price"><span id="finalPrice">0</span> ج</div>
 
-    <div id="sales-page" class="page">
-        <div class="stats-grid">
-            <div class="stat-card"><h3>💰 إجمالي المبيعات</h3><p id="statSales">0 ج</p></div>
-            <div class="stat-card"><h3>⏳ ساعات العمل</h3><p id="statHours">0 س</p></div>
-            <div class="stat-card"><h3>🧵 استهلاك خامات</h3><p id="statWeight">0 كجم</p></div>
-            <div class="stat-card"><h3>🗑️ إجمالي الهالك</h3><p id="statWaste">0 جرام</p></div>
+            <div class="result-mini">
+                <div>
+                    <span>التكلفة عليك</span>
+                    <strong><span id="totalCost">0</span> ج</strong>
+                </div>
+                <div>
+                    <span>صافي ربحك</span>
+                    <strong><span id="netProfit">0</span> ج</strong>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button onclick="copyInvoice()">نسخ الفاتورة</button>
+                <button onclick="sendWhatsApp()">واتساب</button>
+                <button onclick="printInvoice()">طباعة / PDF</button>
+            </div>
+
+            <button class="confirm-btn" onclick="confirmSale()">✅ تأكيد البيعة وتسجيلها في الدفتر</button>
+        </div>
+    </section>
+
+    <section id="page-log" class="page">
+        <h1>السجل والأرباح</h1>
+
+        <div class="stats">
+            <div class="stat">
+                <small>إجمالي المبيعات</small>
+                <strong id="statSales">0 ج</strong>
+            </div>
+            <div class="stat">
+                <small>إجمالي الأرباح</small>
+                <strong id="statProfit">0 ج</strong>
+            </div>
+            <div class="stat">
+                <small>ساعات العمل</small>
+                <strong id="statHours">0 س</strong>
+            </div>
+            <div class="stat">
+                <small>استهلاك الخامات</small>
+                <strong id="statWeight">0 كجم</strong>
+            </div>
         </div>
 
-        <div class="section">
-            <h2 class="section-title">📋 سجل المبيعات (الدفتر)</h2>
-            <div style="overflow-x:auto;">
+        <div class="card" style="margin-top:14px">
+            <h2>سجل المبيعات (الدفتر)</h2>
+            <div class="btn-row" style="margin-bottom:12px">
+                <button class="secondary" onclick="loadSales()">تحديث السجل</button>
+                <button class="secondary" onclick="exportCSV()">تصدير CSV / Excel</button>
+                <button class="danger" onclick="clearSales()">مسح كل السجل</button>
+            </div>
+
+            <div style="overflow:auto">
                 <table>
                     <thead>
-                        <tr>
-                            <th>التاريخ</th>
-                            <th>العميل والمجسم</th>
-                            <th>الربح</th>
-                            <th style="text-align: center;">حذف</th>
-                        </tr>
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>العميل والمجسم</th>
+                        <th>البيع</th>
+                        <th>التكلفة</th>
+                        <th>الربح</th>
+                        <th>تفاصيل</th>
+                        <th>حذف</th>
+                    </tr>
                     </thead>
-                    <tbody id="salesTable"></tbody>
+                    <tbody id="salesTable">
+                    <tr>
+                        <td colspan="7">لا توجد مبيعات مسجلة.</td>
+                    </tr>
+                    </tbody>
                 </table>
             </div>
-            <button onclick="exportCSV()" class="btn btn-export">📥 تصدير السجل لملف إكسيل (Excel)</button>
         </div>
-    </div>
+    </section>
 
-    <div id="settings-page" class="page">
-        <div class="section">
-            <h2 class="section-title">⚙️ الإعدادات العامة</h2>
-            <div class="input-row">
-                <div class="input-group">
+    <section id="page-settings" class="page">
+        <h1>الإعدادات</h1>
+
+        <div class="card">
+            <h2>الإعدادات العامة</h2>
+            <div class="grid-3">
+                <div class="field">
                     <label>نسبة الربح الافتراضية (%)</label>
-                    <input type="number" id="setDefaultProfit" value="100" min="0" step="0.01">
+                    <input id="setProfitPercent" type="number" min="0" step="0.1">
                 </div>
-                <div class="input-group">
+                <div class="field">
+                    <label>سعر ساعة الشغل اليدوي الافتراضي</label>
+                    <input id="setManualRate" type="number" min="0" step="0.1">
+                </div>
+                <div class="field">
                     <label>تكلفة التغليف الافتراضية</label>
-                    <input type="number" id="setDefaultPackaging" value="0" min="0" step="0.01">
+                    <input id="setPackagingCost" type="number" min="0" step="0.1">
                 </div>
             </div>
-            <div class="input-group">
-                <label>سعر ساعة الشغل اليدوي الافتراضي</label>
-                <input type="number" id="setDefaultLaborRate" value="0" min="0" step="0.01">
-            </div>
-            <button onclick="saveGeneralSettings()" class="btn btn-save">💾 حفظ الإعدادات العامة</button>
-            <div class="hint">دي أرقام ثابتة تتحمل تلقائيًا كل مرة تفتح التطبيق، وتقدر تغيرها في أي وقت.</div>
+            <div style="height:12px"></div>
+            <button onclick="saveGeneralSettings()">حفظ الإعدادات العامة</button>
         </div>
 
-        <div class="section">
-            <h2 class="section-title">🖨️ إدارة الماكينات</h2>
-            <div class="input-row">
-                <div class="input-group">
+        <div class="card">
+            <h2>إدارة الماكينات</h2>
+            <div class="grid">
+                <div class="field">
                     <label>اسم الماكينة</label>
-                    <input type="text" id="machineName" placeholder="Bambu Lab A1 Combo" maxlength="80">
+                    <input id="printerName" type="text" placeholder="مثال: Bambu P1S">
                 </div>
-                <div class="input-group">
+                <div class="field">
                     <label>سعر ساعة التشغيل</label>
-                    <input type="number" id="machineRateInput" placeholder="20" min="0" step="0.01">
+                    <input id="printerRate" type="number" min="0" step="0.1" placeholder="مثال: 35">
                 </div>
-            </div>
-            <div class="input-row">
-                <div class="input-group">
+                <div class="field">
                     <label>حد الصيانة بالساعات</label>
-                    <input type="number" id="machineMaintLimitInput" placeholder="5000" min="1" step="1">
+                    <input id="printerMaintenanceLimit" type="number" min="0" step="1" placeholder="مثال: 200">
                 </div>
-                <div class="input-group">
+                <div class="field">
                     <label>الساعات الحالية</label>
-                    <input type="number" id="machineHoursInput" placeholder="0" min="0" step="0.1">
+                    <input id="printerCurrentHours" type="number" min="0" step="0.1" placeholder="مثال: 0">
                 </div>
             </div>
-            <button onclick="saveMachine()" class="btn btn-save" id="machineSaveBtn">➕ إضافة ماكينة</button>
-            <button onclick="clearMachineForm()" class="btn btn-secondary" style="width:100%; margin-top:10px;">تفريغ بيانات الماكينة</button>
-            <div id="machinesList" style="margin-top:15px;"></div>
+            <div style="height:12px"></div>
+            <button onclick="addPrinter()">إضافة ماكينة</button>
+            <div style="height:12px"></div>
+            <div id="printersList"></div>
         </div>
 
-        <div class="section">
-            <h2 class="section-title">🧵 إدارة الخامات</h2>
-            <div class="input-row">
-                <div class="input-group">
-                    <label>نوع / اسم الخامة</label>
-                    <input type="text" id="filamentNameInput" placeholder="PLA - أبيض - Bambu" maxlength="100">
+        <div class="card">
+            <h2>إدارة الخامات</h2>
+            <div class="grid">
+                <div class="field">
+                    <label>اسم / نوع الخامة</label>
+                    <input id="matName" type="text" placeholder="مثال: PLA">
                 </div>
-                <div class="input-group">
-                    <label>السعر / كجم</label>
-                    <input type="number" id="filamentPriceInput" placeholder="1000" min="0" step="0.01">
+                <div class="field">
+                    <label>اللون</label>
+                    <input id="matColor" type="text" placeholder="مثال: أسود">
+                </div>
+                <div class="field">
+                    <label>الشركة</label>
+                    <input id="matBrand" type="text" placeholder="مثال: Bambu Lab">
+                </div>
+                <div class="field">
+                    <label>السعر لكل كجم</label>
+                    <input id="matKgPrice" type="number" min="0" step="0.1" placeholder="مثال: 900">
                 </div>
             </div>
-            <button onclick="saveFilamentItem()" class="btn btn-save" id="filamentSaveBtn">➕ إضافة خامة</button>
-            <button onclick="clearFilamentForm()" class="btn btn-secondary" style="width:100%; margin-top:10px;">تفريغ بيانات الخامة</button>
-            <div id="filamentsList" style="margin-top:15px;"></div>
+            <div style="height:12px"></div>
+            <button onclick="addMaterial()">إضافة خامة</button>
+            <div style="height:12px"></div>
+            <div id="materialsList"></div>
         </div>
-
-        <div class="section">
-            <h2 class="section-title">🧹 أدوات البيانات</h2>
-            <button onclick="resetAllDefaults()" class="btn btn-danger" style="width:100%;">إرجاع الإعدادات الافتراضية</button>
-            <div class="hint">لن يمسح سجل المبيعات. سيعيد فقط الماكينات والخامات والإعدادات الافتراضية.</div>
-        </div>
-    </div>
+    </section>
 </div>
 
-<div id="pdf-template" dir="rtl">
-    <div class="print-header">
-        <h1 style="margin: 0; color: #1a1a1a;">فاتورة طلب طباعة 3D</h1>
-        <p style="color: #666; margin-top: 5px;">Bambu Lab Services</p>
-    </div>
-
-    <div style="margin-bottom: 20px; line-height: 1.8; font-size: 16px;">
-        <p><strong>التاريخ:</strong> <span id="pdf-date"></span></p>
-        <p><strong>اسم العميل:</strong> <span id="pdf-client"></span></p>
-        <p><strong>وصف المجسم:</strong> <span id="pdf-model"></span></p>
-    </div>
-
-    <table class="print-table">
-        <tr>
-            <th>البيان</th>
-            <th style="width: 150px; text-align: center;">المبلغ</th>
-        </tr>
-        <tr>
-            <td>إجمالي السعر للطباعة والخامات</td>
-            <td style="text-align: center;"><span id="pdf-total"></span> ج.م</td>
-        </tr>
-        <tr id="pdf-discount-row" style="display: none;">
-            <td style="color: red;">قيمة الخصم</td>
-            <td style="text-align: center; color: red;">- <span id="pdf-disc-val"></span> ج.م</td>
-        </tr>
-        <tr>
-            <th style="font-size: 20px; text-align: right;">الإجمالي النهائي المستحق</th>
-            <th style="font-size: 20px; text-align: center; color: #00E676; -webkit-print-color-adjust: exact;">
-                <span id="pdf-final"></span> ج.م
-            </th>
-        </tr>
-    </table>
-</div>
+<div id="invoicePrintArea"></div>
+<div id="toast" class="toast"></div>
 
 <script>
-    const STORAGE_KEYS = {
-        sales: 'bambu_sales',
-        maintenance: 'bambu_maint',
-        defaultRate: 'def_rate',
-        defaultFilaments: 'def_fils',
-        appSettings: 'bambu_app_settings_v9'
-    };
-
-    const DEFAULT_STATE = {
+    const DEFAULT_SETTINGS = {
+        selectedPrinterId: "",
         general: {
-            profit: 100,
-            laborRate: 0,
-            packagingCost: 0,
-            activeMachineId: 'machine_default'
+            profitPercent: 50,
+            manualRate: 50,
+            packagingCost: 10
         },
-        machines: [
+        printers: [
             {
-                id: 'machine_default',
-                name: 'Bambu Lab A1 Combo',
-                hourlyRate: 20,
-                maintenanceLimit: 5000,
-                maintenanceHours: 0
+                id: "printer_" + Date.now(),
+                name: "Bambu Printer",
+                hourlyRate: 35,
+                maintenanceLimit: 200,
+                currentHours: 0
             }
         ],
-        filaments: [
-            { id: 'fil_default_pla', name: 'PLA', pricePerKg: 1000 }
+        materials: [
+            {
+                id: "mat_" + Date.now(),
+                name: "PLA",
+                color: "أسود",
+                brand: "عام",
+                kgPrice: 900
+            }
         ]
     };
 
-    let sales = [];
-    let calcTimer = null;
-    let appState = loadAppState();
-    let editingMachineId = null;
-    let editingFilamentId = null;
+    let settings = structuredCloneSafe(DEFAULT_SETTINGS);
+    let salesCache = [];
+    let lastCalc = {};
+    let orderRowCounter = 0;
 
-    function hasAndroidBridge() {
-        return !!window.Android;
-    }
+    document.addEventListener("DOMContentLoaded", function () {
+        loadSettings();
+        normalizeSettings();
+        renderAll();
+        loadSales();
+        calculate();
+    });
 
-    function safeJSONParse(value, fallback) {
-        try {
-            if (value === null || value === undefined || value === '') return fallback;
-            return JSON.parse(value) ?? fallback;
-        } catch {
-            return fallback;
-        }
-    }
-
-    function sanitizeNumber(value, min = 0) {
-        const parsed = parseFloat(value);
-        if (!Number.isFinite(parsed)) return min;
-        return Math.max(min, parsed);
-    }
-
-    function getText(id) {
-        return document.getElementById(id).value.trim();
-    }
-
-    function makeId(prefix) {
-        return prefix + '_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-    }
-
-    function clone(obj) {
+    function structuredCloneSafe(obj) {
         return JSON.parse(JSON.stringify(obj));
     }
 
-    function getOldDefaultRate() {
-        if (hasAndroidBridge() && typeof Android.getDefaultRate === 'function') {
-            const value = Android.getDefaultRate();
-            return value !== null && value !== undefined ? value : null;
-        }
-        return localStorage.getItem(STORAGE_KEYS.defaultRate);
+    function num(value) {
+        const n = parseFloat(value);
+        return isNaN(n) ? 0 : n;
     }
 
-    function getOldMaintenanceHours() {
-        if (hasAndroidBridge() && typeof Android.getMaintenanceHours === 'function') {
-            return sanitizeNumber(Android.getMaintenanceHours());
-        }
-        return sanitizeNumber(localStorage.getItem(STORAGE_KEYS.maintenance));
+    function money(value) {
+        return Math.round(num(value)).toLocaleString("ar-EG");
     }
 
-    function getOldDefaultFilaments() {
-        if (hasAndroidBridge() && typeof Android.getDefaultFilaments === 'function') {
-            return safeJSONParse(Android.getDefaultFilaments(), []);
-        }
-        return safeJSONParse(localStorage.getItem(STORAGE_KEYS.defaultFilaments), []);
+    function fixed(value, digits = 1) {
+        return num(value).toFixed(digits);
     }
 
-    function loadAppState() {
-        const saved = safeJSONParse(localStorage.getItem(STORAGE_KEYS.appSettings), null);
-        let state = saved || clone(DEFAULT_STATE);
+    function makeId(prefix) {
+        return prefix + "_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+    }
 
-        if (!state.general) state.general = clone(DEFAULT_STATE.general);
-        if (!Array.isArray(state.machines) || state.machines.length === 0) state.machines = clone(DEFAULT_STATE.machines);
-        if (!Array.isArray(state.filaments) || state.filaments.length === 0) state.filaments = clone(DEFAULT_STATE.filaments);
+    function toast(message) {
+        const el = document.getElementById("toast");
+        el.textContent = message;
+        el.classList.add("show");
+        setTimeout(() => el.classList.remove("show"), 2200);
+    }
 
-        if (!saved) {
-            const oldRate = getOldDefaultRate();
-            if (oldRate !== null) state.machines[0].hourlyRate = sanitizeNumber(oldRate, 20);
+    function showPage(name) {
+        document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.getElementById("page-" + name).classList.add("active");
 
-            const oldMaint = getOldMaintenanceHours();
-            if (oldMaint > 0) state.machines[0].maintenanceHours = oldMaint;
+        const map = {calc: 0, log: 1, settings: 2};
+        document.querySelectorAll(".tab-btn")[map[name]].classList.add("active");
 
-            const oldFils = getOldDefaultFilaments();
-            if (oldFils.length > 0) {
-                state.filaments = oldFils
-                    .filter(f => String(f.t || '').trim() !== '' || sanitizeNumber(f.p) > 0)
-                    .map((f, index) => ({
-                        id: 'old_fil_' + index + '_' + Date.now(),
-                        name: String(f.t || 'PLA').trim() || 'PLA',
-                        pricePerKg: sanitizeNumber(f.p, 1000)
-                    }));
-                if (state.filaments.length === 0) state.filaments = clone(DEFAULT_STATE.filaments);
+        if (name === "log") loadSales();
+        if (name === "settings") renderSettings();
+    }
+
+    function loadSettings() {
+        try {
+            if (window.Android && Android.getAppSettings) {
+                const raw = Android.getAppSettings();
+                if (raw) settings = JSON.parse(raw);
+                return;
             }
+        } catch (e) {
         }
 
-        if (!state.general.activeMachineId || !state.machines.some(m => m.id === state.general.activeMachineId)) {
-            state.general.activeMachineId = state.machines[0].id;
-        }
-
-        return state;
-    }
-
-    function saveAppState() {
-        localStorage.setItem(STORAGE_KEYS.appSettings, JSON.stringify(appState));
-
-        const machine = getActiveMachine();
-        const rate = machine ? machine.hourlyRate : 20;
-        const hours = machine ? machine.maintenanceHours : 0;
-
-        if (hasAndroidBridge() && typeof Android.setDefaultRate === 'function') {
-            Android.setDefaultRate(String(rate));
-        } else {
-            localStorage.setItem(STORAGE_KEYS.defaultRate, String(rate));
-        }
-
-        if (hasAndroidBridge() && typeof Android.setMaintenanceHours === 'function') {
-            Android.setMaintenanceHours(String(hours));
-        } else {
-            localStorage.setItem(STORAGE_KEYS.maintenance, String(hours));
-        }
-
-        const filaments = appState.filaments.map(f => ({ t: f.name, p: f.pricePerKg }));
-        const json = JSON.stringify(filaments);
-
-        if (hasAndroidBridge() && typeof Android.setDefaultFilaments === 'function') {
-            Android.setDefaultFilaments(json);
-        } else {
-            localStorage.setItem(STORAGE_KEYS.defaultFilaments, json);
+        try {
+            const raw = localStorage.getItem("bambu_app_settings_v2");
+            if (raw) settings = JSON.parse(raw);
+        } catch (e) {
+            settings = structuredCloneSafe(DEFAULT_SETTINGS);
         }
     }
 
-    function getActiveMachine() {
-        return appState.machines.find(m => m.id === appState.general.activeMachineId) || appState.machines[0];
-    }
+    function saveSettings() {
+        normalizeSettings();
 
-    function debounceCalculate() {
-        clearTimeout(calcTimer);
-        calcTimer = setTimeout(calculate, 80);
-    }
+        const raw = JSON.stringify(settings);
 
-    function getSalesFromStorage() {
-        if (hasAndroidBridge() && typeof Android.getSales === 'function') {
-            return safeJSONParse(Android.getSales(), []);
+        try {
+            localStorage.setItem("bambu_app_settings_v2", raw);
+        } catch (e) {
         }
-        return safeJSONParse(localStorage.getItem(STORAGE_KEYS.sales), []);
-    }
 
-    function saveSaleToStorage(entry) {
-        if (hasAndroidBridge() && typeof Android.saveSale === 'function') {
-            Android.saveSale(JSON.stringify(entry));
-        } else {
-            sales.unshift(entry);
-            localStorage.setItem(STORAGE_KEYS.sales, JSON.stringify(sales));
+        try {
+            if (window.Android && Android.setAppSettings) {
+                Android.setAppSettings(raw);
+            }
+        } catch (e) {
         }
     }
 
-    function deleteSaleFromStorage(id) {
-        if (hasAndroidBridge() && typeof Android.deleteSale === 'function') {
-            Android.deleteSale(String(id));
-        } else {
-            sales = sales.filter(s => String(s.id) !== String(id));
-            localStorage.setItem(STORAGE_KEYS.sales, JSON.stringify(sales));
+    function normalizeSettings() {
+        if (!settings || typeof settings !== "object") settings = structuredCloneSafe(DEFAULT_SETTINGS);
+        if (!settings.general) settings.general = structuredCloneSafe(DEFAULT_SETTINGS.general);
+        if (!Array.isArray(settings.printers)) settings.printers = [];
+        if (!Array.isArray(settings.materials)) settings.materials = [];
+
+        if (settings.printers.length === 0) {
+            settings.printers.push(structuredCloneSafe(DEFAULT_SETTINGS.printers[0]));
+        }
+
+        if (settings.materials.length === 0) {
+            settings.materials.push(structuredCloneSafe(DEFAULT_SETTINGS.materials[0]));
+        }
+
+        settings.printers = settings.printers.map(p => ({
+            id: p.id || makeId("printer"),
+            name: p.name || "ماكينة",
+            hourlyRate: num(p.hourlyRate),
+            maintenanceLimit: num(p.maintenanceLimit) || 200,
+            currentHours: num(p.currentHours)
+        }));
+
+        settings.materials = settings.materials.map(m => ({
+            id: m.id || makeId("mat"),
+            name: m.name || "خامة",
+            color: m.color || "",
+            brand: m.brand || "",
+            kgPrice: num(m.kgPrice)
+        }));
+
+        settings.general.profitPercent = num(settings.general.profitPercent);
+        settings.general.manualRate = num(settings.general.manualRate);
+        settings.general.packagingCost = num(settings.general.packagingCost);
+
+        if (!settings.selectedPrinterId || !settings.printers.some(p => p.id === settings.selectedPrinterId)) {
+            settings.selectedPrinterId = settings.printers[0].id;
         }
     }
 
-    function refreshSalesFromStorage() {
-        sales = getSalesFromStorage();
+    function renderAll() {
+        renderMachineSelect();
+        renderOrderMaterials();
+        renderSettings();
+        applyDefaultsToCalculator();
+        updateMachineStatus();
     }
 
-    function computeOrder() {
-        const time = sanitizeNumber(document.getElementById('pTime').value);
-        const rate = sanitizeNumber(document.getElementById('hRate').value);
-        const wasteW = sanitizeNumber(document.getElementById('waste').value);
-        const profit = sanitizeNumber(document.getElementById('prof').value);
-        const manualMinutes = sanitizeNumber(document.getElementById('manualMinutes').value);
-        const laborRate = sanitizeNumber(document.getElementById('laborRate').value);
-        const packagingCost = sanitizeNumber(document.getElementById('packagingCost').value);
-        let discount = sanitizeNumber(document.getElementById('disc').value);
+    function renderMachineSelect() {
+        const select = document.getElementById("machineSelect");
+        select.innerHTML = "";
 
-        let filamentCost = 0;
-        let totalWeight = 0;
-
-        document.querySelectorAll('.filament-row').forEach(row => {
-            const weight = sanitizeNumber(row.querySelector('.f-w').value);
-            const pricePerKg = sanitizeNumber(row.querySelector('.f-p').value);
-            filamentCost += weight * (pricePerKg / 1000);
-            totalWeight += weight;
-        });
-
-        const avgGramCost = totalWeight > 0 ? filamentCost / totalWeight : 0;
-        const wasteCost = wasteW * avgGramCost;
-        const machineCost = time * rate;
-        const laborCost = (manualMinutes / 60) * laborRate;
-
-        const totalCost = machineCost + filamentCost + wasteCost + laborCost + packagingCost;
-        discount = Math.min(discount, totalCost * (1 + profit / 100));
-
-        let finalPrice = (totalCost * (1 + profit / 100)) - discount;
-        finalPrice = Math.ceil(finalPrice / 5) * 5;
-        if (finalPrice < 0) finalPrice = 0;
-
-        return {
-            time,
-            rate,
-            machineCost,
-            totalWeight,
-            filamentCost,
-            wasteW,
-            wasteCost,
-            manualMinutes,
-            laborRate,
-            laborCost,
-            packagingCost,
-            totalCost,
-            profit,
-            discount,
-            finalPrice,
-            netProfit: finalPrice - totalCost
-        };
-    }
-
-    function calculate() {
-        const order = computeOrder();
-        document.getElementById('finalP').innerText = order.finalPrice.toFixed(0);
-        document.getElementById('actualC').innerText = order.totalCost.toFixed(2) + ' ج';
-        document.getElementById('netP').innerText = order.netProfit.toFixed(2) + ' ج';
-        updateMaintUI(order.time);
-    }
-
-    function showPage(id, btn) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        if (btn) btn.classList.add('active');
-    }
-
-    function refreshMachineSelect() {
-        const select = document.getElementById('machineSelect');
-        select.innerHTML = '';
-
-        appState.machines.forEach(machine => {
-            const opt = document.createElement('option');
-            opt.value = machine.id;
-            opt.textContent = `${machine.name} - ${sanitizeNumber(machine.hourlyRate).toFixed(2)} ج/س`;
+        settings.printers.forEach(printer => {
+            const opt = document.createElement("option");
+            opt.value = printer.id;
+            opt.textContent = printer.name + " - " + money(printer.hourlyRate) + " ج/س";
             select.appendChild(opt);
         });
 
-        select.value = appState.general.activeMachineId;
+        select.value = settings.selectedPrinterId;
     }
 
-    function handleMachineChange() {
-        const id = document.getElementById('machineSelect').value;
-        const machine = appState.machines.find(m => m.id === id);
-        if (!machine) return;
+    function selectedPrinter() {
+        return settings.printers.find(p => p.id === settings.selectedPrinterId) || settings.printers[0];
+    }
 
-        appState.general.activeMachineId = machine.id;
-        document.getElementById('hRate').value = sanitizeNumber(machine.hourlyRate).toString();
-        saveAppState();
+    function onMachineChanged() {
+        settings.selectedPrinterId = document.getElementById("machineSelect").value;
+        const printer = selectedPrinter();
+        document.getElementById("machineRate").value = printer.hourlyRate;
+        saveSettings();
+        updateMachineStatus();
         calculate();
     }
 
-    function refreshFilamentDatalist() {
-        const list = document.getElementById('filamentTypes');
-        list.innerHTML = '';
+    function applyDefaultsToCalculator() {
+        const printer = selectedPrinter();
+        document.getElementById("machineRate").value = printer.hourlyRate;
+        document.getElementById("profitPercent").value = settings.general.profitPercent;
+        document.getElementById("manualRate").value = settings.general.manualRate;
+        document.getElementById("packagingCost").value = settings.general.packagingCost;
+    }
 
-        const names = ['PLA', 'PLA Silk', 'PLA Matte', 'PETG', 'TPU', 'ABS'];
-        appState.filaments.forEach(f => names.push(f.name));
+    function updateMachineStatus() {
+        const printer = selectedPrinter();
+        const current = num(printer.currentHours);
+        const limit = num(printer.maintenanceLimit) || 1;
+        const printHours = num(document.getElementById("printHours").value);
 
-        [...new Set(names.filter(Boolean))].forEach(name => {
-            const opt = document.createElement('option');
-            opt.value = name;
-            list.appendChild(opt);
+        document.getElementById("machineHoursText").textContent =
+            "الساعات المسجلة: " + fixed(current, 1) + " / " + fixed(limit, 0) + " س";
+
+        document.getElementById("afterOrderHours").textContent =
+            fixed(current + printHours, 1) + " س";
+
+        const percent = Math.min(100, Math.max(0, (current / limit) * 100));
+        document.getElementById("maintenanceProgress").style.width = percent + "%";
+    }
+
+    function resetSelectedMachineHours() {
+        const printer = selectedPrinter();
+        if (!printer) return;
+        if (!confirm("تصفير ساعات الصيانة لهذه الماكينة؟")) return;
+
+        printer.currentHours = 0;
+        saveSettings();
+        renderAll();
+        calculate();
+
+        try {
+            if (window.Android && Android.setMaintenanceHours) {
+                Android.setMaintenanceHours("0");
+            }
+        } catch (e) {
+        }
+
+        toast("تم تصفير ساعات الصيانة");
+    }
+
+    function materialLabel(mat) {
+        return [mat.name, mat.color, mat.brand].filter(Boolean).join(" - ") + " (" + money(mat.kgPrice) + " ج/كجم)";
+    }
+
+    function renderOrderMaterials() {
+        const box = document.getElementById("orderMaterials");
+        box.innerHTML = "";
+
+        if (box.dataset.hasRows !== "1") {
+            addOrderMaterialRow();
+        } else {
+            document.querySelectorAll(".order-material-select").forEach(sel => fillMaterialSelect(sel, sel.value));
+        }
+    }
+
+    function fillMaterialSelect(select, selectedValue) {
+        select.innerHTML = "";
+        settings.materials.forEach(mat => {
+            const opt = document.createElement("option");
+            opt.value = mat.id;
+            opt.textContent = materialLabel(mat);
+            select.appendChild(opt);
         });
+
+        if (selectedValue && settings.materials.some(m => m.id === selectedValue)) {
+            select.value = selectedValue;
+        }
     }
 
-    function findFilamentByName(name) {
-        const target = String(name || '').trim().toLowerCase();
-        return appState.filaments.find(f => String(f.name || '').trim().toLowerCase() === target);
+    function addOrderMaterialRow(materialId = "", weight = 0) {
+        const box = document.getElementById("orderMaterials");
+        box.dataset.hasRows = "1";
+
+        const row = document.createElement("div");
+        row.className = "filament-row";
+        row.dataset.rowId = "row_" + (++orderRowCounter);
+
+        const selectWrap = document.createElement("div");
+        selectWrap.className = "field";
+
+        const select = document.createElement("select");
+        select.className = "order-material-select";
+        select.onchange = calculate;
+        fillMaterialSelect(select, materialId || (settings.materials[0] ? settings.materials[0].id : ""));
+
+        selectWrap.appendChild(select);
+
+        const weightWrap = document.createElement("div");
+        weightWrap.className = "field";
+
+        const weightInput = document.createElement("input");
+        weightInput.className = "order-material-weight";
+        weightInput.type = "number";
+        weightInput.min = "0";
+        weightInput.step = "0.1";
+        weightInput.placeholder = "الوزن جرام";
+        weightInput.value = weight || 0;
+        weightInput.oninput = calculate;
+
+        weightWrap.appendChild(weightInput);
+
+        const del = document.createElement("button");
+        del.className = "danger";
+        del.textContent = "×";
+        del.onclick = function () {
+            row.remove();
+            if (document.querySelectorAll(".filament-row").length === 0) addOrderMaterialRow();
+            calculate();
+        };
+
+        row.appendChild(selectWrap);
+        row.appendChild(weightWrap);
+        row.appendChild(del);
+        box.appendChild(row);
+        calculate();
     }
 
-    function addFil(type = '', weight = '', price = '') {
-        const div = document.createElement('div');
-        div.className = 'filament-row';
+    function getOrderMaterials() {
+        const rows = Array.from(document.querySelectorAll(".filament-row"));
+        return rows.map(row => {
+            const matId = row.querySelector(".order-material-select").value;
+            const mat = settings.materials.find(m => m.id === matId);
+            const weight = num(row.querySelector(".order-material-weight").value);
+            const gramPrice = mat ? num(mat.kgPrice) / 1000 : 0;
 
-        div.innerHTML = `
-            <div class="filament-header">
-                <span style="font-size:13px; font-weight:bold; color:var(--text-light)">🎨 لون / خامة</span>
-                <button class="btn-remove" type="button">❌ حذف</button>
-            </div>
-            <div class="input-row" style="margin-bottom:0;">
-                <div class="input-group" style="flex: 2;">
-                    <input type="text" class="f-t" list="filamentTypes" placeholder="الخامة (PLA...)" maxlength="100">
-                </div>
-                <div class="input-group">
-                    <input type="number" class="f-w calc-trigger" placeholder="الوزن (g)" min="0" step="0.1">
-                </div>
-                <div class="input-group">
-                    <input type="number" class="f-p calc-trigger" placeholder="السعر / كجم" min="0" step="0.01">
-                </div>
+            return {
+                id: matId,
+                name: mat ? mat.name : "",
+                color: mat ? mat.color : "",
+                brand: mat ? mat.brand : "",
+                kgPrice: mat ? num(mat.kgPrice) : 0,
+                gramPrice,
+                weight,
+                cost: weight * gramPrice
+            };
+        }).filter(item => item.weight > 0 || item.id);
+    }
+
+    function calculate() {
+        const printHours = num(document.getElementById("printHours").value);
+        const machineRate = num(document.getElementById("machineRate").value);
+        const wasteWeight = num(document.getElementById("wasteWeight").value);
+        const manualMinutes = num(document.getElementById("manualMinutes").value);
+        const manualRate = num(document.getElementById("manualRate").value);
+        const packagingCost = num(document.getElementById("packagingCost").value);
+        const profitPercent = num(document.getElementById("profitPercent").value);
+        const discount = num(document.getElementById("discount").value);
+
+        const materials = getOrderMaterials();
+        const materialWeight = materials.reduce((sum, m) => sum + num(m.weight), 0);
+        const materialCost = materials.reduce((sum, m) => sum + num(m.cost), 0);
+        const weightedGramCost = materialWeight > 0 ? materialCost / materialWeight : 0;
+
+        const machineCost = printHours * machineRate;
+        const wasteCost = wasteWeight * weightedGramCost;
+        const manualCost = (manualMinutes / 60) * manualRate;
+        const totalCost = machineCost + materialCost + wasteCost + manualCost + packagingCost;
+        const beforeDiscount = totalCost * (1 + profitPercent / 100);
+        const afterDiscount = Math.max(0, beforeDiscount - discount);
+        const finalPrice = Math.ceil(afterDiscount / 5) * 5;
+        const netProfit = finalPrice - totalCost;
+
+        lastCalc = {
+            printHours,
+            machineRate,
+            machineCost,
+            materials,
+            materialWeight,
+            materialCost,
+            wasteWeight,
+            weightedGramCost,
+            wasteCost,
+            manualMinutes,
+            manualRate,
+            manualCost,
+            packagingCost,
+            totalCost,
+            profitPercent,
+            beforeDiscount,
+            discount,
+            afterDiscount,
+            finalPrice,
+            netProfit
+        };
+
+        document.getElementById("finalPrice").textContent = money(finalPrice);
+        document.getElementById("totalCost").textContent = money(totalCost);
+        document.getElementById("netProfit").textContent = money(netProfit);
+
+        updateMachineStatus();
+    }
+
+    function saveGeneralFromCalculator() {
+        settings.general.profitPercent = num(document.getElementById("profitPercent").value);
+        settings.general.manualRate = num(document.getElementById("manualRate").value);
+        settings.general.packagingCost = num(document.getElementById("packagingCost").value);
+
+        const printer = selectedPrinter();
+        if (printer) {
+            printer.hourlyRate = num(document.getElementById("machineRate").value);
+        }
+
+        saveSettings();
+        renderAll();
+        toast("تم حفظ الإعدادات كأساسي");
+    }
+
+    function invoiceText() {
+        calculate();
+
+        const client = document.getElementById("clientName").value.trim() || "عميل";
+        const model = document.getElementById("modelName").value.trim() || "طلب طباعة 3D";
+        const date = new Date().toLocaleString("ar-EG");
+
+        return [
+            "فاتورة طلب طباعة 3D",
+            "Bambu Lab Services",
+            "",
+            "التاريخ: " + date,
+            "اسم العميل: " + client,
+            "وصف المجسم: " + model,
+            "",
+            "إجمالي السعر للطباعة والخامات: " + money(lastCalc.beforeDiscount) + " ج.م",
+            "قيمة الخصم: " + money(lastCalc.discount) + " ج.م",
+            "الإجمالي النهائي المستحق: " + money(lastCalc.finalPrice) + " ج.م"
+        ].join("\n");
+    }
+
+    function copyInvoice() {
+        const text = invoiceText();
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => toast("تم نسخ الفاتورة"));
+        } else {
+            const tmp = document.createElement("textarea");
+            tmp.value = text;
+            document.body.appendChild(tmp);
+            tmp.select();
+            document.execCommand("copy");
+            tmp.remove();
+            toast("تم نسخ الفاتورة");
+        }
+    }
+
+    function sendWhatsApp() {
+        const text = encodeURIComponent(invoiceText());
+        window.location.href = "https://api.whatsapp.com/send?text=" + text;
+    }
+
+    function printInvoice() {
+        calculate();
+
+        const client = document.getElementById("clientName").value.trim() || "عميل";
+        const model = document.getElementById("modelName").value.trim() || "طلب طباعة 3D";
+        const date = new Date().toLocaleString("ar-EG");
+
+        document.getElementById("invoicePrintArea").innerHTML = `
+            <div style="max-width:720px;margin:0 auto;font-family:Arial,sans-serif">
+                <h1 style="text-align:center;margin-bottom:4px">فاتورة طلب طباعة 3D</h1>
+                <p style="text-align:center;margin-top:0">Bambu Lab Services</p>
+                <hr>
+                <p><strong>التاريخ:</strong> ${escapeHtml(date)}</p>
+                <p><strong>اسم العميل:</strong> ${escapeHtml(client)}</p>
+                <p><strong>وصف المجسم:</strong> ${escapeHtml(model)}</p>
+                <table style="width:100%;border-collapse:collapse;margin-top:18px">
+                    <tr>
+                        <th style="border:1px solid #ddd;padding:10px;text-align:right">البيان</th>
+                        <th style="border:1px solid #ddd;padding:10px;text-align:right">المبلغ</th>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #ddd;padding:10px">إجمالي السعر للطباعة والخامات</td>
+                        <td style="border:1px solid #ddd;padding:10px">${money(lastCalc.beforeDiscount)} ج.م</td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #ddd;padding:10px">قيمة الخصم</td>
+                        <td style="border:1px solid #ddd;padding:10px">- ${money(lastCalc.discount)} ج.م</td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #ddd;padding:10px"><strong>الإجمالي النهائي المستحق</strong></td>
+                        <td style="border:1px solid #ddd;padding:10px"><strong>${money(lastCalc.finalPrice)} ج.م</strong></td>
+                    </tr>
+                </table>
             </div>
         `;
 
-        div.querySelector('.f-t').value = type;
-        div.querySelector('.f-w').value = weight;
-        div.querySelector('.f-p').value = price;
-
-        div.querySelector('.btn-remove').addEventListener('click', () => {
-            div.remove();
-            if (document.querySelectorAll('.filament-row').length === 0) addFilFromInventory();
-            calculate();
-        });
-
-        div.querySelector('.f-t').addEventListener('change', () => {
-            const found = findFilamentByName(div.querySelector('.f-t').value);
-            if (found) div.querySelector('.f-p').value = sanitizeNumber(found.pricePerKg).toString();
-            calculate();
-        });
-
-        document.getElementById('filaments-container').appendChild(div);
-    }
-
-    function addFilFromInventory() {
-        const first = appState.filaments[0] || { name: 'PLA', pricePerKg: 1000 };
-        addFil(first.name, '', first.pricePerKg);
-    }
-
-    function bindStaticEvents() {
-        document.querySelectorAll('.calc-trigger').forEach(input => {
-            input.removeEventListener('input', debounceCalculate);
-            input.addEventListener('input', debounceCalculate);
-        });
-
-        document.getElementById('hRate').addEventListener('input', () => {
-            const machine = getActiveMachine();
-            if (machine) {
-                machine.hourlyRate = sanitizeNumber(document.getElementById('hRate').value);
-                saveAppState();
-                refreshMachineSelect();
-            }
-        });
-
-        document.getElementById('machineSelect').addEventListener('change', handleMachineChange);
-
-        document.getElementById('filaments-container').addEventListener('input', e => {
-            if (e.target.closest('.filament-row')) debounceCalculate();
-        });
-
-        document.getElementById('salesTable').addEventListener('click', e => {
-            const btn = e.target.closest('.btn-del');
-            if (!btn) return;
-            delSale(btn.dataset.id);
-        });
-
-        document.getElementById('machinesList').addEventListener('click', e => {
-            const btn = e.target.closest('button[data-action]');
-            if (!btn) return;
-            const id = btn.dataset.id;
-            if (btn.dataset.action === 'select') selectMachine(id);
-            if (btn.dataset.action === 'edit') editMachine(id);
-            if (btn.dataset.action === 'delete') deleteMachine(id);
-        });
-
-        document.getElementById('filamentsList').addEventListener('click', e => {
-            const btn = e.target.closest('button[data-action]');
-            if (!btn) return;
-            const id = btn.dataset.id;
-            if (btn.dataset.action === 'add') {
-                const f = appState.filaments.find(x => x.id === id);
-                if (f) {
-                    addFil(f.name, '', f.pricePerKg);
-                    showPage('calc-page', document.querySelector('.tab-btn'));
-                }
-            }
-            if (btn.dataset.action === 'edit') editFilamentItem(id);
-            if (btn.dataset.action === 'delete') deleteFilamentItem(id);
-        });
-    }
-
-    function updateMaintUI(currentOrderHours = 0) {
-        const machine = getActiveMachine();
-        const savedH = machine ? sanitizeNumber(machine.maintenanceHours) : 0;
-        const limit = machine ? sanitizeNumber(machine.maintenanceLimit, 200) : 200;
-
-        document.getElementById('maintHours').innerText = savedH.toFixed(1);
-        document.getElementById('maintLimit').innerText = limit.toFixed(0);
-        document.getElementById('maintPreview').innerText = `بعد الطلب الحالي: ${(savedH + currentOrderHours).toFixed(1)} س`;
-
-        const bar = document.getElementById('maintBar');
-        const percent = limit > 0 ? (savedH / limit) * 100 : 0;
-        bar.style.width = Math.min(percent, 100) + '%';
-        bar.style.background = percent >= 100 ? 'var(--danger)' : percent >= 75 ? 'var(--warning)' : 'var(--primary)';
-    }
-
-    function resetMaint() {
-        const machine = getActiveMachine();
-        const name = machine ? machine.name : 'الماكينة';
-
-        if (confirm(`هل متأكد أنك قمت بصيانة ${name} وتريد تصفير عدادها؟`)) {
-            if (machine) machine.maintenanceHours = 0;
-            saveAppState();
-            renderSettings();
-            updateMaintUI(sanitizeNumber(document.getElementById('pTime').value));
-        }
-    }
-
-    function confirmSale() {
-        const order = computeOrder();
-
-        if (order.finalPrice <= 0) {
-            alert('الرجاء إدخال بيانات الطلب لحساب السعر أولاً!');
-            return;
-        }
-
-        const machine = getActiveMachine();
-
-        const entry = {
-            id: Date.now(),
-            date: new Date().toLocaleDateString('ar-EG'),
-            client: getText('cName') || 'عميل',
-            model: getText('mName') || 'مجسم',
-            machine: machine ? machine.name : '',
-            sale: order.finalPrice,
-            cost: order.totalCost,
-            profit: order.netProfit,
-            hours: order.time,
-            weight: order.totalWeight,
-            waste: order.wasteW,
-            machineCost: order.machineCost,
-            filamentCost: order.filamentCost,
-            wasteCost: order.wasteCost,
-            laborCost: order.laborCost,
-            packagingCost: order.packagingCost
-        };
-
-        saveSaleToStorage(entry);
-        sales.unshift(entry);
-
-        if (machine) {
-            machine.maintenanceHours = sanitizeNumber(machine.maintenanceHours) + order.time;
-            saveAppState();
-        }
-
-        alert('✅ تمت إضافة البيعة إلى السجل بنجاح!');
-        resetCurrentOrder();
-
-        setTimeout(() => {
-            refreshSalesFromStorage();
-            loadSales();
-            renderSettings();
-        }, hasAndroidBridge() ? 120 : 0);
-    }
-
-    function loadSales() {
-        refreshSalesFromStorage();
-
-        const table = document.getElementById('salesTable');
-        table.innerHTML = '';
-
-        let totalSales = 0, totalHours = 0, totalWeight = 0, totalWaste = 0;
-        const fragment = document.createDocumentFragment();
-
-        sales.forEach(sale => {
-            totalSales += sanitizeNumber(sale.sale);
-            totalHours += sanitizeNumber(sale.hours);
-            totalWeight += sanitizeNumber(sale.weight);
-            totalWaste += sanitizeNumber(sale.waste);
-
-            const row = document.createElement('tr');
-
-            const dateTd = document.createElement('td');
-            dateTd.textContent = sale.date;
-
-            const clientTd = document.createElement('td');
-            const strong = document.createElement('strong');
-            strong.textContent = sale.client;
-
-            const modelSpan = document.createElement('span');
-            modelSpan.style.color = 'var(--text-muted)';
-            modelSpan.style.fontSize = '11px';
-            modelSpan.textContent = `${sale.model}${sale.machine ? ' - ' + sale.machine : ''}`;
-
-            clientTd.appendChild(strong);
-            clientTd.appendChild(document.createElement('br'));
-            clientTd.appendChild(modelSpan);
-
-            const profitTd = document.createElement('td');
-            profitTd.style.color = 'var(--primary)';
-            profitTd.style.fontWeight = 'bold';
-            profitTd.textContent = `+${sanitizeNumber(sale.profit).toFixed(0)} ج`;
-
-            const deleteTd = document.createElement('td');
-            deleteTd.style.textAlign = 'center';
-
-            const btn = document.createElement('button');
-            btn.className = 'btn-del';
-            btn.textContent = 'مسح';
-            btn.dataset.id = sale.id;
-            deleteTd.appendChild(btn);
-
-            row.append(dateTd, clientTd, profitTd, deleteTd);
-            fragment.appendChild(row);
-        });
-
-        table.appendChild(fragment);
-
-        document.getElementById('statSales').innerText = totalSales.toFixed(0) + ' ج';
-        document.getElementById('statHours').innerText = totalHours.toFixed(1) + ' س';
-        document.getElementById('statWeight').innerText = (totalWeight / 1000).toFixed(2) + ' كجم';
-        document.getElementById('statWaste').innerText = totalWaste.toFixed(0) + ' جرام';
-    }
-
-    function delSale(id) {
-        if (confirm('هل أنت متأكد من مسح هذه البيعة من السجل؟')) {
-            deleteSaleFromStorage(id);
-
-            setTimeout(() => {
-                refreshSalesFromStorage();
-                loadSales();
-            }, hasAndroidBridge() ? 120 : 0);
-        }
-    }
-
-    function csvEscape(value) {
-        return `"${String(value ?? '').replace(/"/g, '""')}"`;
-    }
-
-    function exportCSV() {
-        refreshSalesFromStorage();
-
-        if (sales.length === 0) {
-            alert('السجل فارغ!');
-            return;
-        }
-
-        let csv = 'التاريخ,اسم العميل,المجسم,الماكينة,سعر البيع,التكلفة,الربح الصافي,ساعات الطباعة,وزن المجسم(جرام),الهالك(جرام),تكلفة الماكينة,تكلفة الخامة,تكلفة الهالك,الشغل اليدوي,التغليف\n';
-
-        sales.forEach(s => {
-            csv += [
-                csvEscape(s.date),
-                csvEscape(s.client),
-                csvEscape(s.model),
-                csvEscape(s.machine || ''),
-                csvEscape(s.sale),
-                csvEscape(s.cost || ''),
-                csvEscape(s.profit),
-                csvEscape(s.hours),
-                csvEscape(s.weight),
-                csvEscape(s.waste),
-                csvEscape(s.machineCost || ''),
-                csvEscape(s.filamentCost || ''),
-                csvEscape(s.wasteCost || ''),
-                csvEscape(s.laborCost || ''),
-                csvEscape(s.packagingCost || '')
-            ].join(',') + '\n';
-        });
-
-        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.download = 'سجل_مبيعات_الطباعة.csv';
-        link.click();
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-    }
-
-    function resetCurrentOrder() {
-        document.getElementById('pTime').value = '';
-        document.getElementById('waste').value = '';
-        document.getElementById('cName').value = '';
-        document.getElementById('mName').value = '';
-        document.getElementById('disc').value = '0';
-        document.getElementById('manualMinutes').value = '0';
-        document.querySelectorAll('.f-w').forEach(i => i.value = '');
-        applyGeneralSettingsToCalc(false);
-        calculate();
-    }
-
-    function saveDefaults() {
-        const machine = getActiveMachine();
-        if (machine) machine.hourlyRate = sanitizeNumber(document.getElementById('hRate').value);
-
-        appState.general.profit = sanitizeNumber(document.getElementById('prof').value);
-        appState.general.laborRate = sanitizeNumber(document.getElementById('laborRate').value);
-        appState.general.packagingCost = sanitizeNumber(document.getElementById('packagingCost').value);
-
-        const seen = new Map();
-
-        document.querySelectorAll('.filament-row').forEach(row => {
-            const name = row.querySelector('.f-t').value.trim();
-            const price = sanitizeNumber(row.querySelector('.f-p').value);
-            if (name) seen.set(name.toLowerCase(), { name, pricePerKg: price });
-        });
-
-        seen.forEach(item => {
-            const existing = findFilamentByName(item.name);
-            if (existing) {
-                existing.pricePerKg = item.pricePerKg;
-                existing.name = item.name;
-            } else {
-                appState.filaments.push({
-                    id: makeId('fil'),
-                    name: item.name,
-                    pricePerKg: item.pricePerKg
-                });
-            }
-        });
-
-        saveAppState();
-        refreshMachineSelect();
-        refreshFilamentDatalist();
-        renderSettings();
-        alert('✅ تم حفظ أسعارك وإعداداتك بنجاح!');
-    }
-
-    function buildInvoiceText() {
-        const client = getText('cName') || '';
-        const model = getText('mName') || '';
-        const finalPrice = document.getElementById('finalP').innerText;
-
-        let text = 'مرحباً بك ✨\n\n';
-        text += `عزيزي ${client}،\n`;
-        text += 'تم تسعير الطلب بنجاح:\n\n';
-        text += `• الطلب: ${model}\n`;
-        text += `• السعر النهائي: ${finalPrice} جنيه\n\n`;
-        text += 'شكراً لاختياركم خدماتنا 🤍';
-
-        return text;
-    }
-
-    async function copyInvoiceText() {
-        const text = buildInvoiceText();
-
         try {
-            if (navigator.clipboard && window.isSecureContext) {
-                await navigator.clipboard.writeText(text);
+            if (window.Android && Android.printPage) {
+                Android.printPage();
             } else {
-                const dummy = document.createElement('textarea');
-                dummy.value = text;
-                document.body.appendChild(dummy);
-                dummy.select();
-                document.execCommand('copy');
-                document.body.removeChild(dummy);
+                window.print();
             }
-            alert('✅ تم نسخ الفاتورة كاملة!');
-        } catch {
-            alert('فشل النسخ. حاول مرة أخرى.');
-        }
-    }
-
-    function shareWA() {
-        const text = buildInvoiceText();
-        const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-        window.location.href = whatsappUrl;
-    }
-
-    function generatePDFNative() {
-        document.getElementById('pdf-date').innerText = new Date().toLocaleDateString('ar-EG');
-        document.getElementById('pdf-client').innerText = getText('cName') || 'عميل';
-        document.getElementById('pdf-model').innerText = getText('mName') || 'مجسم ثلاثي الأبعاد';
-
-        const final = sanitizeNumber(document.getElementById('finalP').innerText);
-        const discount = sanitizeNumber(document.getElementById('disc').value);
-
-        document.getElementById('pdf-total').innerText = (final + discount).toFixed(0);
-        document.getElementById('pdf-final').innerText = final.toFixed(0);
-
-        if (discount > 0) {
-            document.getElementById('pdf-discount-row').style.display = 'table-row';
-            document.getElementById('pdf-disc-val').innerText = discount.toFixed(0);
-        } else {
-            document.getElementById('pdf-discount-row').style.display = 'none';
-        }
-
-        if (window.Android && typeof Android.printPage === 'function') {
-            Android.printPage();
-        } else {
+        } catch (e) {
             window.print();
         }
     }
 
-    function renderSettings() {
-        document.getElementById('setDefaultProfit').value = sanitizeNumber(appState.general.profit).toString();
-        document.getElementById('setDefaultLaborRate').value = sanitizeNumber(appState.general.laborRate).toString();
-        document.getElementById('setDefaultPackaging').value = sanitizeNumber(appState.general.packagingCost).toString();
+    function confirmSale() {
+        calculate();
 
-        renderMachinesList();
-        renderFilamentsList();
-    }
+        const client = document.getElementById("clientName").value.trim() || "عميل";
+        const model = document.getElementById("modelName").value.trim() || "مجسم";
+        const printer = selectedPrinter();
 
-    function saveGeneralSettings() {
-        appState.general.profit = sanitizeNumber(document.getElementById('setDefaultProfit').value);
-        appState.general.laborRate = sanitizeNumber(document.getElementById('setDefaultLaborRate').value);
-        appState.general.packagingCost = sanitizeNumber(document.getElementById('setDefaultPackaging').value);
+        const sale = {
+            id: Date.now(),
+            date: new Date().toLocaleString("ar-EG"),
+            client,
+            model,
+            sale: lastCalc.finalPrice,
+            profit: lastCalc.netProfit,
+            hours: lastCalc.printHours,
+            weight: lastCalc.materialWeight,
+            waste: lastCalc.wasteWeight,
 
-        saveAppState();
-        applyGeneralSettingsToCalc(true);
-        alert('✅ تم حفظ الإعدادات العامة');
-    }
+            printerName: printer ? printer.name : "",
+            machineRate: lastCalc.machineRate,
+            machineCost: lastCalc.machineCost,
+            materialsJson: JSON.stringify(lastCalc.materials),
+            materialCost: lastCalc.materialCost,
+            averageGramCost: lastCalc.weightedGramCost,
+            wasteCost: lastCalc.wasteCost,
+            manualMinutes: lastCalc.manualMinutes,
+            manualRate: lastCalc.manualRate,
+            manualCost: lastCalc.manualCost,
+            packagingCost: lastCalc.packagingCost,
+            totalCost: lastCalc.totalCost,
+            profitPercent: lastCalc.profitPercent,
+            priceBeforeDiscount: lastCalc.beforeDiscount,
+            discount: lastCalc.discount,
+            priceAfterDiscount: lastCalc.afterDiscount,
+            finalPrice: lastCalc.finalPrice,
+            netProfit: lastCalc.netProfit
+        };
 
-    function applyGeneralSettingsToCalc(keepDiscount = true) {
-        document.getElementById('prof').value = sanitizeNumber(appState.general.profit).toString();
-        document.getElementById('laborRate').value = sanitizeNumber(appState.general.laborRate).toString();
-        document.getElementById('packagingCost').value = sanitizeNumber(appState.general.packagingCost).toString();
-
-        if (!keepDiscount) document.getElementById('disc').value = '0';
-    }
-
-    function renderMachinesList() {
-        const list = document.getElementById('machinesList');
-        list.innerHTML = '';
-
-        appState.machines.forEach(machine => {
-            const div = document.createElement('div');
-            div.className = 'list-card';
-            const isActive = machine.id === appState.general.activeMachineId;
-
-            div.innerHTML = `
-                <div class="list-card-title">
-                    <span>${machine.name} ${isActive ? '<span class="badge">المختارة</span>' : ''}</span>
-                </div>
-                <div class="list-card-sub">
-                    سعر الساعة: ${sanitizeNumber(machine.hourlyRate).toFixed(2)} ج |
-                    الصيانة: ${sanitizeNumber(machine.maintenanceHours).toFixed(1)} / ${sanitizeNumber(machine.maintenanceLimit).toFixed(0)} س
-                </div>
-                <div class="action-row">
-                    <button class="btn btn-small btn-secondary" data-action="select" data-id="${machine.id}">اختيار</button>
-                    <button class="btn btn-small btn-warning" data-action="edit" data-id="${machine.id}">تعديل</button>
-                    <button class="btn btn-small btn-danger" data-action="delete" data-id="${machine.id}">حذف</button>
-                </div>
-            `;
-
-            list.appendChild(div);
-        });
-    }
-
-    function clearMachineForm() {
-        editingMachineId = null;
-        document.getElementById('machineName').value = '';
-        document.getElementById('machineRateInput').value = '';
-        document.getElementById('machineMaintLimitInput').value = '';
-        document.getElementById('machineHoursInput').value = '';
-        document.getElementById('machineSaveBtn').textContent = '➕ إضافة ماكينة';
-    }
-
-    function saveMachine() {
-        const name = getText('machineName');
-        const hourlyRate = sanitizeNumber(document.getElementById('machineRateInput').value);
-        const maintenanceLimit = sanitizeNumber(document.getElementById('machineMaintLimitInput').value, 1);
-        const maintenanceHours = sanitizeNumber(document.getElementById('machineHoursInput').value);
-
-        if (!name) {
-            alert('اكتب اسم الماكينة أولاً');
-            return;
-        }
-
-        if (editingMachineId) {
-            const machine = appState.machines.find(m => m.id === editingMachineId);
-            if (machine) {
-                machine.name = name;
-                machine.hourlyRate = hourlyRate;
-                machine.maintenanceLimit = maintenanceLimit;
-                machine.maintenanceHours = maintenanceHours;
+        try {
+            if (window.Android && Android.saveSale) {
+                Android.saveSale(JSON.stringify(sale));
+            } else {
+                const local = JSON.parse(localStorage.getItem("bambu_sales_v2") || "[]");
+                local.unshift(sale);
+                localStorage.setItem("bambu_sales_v2", JSON.stringify(local));
             }
-        } else {
-            const machine = {
-                id: makeId('machine'),
-                name,
-                hourlyRate,
-                maintenanceLimit,
-                maintenanceHours
-            };
-            appState.machines.push(machine);
-            appState.general.activeMachineId = machine.id;
-        }
-
-        saveAppState();
-        refreshMachineSelect();
-
-        const active = getActiveMachine();
-        if (active) {
-            document.getElementById('machineSelect').value = active.id;
-            document.getElementById('hRate').value = sanitizeNumber(active.hourlyRate).toString();
-        }
-
-        clearMachineForm();
-        renderSettings();
-        calculate();
-        alert('✅ تم حفظ بيانات الماكينة');
-    }
-
-    function editMachine(id) {
-        const machine = appState.machines.find(m => m.id === id);
-        if (!machine) return;
-
-        editingMachineId = id;
-        document.getElementById('machineName').value = machine.name;
-        document.getElementById('machineRateInput').value = sanitizeNumber(machine.hourlyRate).toString();
-        document.getElementById('machineMaintLimitInput').value = sanitizeNumber(machine.maintenanceLimit).toString();
-        document.getElementById('machineHoursInput').value = sanitizeNumber(machine.maintenanceHours).toString();
-        document.getElementById('machineSaveBtn').textContent = '💾 حفظ تعديل الماكينة';
-        document.getElementById('machineName').focus();
-    }
-
-    function selectMachine(id) {
-        const machine = appState.machines.find(m => m.id === id);
-        if (!machine) return;
-
-        appState.general.activeMachineId = id;
-        saveAppState();
-
-        refreshMachineSelect();
-        document.getElementById('machineSelect').value = id;
-        document.getElementById('hRate').value = sanitizeNumber(machine.hourlyRate).toString();
-        renderSettings();
-        calculate();
-    }
-
-    function deleteMachine(id) {
-        if (appState.machines.length <= 1) {
-            alert('لا يمكن حذف آخر ماكينة. لازم يكون فيه ماكينة واحدة على الأقل.');
+        } catch (e) {
+            toast("حدث خطأ أثناء حفظ البيعة");
             return;
         }
 
-        const machine = appState.machines.find(m => m.id === id);
-        if (!machine) return;
+        if (printer) {
+            printer.currentHours = num(printer.currentHours) + lastCalc.printHours;
+            saveSettings();
 
-        if (!confirm(`هل تريد حذف ماكينة "${machine.name}"؟`)) return;
-
-        appState.machines = appState.machines.filter(m => m.id !== id);
-
-        if (appState.general.activeMachineId === id) {
-            appState.general.activeMachineId = appState.machines[0].id;
-        }
-
-        saveAppState();
-        refreshMachineSelect();
-
-        const active = getActiveMachine();
-        document.getElementById('hRate').value = sanitizeNumber(active.hourlyRate).toString();
-
-        clearMachineForm();
-        renderSettings();
-        calculate();
-    }
-
-    function renderFilamentsList() {
-        const list = document.getElementById('filamentsList');
-        list.innerHTML = '';
-
-        appState.filaments.forEach(filament => {
-            const div = document.createElement('div');
-            div.className = 'list-card';
-
-            div.innerHTML = `
-                <div class="list-card-title">
-                    <span>${filament.name}</span>
-                </div>
-                <div class="list-card-sub">
-                    السعر / كجم: ${sanitizeNumber(filament.pricePerKg).toFixed(2)} ج |
-                    سعر الجرام: ${(sanitizeNumber(filament.pricePerKg) / 1000).toFixed(3)} ج
-                </div>
-                <div class="action-row">
-                    <button class="btn btn-small btn-secondary" data-action="add" data-id="${filament.id}">إضافة للطلب</button>
-                    <button class="btn btn-small btn-warning" data-action="edit" data-id="${filament.id}">تعديل</button>
-                    <button class="btn btn-small btn-danger" data-action="delete" data-id="${filament.id}">حذف</button>
-                </div>
-            `;
-
-            list.appendChild(div);
-        });
-    }
-
-    function clearFilamentForm() {
-        editingFilamentId = null;
-        document.getElementById('filamentNameInput').value = '';
-        document.getElementById('filamentPriceInput').value = '';
-        document.getElementById('filamentSaveBtn').textContent = '➕ إضافة خامة';
-    }
-
-    function saveFilamentItem() {
-        const name = getText('filamentNameInput');
-        const pricePerKg = sanitizeNumber(document.getElementById('filamentPriceInput').value);
-
-        if (!name) {
-            alert('اكتب اسم الخامة أولاً');
-            return;
-        }
-
-        if (editingFilamentId) {
-            const filament = appState.filaments.find(f => f.id === editingFilamentId);
-            if (filament) {
-                filament.name = name;
-                filament.pricePerKg = pricePerKg;
+            try {
+                if (window.Android && Android.setMaintenanceHours) {
+                    Android.setMaintenanceHours(String(printer.currentHours));
+                }
+            } catch (e) {
             }
+        }
+
+        toast("تم تسجيل البيعة في الدفتر");
+        loadSales();
+        renderAll();
+    }
+
+    function loadSales() {
+        try {
+            if (window.Android && Android.getSales) {
+                salesCache = JSON.parse(Android.getSales() || "[]");
+            } else {
+                salesCache = JSON.parse(localStorage.getItem("bambu_sales_v2") || "[]");
+            }
+        } catch (e) {
+            salesCache = [];
+        }
+
+        renderSales();
+    }
+
+    function renderSales() {
+        const tbody = document.getElementById("salesTable");
+        tbody.innerHTML = "";
+
+        if (!salesCache.length) {
+            tbody.innerHTML = `<tr><td colspan="7">لا توجد مبيعات مسجلة.</td></tr>`;
         } else {
-            appState.filaments.push({
-                id: makeId('fil'),
-                name,
-                pricePerKg
+            salesCache.forEach(sale => {
+                const details = [
+                    sale.printerName ? "ماكينة: " + sale.printerName : "",
+                    "ساعات: " + fixed(sale.hours || 0, 1),
+                    "خامات: " + fixed(sale.weight || 0, 1) + " جم",
+                    "هالك: " + fixed(sale.waste || 0, 1) + " جم",
+                    "يدوي: " + fixed(sale.manualMinutes || 0, 0) + " د",
+                    "خصم: " + money(sale.discount || 0) + " ج"
+                ].filter(Boolean).join("<br>");
+
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${escapeHtml(sale.date || "")}</td>
+                    <td>
+                        <strong>${escapeHtml(sale.client || "")}</strong><br>
+                        <span class="muted">${escapeHtml(sale.model || "")}</span>
+                    </td>
+                    <td>${money(sale.sale || sale.finalPrice || 0)} ج</td>
+                    <td>${money(sale.totalCost || 0)} ج</td>
+                    <td>${money(sale.profit || sale.netProfit || 0)} ج</td>
+                    <td>${details}</td>
+                    <td><button class="danger" onclick="deleteSale('${sale.id}')">حذف</button></td>
+                `;
+                tbody.appendChild(tr);
             });
         }
 
-        saveAppState();
-        refreshFilamentDatalist();
-        clearFilamentForm();
-        renderSettings();
-        alert('✅ تم حفظ بيانات الخامة');
+        const totalSales = salesCache.reduce((s, x) => s + num(x.sale || x.finalPrice), 0);
+        const totalProfit = salesCache.reduce((s, x) => s + num(x.profit || x.netProfit), 0);
+        const totalHours = salesCache.reduce((s, x) => s + num(x.hours), 0);
+        const totalWeight = salesCache.reduce((s, x) => s + num(x.weight), 0);
+
+        document.getElementById("statSales").textContent = money(totalSales) + " ج";
+        document.getElementById("statProfit").textContent = money(totalProfit) + " ج";
+        document.getElementById("statHours").textContent = fixed(totalHours, 1) + " س";
+        document.getElementById("statWeight").textContent = fixed(totalWeight / 1000, 2) + " كجم";
     }
 
-    function editFilamentItem(id) {
-        const filament = appState.filaments.find(f => f.id === id);
-        if (!filament) return;
+    function deleteSale(id) {
+        if (!confirm("حذف هذه البيعة من السجل؟")) return;
 
-        editingFilamentId = id;
-        document.getElementById('filamentNameInput').value = filament.name;
-        document.getElementById('filamentPriceInput').value = sanitizeNumber(filament.pricePerKg).toString();
-        document.getElementById('filamentSaveBtn').textContent = '💾 حفظ تعديل الخامة';
-        document.getElementById('filamentNameInput').focus();
+        try {
+            if (window.Android && Android.deleteSale) {
+                Android.deleteSale(String(id));
+                salesCache = salesCache.filter(s => String(s.id) !== String(id));
+            } else {
+                salesCache = salesCache.filter(s => String(s.id) !== String(id));
+                localStorage.setItem("bambu_sales_v2", JSON.stringify(salesCache));
+            }
+            renderSales();
+            toast("تم حذف البيعة");
+        } catch (e) {
+            toast("تعذر حذف البيعة");
+        }
     }
 
-    function deleteFilamentItem(id) {
-        if (appState.filaments.length <= 1) {
-            alert('لا يمكن حذف آخر خامة. لازم يكون فيه خامة واحدة على الأقل.');
+    function clearSales() {
+        if (!confirm("مسح كل سجل المبيعات؟")) return;
+
+        try {
+            if (window.Android && Android.clearAllSales) {
+                Android.clearAllSales();
+            } else {
+                localStorage.removeItem("bambu_sales_v2");
+            }
+            salesCache = [];
+            renderSales();
+            toast("تم مسح السجل");
+        } catch (e) {
+            toast("تعذر مسح السجل");
+        }
+    }
+
+    function exportCSV() {
+        loadSales();
+
+        const headers = [
+            "id",
+            "date",
+            "client",
+            "model",
+            "printerName",
+            "sale",
+            "totalCost",
+            "profit",
+            "hours",
+            "machineRate",
+            "machineCost",
+            "weight",
+            "materialCost",
+            "waste",
+            "averageGramCost",
+            "wasteCost",
+            "manualMinutes",
+            "manualRate",
+            "manualCost",
+            "packagingCost",
+            "profitPercent",
+            "priceBeforeDiscount",
+            "discount",
+            "priceAfterDiscount",
+            "finalPrice",
+            "materialsJson"
+        ];
+
+        const rows = [headers.join(",")];
+
+        salesCache.forEach(sale => {
+            rows.push(headers.map(h => csvCell(sale[h] == null ? "" : sale[h])).join(","));
+        });
+
+        const csv = "\uFEFF" + rows.join("\n");
+        const blob = new Blob([csv], {type: "text/csv;charset=utf-8"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "bambu-sales.csv";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        toast("تم تجهيز ملف CSV / Excel");
+    }
+
+    function csvCell(value) {
+        const text = String(value).replace(/"/g, '""');
+        return `"${text}"`;
+    }
+
+    function renderSettings() {
+        document.getElementById("setProfitPercent").value = settings.general.profitPercent;
+        document.getElementById("setManualRate").value = settings.general.manualRate;
+        document.getElementById("setPackagingCost").value = settings.general.packagingCost;
+
+        renderPrintersList();
+        renderMaterialsList();
+    }
+
+    function saveGeneralSettings() {
+        settings.general.profitPercent = num(document.getElementById("setProfitPercent").value);
+        settings.general.manualRate = num(document.getElementById("setManualRate").value);
+        settings.general.packagingCost = num(document.getElementById("setPackagingCost").value);
+
+        saveSettings();
+        applyDefaultsToCalculator();
+        calculate();
+
+        toast("تم حفظ الإعدادات العامة");
+    }
+
+    function addPrinter() {
+        const name = document.getElementById("printerName").value.trim();
+        const hourlyRate = num(document.getElementById("printerRate").value);
+        const maintenanceLimit = num(document.getElementById("printerMaintenanceLimit").value);
+        const currentHours = num(document.getElementById("printerCurrentHours").value);
+
+        if (!name) {
+            toast("اكتب اسم الماكينة");
             return;
         }
 
-        const filament = appState.filaments.find(f => f.id === id);
-        if (!filament) return;
+        settings.printers.push({
+            id: makeId("printer"),
+            name,
+            hourlyRate,
+            maintenanceLimit: maintenanceLimit || 200,
+            currentHours
+        });
 
-        if (!confirm(`هل تريد حذف خامة "${filament.name}"؟`)) return;
+        settings.selectedPrinterId = settings.printers[settings.printers.length - 1].id;
 
-        appState.filaments = appState.filaments.filter(f => f.id !== id);
-        saveAppState();
-        refreshFilamentDatalist();
-        clearFilamentForm();
-        renderSettings();
-    }
+        document.getElementById("printerName").value = "";
+        document.getElementById("printerRate").value = "";
+        document.getElementById("printerMaintenanceLimit").value = "";
+        document.getElementById("printerCurrentHours").value = "";
 
-    function resetAllDefaults() {
-        if (!confirm('هل تريد إرجاع الإعدادات الافتراضية؟ لن يتم حذف سجل المبيعات.')) return;
-
-        appState = clone(DEFAULT_STATE);
-        saveAppState();
-
-        refreshMachineSelect();
-        refreshFilamentDatalist();
-
-        document.getElementById('filaments-container').innerHTML = '';
-        addFilFromInventory();
-
-        const active = getActiveMachine();
-        document.getElementById('hRate').value = sanitizeNumber(active.hourlyRate).toString();
-
-        applyGeneralSettingsToCalc(false);
-        clearMachineForm();
-        clearFilamentForm();
-        renderSettings();
+        saveSettings();
+        renderAll();
         calculate();
 
-        alert('✅ تم إرجاع الإعدادات الافتراضية');
+        toast("تمت إضافة الماكينة");
     }
 
-    function initializeApp() {
-        refreshSalesFromStorage();
-        refreshMachineSelect();
-        refreshFilamentDatalist();
+    function editPrinter(id) {
+        const printer = settings.printers.find(p => p.id === id);
+        if (!printer) return;
 
-        const machine = getActiveMachine();
-        if (machine) {
-            document.getElementById('machineSelect').value = machine.id;
-            document.getElementById('hRate').value = sanitizeNumber(machine.hourlyRate).toString();
-        }
+        const name = prompt("اسم الماكينة", printer.name);
+        if (name === null) return;
 
-        applyGeneralSettingsToCalc(true);
+        const hourlyRate = prompt("سعر ساعة التشغيل", printer.hourlyRate);
+        if (hourlyRate === null) return;
 
-        if (appState.filaments.length > 0) {
-            addFil(appState.filaments[0].name, '', appState.filaments[0].pricePerKg);
-        } else {
-            addFilFromInventory();
-        }
+        const maintenanceLimit = prompt("حد الصيانة بالساعات", printer.maintenanceLimit);
+        if (maintenanceLimit === null) return;
 
-        bindStaticEvents();
-        renderSettings();
+        const currentHours = prompt("الساعات الحالية", printer.currentHours);
+        if (currentHours === null) return;
+
+        printer.name = name.trim() || printer.name;
+        printer.hourlyRate = num(hourlyRate);
+        printer.maintenanceLimit = num(maintenanceLimit) || 200;
+        printer.currentHours = num(currentHours);
+
+        saveSettings();
+        renderAll();
         calculate();
-        loadSales();
+
+        toast("تم تعديل الماكينة");
     }
 
-    window.onload = initializeApp;
+    function deletePrinter(id) {
+        if (settings.printers.length <= 1) {
+            toast("لازم تترك ماكينة واحدة على الأقل");
+            return;
+        }
+
+        if (!confirm("حذف هذه الماكينة؟")) return;
+
+        settings.printers = settings.printers.filter(p => p.id !== id);
+
+        if (settings.selectedPrinterId === id) {
+            settings.selectedPrinterId = settings.printers[0].id;
+        }
+
+        saveSettings();
+        renderAll();
+        calculate();
+
+        toast("تم حذف الماكينة");
+    }
+
+    function choosePrinter(id) {
+        settings.selectedPrinterId = id;
+        saveSettings();
+        renderAll();
+        calculate();
+        toast("تم اختيار الماكينة للحساب");
+    }
+
+    function renderPrintersList() {
+        const box = document.getElementById("printersList");
+        box.innerHTML = "";
+
+        settings.printers.forEach(printer => {
+            const item = document.createElement("div");
+            item.className = "list-item";
+            item.innerHTML = `
+                <div>
+                    <div class="list-title">${escapeHtml(printer.name)} ${printer.id === settings.selectedPrinterId ? "✅" : ""}</div>
+                    <div class="list-sub">
+                        ${money(printer.hourlyRate)} ج/ساعة · الصيانة ${fixed(printer.currentHours, 1)} / ${fixed(printer.maintenanceLimit, 0)} س
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="secondary" onclick="choosePrinter('${printer.id}')">اختيار</button>
+                    <button class="warning" onclick="editPrinter('${printer.id}')">تعديل</button>
+                    <button class="danger" onclick="deletePrinter('${printer.id}')">حذف</button>
+                </div>
+            `;
+            box.appendChild(item);
+        });
+    }
+
+    function addMaterial() {
+        const name = document.getElementById("matName").value.trim();
+        const color = document.getElementById("matColor").value.trim();
+        const brand = document.getElementById("matBrand").value.trim();
+        const kgPrice = num(document.getElementById("matKgPrice").value);
+
+        if (!name) {
+            toast("اكتب اسم أو نوع الخامة");
+            return;
+        }
+
+        settings.materials.push({
+            id: makeId("mat"),
+            name,
+            color,
+            brand,
+            kgPrice
+        });
+
+        document.getElementById("matName").value = "";
+        document.getElementById("matColor").value = "";
+        document.getElementById("matBrand").value = "";
+        document.getElementById("matKgPrice").value = "";
+
+        saveSettings();
+        renderAll();
+        calculate();
+
+        toast("تمت إضافة الخامة");
+    }
+
+    function editMaterial(id) {
+        const mat = settings.materials.find(m => m.id === id);
+        if (!mat) return;
+
+        const name = prompt("اسم / نوع الخامة", mat.name);
+        if (name === null) return;
+
+        const color = prompt("اللون", mat.color);
+        if (color === null) return;
+
+        const brand = prompt("الشركة", mat.brand);
+        if (brand === null) return;
+
+        const kgPrice = prompt("السعر لكل كجم", mat.kgPrice);
+        if (kgPrice === null) return;
+
+        mat.name = name.trim() || mat.name;
+        mat.color = color.trim();
+        mat.brand = brand.trim();
+        mat.kgPrice = num(kgPrice);
+
+        saveSettings();
+        renderAll();
+        calculate();
+
+        toast("تم تعديل الخامة");
+    }
+
+    function deleteMaterial(id) {
+        if (settings.materials.length <= 1) {
+            toast("لازم تترك خامة واحدة على الأقل");
+            return;
+        }
+
+        if (!confirm("حذف هذه الخامة؟")) return;
+
+        settings.materials = settings.materials.filter(m => m.id !== id);
+
+        saveSettings();
+        renderAll();
+        calculate();
+
+        toast("تم حذف الخامة");
+    }
+
+    function useMaterial(id) {
+        addOrderMaterialRow(id, 0);
+        showPage("calc");
+        toast("تمت إضافة الخامة للطلب");
+    }
+
+    function renderMaterialsList() {
+        const box = document.getElementById("materialsList");
+        box.innerHTML = "";
+
+        settings.materials.forEach(mat => {
+            const item = document.createElement("div");
+            item.className = "list-item";
+            item.innerHTML = `
+                <div>
+                    <div class="list-title">${escapeHtml(mat.name)} ${escapeHtml(mat.color ? " - " + mat.color : "")}</div>
+                    <div class="list-sub">
+                        ${escapeHtml(mat.brand || "بدون شركة")} · ${money(mat.kgPrice)} ج/كجم · ${money(num(mat.kgPrice) / 1000)} ج/جرام
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="secondary" onclick="useMaterial('${mat.id}')">استخدام</button>
+                    <button class="warning" onclick="editMaterial('${mat.id}')">تعديل</button>
+                    <button class="danger" onclick="deleteMaterial('${mat.id}')">حذف</button>
+                </div>
+            `;
+            box.appendChild(item);
+        });
+    }
+
+    function escapeHtml(text) {
+        return String(text)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
 </script>
 </body>
 </html>
