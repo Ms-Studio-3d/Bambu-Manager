@@ -32,7 +32,7 @@
             margin: 0;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background:
-                    radial-gradient(circle at top right, rgba(25, 200, 120, 0.11), transparent 28%),
+                    radial-gradient(circle at top right, rgba(25, 200, 120, 0.10), transparent 28%),
                     linear-gradient(180deg, var(--bg2), var(--bg));
             color: var(--text);
             min-height: 100vh;
@@ -179,6 +179,17 @@
             background: rgba(25, 200, 120, 0.05);
             margin-bottom: 10px;
             line-height: 1.8;
+        }
+
+        .hint-box {
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: rgba(25, 200, 120, 0.07);
+            border: 1px solid var(--border-green);
+            color: #c9ffe3;
+            font-size: 13px;
+            line-height: 1.7;
+            margin-bottom: 10px;
         }
 
         .machine-status {
@@ -856,6 +867,7 @@
 
         <div class="card">
             <h2>إدارة الماكينات</h2>
+            <div class="hint-box" id="printerEditHint" style="display:none">وضع تعديل ماكينة شغال. عدّل البيانات واضغط حفظ تعديل الماكينة أو إلغاء التعديل.</div>
             <div class="grid">
                 <div class="field">
                     <label>اسم الماكينة</label>
@@ -885,6 +897,7 @@
 
         <div class="card">
             <h2>إدارة الخامات</h2>
+            <div class="hint-box" id="materialEditHint" style="display:none">وضع تعديل خامة شغال. عدّل البيانات واضغط حفظ تعديل الخامة أو إلغاء التعديل.</div>
             <div class="grid">
                 <div class="field">
                     <label>اسم / نوع الخامة</label>
@@ -1347,13 +1360,17 @@
         }).filter(item => item.weight > 0 || item.id);
     }
 
+    function hasOrderWork(printHours, materialWeight, wasteWeight, manualMinutes) {
+        return printHours > 0 || materialWeight > 0 || wasteWeight > 0 || manualMinutes > 0;
+    }
+
     function calculate() {
         const printHours = num(document.getElementById("printHours").value);
         const machineRate = num(document.getElementById("machineRate").value);
         const wasteWeight = num(document.getElementById("wasteWeight").value);
         const manualMinutes = num(document.getElementById("manualMinutes").value);
         const manualRate = num(document.getElementById("manualRate").value);
-        const packagingCost = num(document.getElementById("packagingCost").value);
+        const packagingInput = num(document.getElementById("packagingCost").value);
         const profitPercent = num(document.getElementById("profitPercent").value);
         const discount = num(document.getElementById("discount").value);
 
@@ -1361,17 +1378,20 @@
         const materialWeight = materials.reduce((sum, m) => sum + num(m.weight), 0);
         const materialCost = materials.reduce((sum, m) => sum + num(m.cost), 0);
         const weightedGramCost = materialWeight > 0 ? materialCost / materialWeight : 0;
+        const hasWork = hasOrderWork(printHours, materialWeight, wasteWeight, manualMinutes);
 
         const machineCost = printHours * machineRate;
         const wasteCost = wasteWeight * weightedGramCost;
         const manualCost = (manualMinutes / 60) * manualRate;
+        const packagingCost = hasWork ? packagingInput : 0;
         const totalCost = machineCost + materialCost + wasteCost + manualCost + packagingCost;
         const beforeDiscount = totalCost * (1 + profitPercent / 100);
-        const afterDiscount = Math.max(0, beforeDiscount - discount);
-        const finalPrice = Math.ceil(afterDiscount / 5) * 5;
+        const afterDiscount = hasWork ? Math.max(0, beforeDiscount - discount) : 0;
+        const finalPrice = hasWork ? Math.ceil(afterDiscount / 5) * 5 : 0;
         const netProfit = finalPrice - totalCost;
 
         lastCalc = {
+            hasWork,
             printHours,
             machineRate,
             machineCost,
@@ -1385,6 +1405,7 @@
             manualRate,
             manualCost,
             packagingCost,
+            packagingInput,
             totalCost,
             profitPercent,
             beforeDiscount,
@@ -1446,6 +1467,11 @@
     }
 
     function copyInvoice() {
+        if (!lastCalc.hasWork) {
+            toast("أدخل بيانات الطلب أولًا");
+            return;
+        }
+
         const text = invoiceText();
 
         if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -1462,12 +1488,22 @@
     }
 
     function sendWhatsApp() {
+        if (!lastCalc.hasWork) {
+            toast("أدخل بيانات الطلب أولًا");
+            return;
+        }
+
         const text = encodeURIComponent(invoiceText());
         window.location.href = "https://api.whatsapp.com/send?text=" + text;
     }
 
     function printInvoice() {
         calculate();
+
+        if (!lastCalc.hasWork) {
+            toast("أدخل بيانات الطلب أولًا");
+            return;
+        }
 
         const client = document.getElementById("clientName").value.trim() || "عميل";
         const model = document.getElementById("modelName").value.trim() || "طلب طباعة 3D";
@@ -1538,6 +1574,11 @@
 
     function confirmSale() {
         calculate();
+
+        if (!lastCalc.hasWork || lastCalc.finalPrice <= 0) {
+            toast("لا يمكن تسجيل بيعة فاضية");
+            return;
+        }
 
         const client = document.getElementById("clientName").value.trim() || "عميل";
         const model = document.getElementById("modelName").value.trim() || "مجسم";
@@ -1794,50 +1835,72 @@
         }
     }
 
+    function materialSummaryForSale(sale) {
+        try {
+            const arr = JSON.parse(sale.materialsJson || "[]");
+            if (!Array.isArray(arr) || arr.length === 0) return "";
+            return arr
+                .filter(m => num(m.weight) > 0)
+                .map(m => {
+                    const parts = [m.name, m.color, m.brand].filter(Boolean).join(" - ");
+                    return parts + " / " + fixed(m.weight || 0, 1) + " جم";
+                })
+                .join(" | ");
+        } catch (e) {
+            return "";
+        }
+    }
+
     function exportCSV() {
         loadSales();
 
-        const headers = [
-            "id",
-            "date",
-            "client",
-            "model",
-            "printerName",
-            "sale",
-            "totalCost",
-            "profit",
-            "hours",
-            "machineRate",
-            "machineCost",
-            "weight",
-            "materialCost",
-            "waste",
-            "averageGramCost",
-            "wasteCost",
-            "manualMinutes",
-            "manualRate",
-            "manualCost",
-            "packagingCost",
-            "profitPercent",
-            "priceBeforeDiscount",
-            "discount",
-            "priceAfterDiscount",
-            "finalPrice",
-            "materialsJson"
+        if (!salesCache.length) {
+            toast("لا توجد مبيعات للتصدير");
+            return;
+        }
+
+        const columns = [
+            ["رقم البيعة", s => s.id],
+            ["التاريخ", s => s.date],
+            ["اسم العميل", s => s.client],
+            ["اسم المجسم", s => s.model],
+            ["السعر النهائي", s => s.sale || s.finalPrice],
+            ["إجمالي التكلفة", s => s.totalCost],
+            ["صافي الربح", s => s.profit || s.netProfit],
+            ["نسبة الربح %", s => s.profitPercent],
+            ["الخصم", s => s.discount],
+            ["السعر قبل الخصم", s => s.priceBeforeDiscount],
+            ["السعر بعد الخصم", s => s.priceAfterDiscount],
+            ["اسم الماكينة", s => s.printerName],
+            ["سعر ساعة الماكينة", s => s.machineRate],
+            ["وقت الطباعة بالساعات", s => s.hours],
+            ["تكلفة الماكينة", s => s.machineCost],
+            ["الخامات المستخدمة", s => materialSummaryForSale(s)],
+            ["إجمالي وزن الخامة جم", s => s.weight],
+            ["تكلفة الخامة", s => s.materialCost],
+            ["وزن الهالك جم", s => s.waste],
+            ["متوسط سعر الجرام", s => s.averageGramCost],
+            ["تكلفة الهالك", s => s.wasteCost],
+            ["دقائق الشغل اليدوي", s => s.manualMinutes],
+            ["سعر ساعة الشغل اليدوي", s => s.manualRate],
+            ["تكلفة الشغل اليدوي", s => s.manualCost],
+            ["تكلفة التغليف", s => s.packagingCost]
         ];
 
-        const rows = [headers.join(",")];
+        const rows = [];
+        rows.push(columns.map(c => csvCell(c[0])).join(","));
 
         salesCache.forEach(sale => {
-            rows.push(headers.map(h => csvCell(sale[h] == null ? "" : sale[h])).join(","));
+            rows.push(columns.map(c => csvCell(c[1](sale) == null ? "" : c[1](sale))).join(","));
         });
 
         const csv = "\uFEFF" + rows.join("\n");
         const blob = new Blob([csv], {type: "text/csv;charset=utf-8"});
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
+        const date = new Date().toISOString().slice(0, 10);
         a.href = url;
-        a.download = "bambu-sales.csv";
+        a.download = "bambu-sales-" + date + ".csv";
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -1936,6 +1999,7 @@
 
         document.getElementById("printerSaveBtn").textContent = "حفظ تعديل الماكينة";
         document.getElementById("printerCancelBtn").style.display = "inline-flex";
+        document.getElementById("printerEditHint").style.display = "block";
 
         showPage("settings");
         toast("عدّل بيانات الماكينة ثم اضغط حفظ");
@@ -1956,6 +2020,7 @@
 
         const saveBtn = document.getElementById("printerSaveBtn");
         const cancelBtn = document.getElementById("printerCancelBtn");
+        const hint = document.getElementById("printerEditHint");
 
         if (saveBtn) {
             saveBtn.textContent = "إضافة ماكينة";
@@ -1963,6 +2028,10 @@
 
         if (cancelBtn) {
             cancelBtn.style.display = "none";
+        }
+
+        if (hint) {
+            hint.style.display = "none";
         }
     }
 
@@ -2096,6 +2165,7 @@
 
         document.getElementById("materialSaveBtn").textContent = "حفظ تعديل الخامة";
         document.getElementById("materialCancelBtn").style.display = "inline-flex";
+        document.getElementById("materialEditHint").style.display = "block";
 
         showPage("settings");
         toast("عدّل بيانات الخامة ثم اضغط حفظ");
@@ -2116,6 +2186,7 @@
 
         const saveBtn = document.getElementById("materialSaveBtn");
         const cancelBtn = document.getElementById("materialCancelBtn");
+        const hint = document.getElementById("materialEditHint");
 
         if (saveBtn) {
             saveBtn.textContent = "إضافة خامة";
@@ -2123,6 +2194,10 @@
 
         if (cancelBtn) {
             cancelBtn.style.display = "none";
+        }
+
+        if (hint) {
+            hint.style.display = "none";
         }
     }
 
