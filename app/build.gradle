@@ -10,20 +10,28 @@ android {
         applicationId "com.msstudio.bambumanager"
         minSdk 24
         targetSdk 34
-        versionCode 3
-        versionName "1.2"
+        versionCode 2
+        versionName "1.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
-        release {
-            minifyEnabled false
-            shrinkResources false
-        }
         debug {
             minifyEnabled false
             shrinkResources false
+            debuggable true
+        }
+
+        release {
+            minifyEnabled true
+            shrinkResources true
+            debuggable false
+
+            proguardFiles(
+                    getDefaultProguardFile('proguard-android-optimize.txt'),
+                    'proguard-rules.pro'
+            )
         }
     }
 
@@ -36,12 +44,9 @@ android {
         buildConfig true
     }
 
-    packaging {
-        resources {
-            excludes += [
-                    '/META-INF/{AL2.0,LGPL2.1}'
-            ]
-        }
+    lint {
+        abortOnError true
+        checkReleaseBuilds true
     }
 }
 
@@ -50,6 +55,8 @@ dependencies {
     implementation 'androidx.webkit:webkit:1.11.0'
     implementation 'com.google.android.material:material:1.12.0'
 
-    implementation 'androidx.room:room-runtime:2.6.1'
-    annotationProcessor 'androidx.room:room-compiler:2.6.1'
+    testImplementation 'junit:junit:4.13.2'
+
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 }
