@@ -6,7 +6,6 @@
     <title>Bambu Business Manager</title>
 
     <link rel="stylesheet" href="css/app.css">
-
 </head>
 
 <body>
@@ -58,12 +57,12 @@
 
             <div class="grid">
                 <div class="field">
-                    <label>وقت الطباعة (ساعات)</label>
-                    <input id="printHours" type="text" inputmode="decimal" placeholder="0" oninput="calculate()">
+                    <label>وقت الطباعة بالساعات</label>
+                    <input id="printHours" type="text" inputmode="decimal" placeholder="مثال: 4.5" oninput="calculate()">
                 </div>
                 <div class="field">
-                    <label>سعر الساعة (الماكينة)</label>
-                    <input id="machineRate" type="text" inputmode="decimal" placeholder="0" oninput="calculate()">
+                    <label>سعر ساعة تشغيل الماكينة</label>
+                    <input id="machineRate" type="text" inputmode="decimal" placeholder="مثال: 35 جنيه" oninput="calculate()">
                 </div>
             </div>
 
@@ -77,12 +76,13 @@
 
             <div class="grid">
                 <div class="field">
-                    <label>وزن الهالك الإجمالي (جرام)</label>
-                    <input id="wasteWeight" type="text" inputmode="decimal" placeholder="0" oninput="calculate()">
+                    <label>وزن الهالك الإجمالي بالجرام</label>
+                    <input id="wasteWeight" type="text" inputmode="decimal" placeholder="مثال: 10" oninput="calculate()">
                 </div>
                 <div class="field">
-                    <label>دقائق الشغل اليدوي</label>
-                    <input id="manualMinutes" type="text" inputmode="decimal" placeholder="0" oninput="calculate()">
+                    <label>دقائق شغلك اليدوي في الطلب</label>
+                    <input id="manualMinutes" type="text" inputmode="decimal" placeholder="مثال: 30 دقيقة" oninput="calculate()">
+                    <div class="muted">دي مدة التجهيز، التنضيف، الصنفرة، التجميع أو أي شغل بإيدك على الطلب.</div>
                 </div>
             </div>
         </div>
@@ -92,19 +92,20 @@
             <div class="grid">
                 <div class="field">
                     <label>نسبة الربح على التكلفة (%)</label>
-                    <input id="profitPercent" type="text" inputmode="decimal" placeholder="0" oninput="calculate()">
+                    <input id="profitPercent" type="text" inputmode="decimal" placeholder="مثال: 100" oninput="calculate()">
                 </div>
                 <div class="field">
-                    <label>خصم (جنيه)</label>
-                    <input id="discount" type="text" inputmode="decimal" placeholder="0" oninput="calculate()">
+                    <label>خصم بالجنيه</label>
+                    <input id="discount" type="text" inputmode="decimal" placeholder="مثال: 20 جنيه" oninput="calculate()">
                 </div>
                 <div class="field">
-                    <label>سعر ساعة الشغل اليدوي</label>
-                    <input id="manualRate" type="text" inputmode="decimal" placeholder="0" oninput="calculate()">
+                    <label>سعر ساعة شغلك اليدوي</label>
+                    <input id="manualRate" type="text" inputmode="decimal" placeholder="مثال: 120 جنيه" oninput="calculate()">
+                    <div class="muted">مثال: لو اشتغلت 30 دقيقة وسعر ساعتك 120 جنيه، تكلفة الشغل اليدوي = 60 جنيه.</div>
                 </div>
                 <div class="field">
-                    <label>تكلفة التغليف</label>
-                    <input id="packagingCost" type="text" inputmode="decimal" placeholder="0" oninput="calculate()">
+                    <label>تكلفة التغليف بالجنيه</label>
+                    <input id="packagingCost" type="text" inputmode="decimal" placeholder="مثال: 10 جنيه" oninput="calculate()">
                 </div>
             </div>
 
@@ -114,16 +115,16 @@
 
         <div class="result-card">
             <div class="result-title">السعر النهائي للعميل</div>
-            <div class="final-price"><span id="finalPrice">0</span> ج</div>
+            <div class="final-price"><span id="finalPrice">0</span> جنيه</div>
 
             <div class="result-mini">
                 <div>
                     <span>التكلفة عليك</span>
-                    <strong><span id="totalCost">0</span> ج</strong>
+                    <strong><span id="totalCost">0</span> جنيه</strong>
                 </div>
                 <div>
                     <span>صافي ربحك</span>
-                    <strong><span id="netProfit">0</span> ج</strong>
+                    <strong><span id="netProfit">0</span> جنيه</strong>
                 </div>
             </div>
 
@@ -143,11 +144,11 @@
         <div class="stats">
             <div class="stat">
                 <small>إجمالي المبيعات</small>
-                <strong id="statSales">0 ج</strong>
+                <strong id="statSales">0 جنيه</strong>
             </div>
             <div class="stat">
                 <small>إجمالي الأرباح</small>
-                <strong id="statProfit">0 ج</strong>
+                <strong id="statProfit">0 جنيه</strong>
             </div>
             <div class="stat">
                 <small>ساعات العمل</small>
@@ -183,15 +184,16 @@
             <div class="grid-3">
                 <div class="field">
                     <label>نسبة الربح الافتراضية (%)</label>
-                    <input id="setProfitPercent" type="text" inputmode="decimal" placeholder="0">
+                    <input id="setProfitPercent" type="text" inputmode="decimal" placeholder="مثال: 100">
                 </div>
                 <div class="field">
-                    <label>سعر ساعة الشغل اليدوي الافتراضي</label>
-                    <input id="setManualRate" type="text" inputmode="decimal" placeholder="0">
+                    <label>سعر ساعة شغلك اليدوي الافتراضي</label>
+                    <input id="setManualRate" type="text" inputmode="decimal" placeholder="مثال: 120 جنيه">
+                    <div class="muted">دي قيمة ساعة شغلك، أما دقائق الشغل اليدوي في الحاسبة فهي مدة شغلك في الطلب نفسه.</div>
                 </div>
                 <div class="field">
                     <label>تكلفة التغليف الافتراضية</label>
-                    <input id="setPackagingCost" type="text" inputmode="decimal" placeholder="0">
+                    <input id="setPackagingCost" type="text" inputmode="decimal" placeholder="مثال: 10 جنيه">
                 </div>
             </div>
 
@@ -212,8 +214,8 @@
                     <input id="printerName" type="text" placeholder="مثال: BAMBU LAB A1">
                 </div>
                 <div class="field">
-                    <label>سعر ساعة التشغيل</label>
-                    <input id="printerRate" type="text" inputmode="decimal" placeholder="مثال: 35">
+                    <label>سعر ساعة التشغيل بالجنيه</label>
+                    <input id="printerRate" type="text" inputmode="decimal" placeholder="مثال: 35 جنيه">
                 </div>
                 <div class="field">
                     <label>حد الصيانة بالساعات</label>
@@ -258,7 +260,7 @@
                 </div>
                 <div class="field">
                     <label>السعر لكل كجم / 1000 جرام</label>
-                    <input id="matKgPrice" type="text" inputmode="decimal" placeholder="مثال: 1000">
+                    <input id="matKgPrice" type="text" inputmode="decimal" placeholder="مثال: 1000 جنيه">
                 </div>
             </div>
 
