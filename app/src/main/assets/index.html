@@ -12,10 +12,11 @@
             --card: #101010;
             --card2: #151515;
             --main: #19c878;
+            --main2: #8dffc8;
             --text: #f4f4f4;
             --muted: #a6a6a6;
             --border: rgba(255,255,255,0.10);
-            --border-green: rgba(25,200,120,0.28);
+            --border-green: rgba(25,200,120,0.30);
             --danger: #ff5b5b;
             --warning: #f3b34c;
             --shadow: 0 14px 32px rgba(0,0,0,0.45);
@@ -24,13 +25,19 @@
 
         * {
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            scroll-behavior: smooth;
         }
 
         body {
             margin: 0;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background:
-                radial-gradient(circle at top right, rgba(25,200,120,0.10), transparent 28%),
+                radial-gradient(circle at top right, rgba(25,200,120,0.12), transparent 30%),
+                radial-gradient(circle at bottom left, rgba(25,200,120,0.05), transparent 25%),
                 linear-gradient(180deg, var(--bg2), var(--bg));
             color: var(--text);
             min-height: 100vh;
@@ -105,6 +112,13 @@
             padding: 16px;
             margin-bottom: 14px;
             box-shadow: var(--shadow);
+        }
+
+        .card.soft {
+            border-color: var(--border-green);
+            background:
+                radial-gradient(circle at top right, rgba(25,200,120,0.08), transparent 40%),
+                linear-gradient(180deg, var(--card2), var(--card));
         }
 
         .grid {
@@ -216,7 +230,7 @@
             display: block;
             height: 100%;
             width: 0;
-            background: var(--main);
+            background: linear-gradient(90deg, #0f9b5a, var(--main));
             border-radius: 999px;
             transition: 0.25s;
         }
@@ -240,6 +254,7 @@
             justify-content: center;
             gap: 6px;
             font-size: 14px;
+            min-height: 40px;
         }
 
         button.secondary {
@@ -275,7 +290,7 @@
 
         .result-card {
             background:
-                radial-gradient(circle at top left, rgba(255,255,255,0.10), transparent 25%),
+                radial-gradient(circle at top left, rgba(255,255,255,0.12), transparent 25%),
                 linear-gradient(160deg, #075934, #19c878);
             color: #ffffff;
             border-radius: 24px;
@@ -376,7 +391,7 @@
 
         .sale-card {
             background: #080808;
-            border: 1px solid var(--border);
+            border: 1px solid rgba(25,200,120,0.16);
             border-radius: 18px;
             padding: 14px;
             box-shadow: 0 10px 22px rgba(0,0,0,0.24);
@@ -438,6 +453,8 @@
             display: flex;
             justify-content: flex-start;
             margin-top: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         .list-item {
@@ -460,6 +477,7 @@
             color: var(--muted);
             font-size: 13px;
             margin-top: 3px;
+            line-height: 1.6;
         }
 
         .toast {
@@ -491,23 +509,51 @@
         }
 
         @media print {
+            @page {
+                size: A4;
+                margin: 10mm;
+            }
+
+            html,
+            body {
+                width: auto !important;
+                height: auto !important;
+                min-height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #ffffff !important;
+                overflow: visible !important;
+            }
+
             body * {
-                visibility: hidden;
+                visibility: hidden !important;
             }
 
             #invoicePrintArea,
             #invoicePrintArea * {
-                visibility: visible;
+                visibility: visible !important;
             }
 
             #invoicePrintArea {
-                display: block;
-                position: absolute;
-                inset: 0;
-                padding: 24px;
-                background: #fff;
-                color: #000;
-                direction: rtl;
+                display: block !important;
+                position: static !important;
+                width: 100% !important;
+                height: auto !important;
+                min-height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+                direction: rtl !important;
+                overflow: hidden !important;
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+            }
+
+            .print-invoice,
+            .print-invoice * {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
         }
 
@@ -670,7 +716,7 @@
     <section id="page-calc" class="page active">
         <h1>Bambu Business Manager</h1>
 
-        <div class="card">
+        <div class="card soft">
             <h2>⚙️ حالة الماكينة</h2>
             <div class="machine-status">
                 <div class="field">
@@ -929,7 +975,7 @@
 <div id="toast" class="toast"></div>
 
 <script>
-    const SETTINGS_VERSION = 5;
+    const SETTINGS_VERSION = 6;
 
     const DEFAULT_SETTINGS = {
         settingsVersion: SETTINGS_VERSION,
@@ -986,13 +1032,6 @@
 
         const n = parseFloat(clean);
         return isNaN(n) ? 0 : n;
-    }
-
-    function fmt(value, digits = 0) {
-        return num(value).toLocaleString("en-US", {
-            minimumFractionDigits: digits,
-            maximumFractionDigits: digits
-        });
     }
 
     function money(value) {
@@ -1085,36 +1124,19 @@
             settings = structuredCloneSafe(DEFAULT_SETTINGS);
         }
 
-        const oldVersion = num(settings.settingsVersion);
-
         if (!settings.general) settings.general = {};
         if (!Array.isArray(settings.printers)) settings.printers = [];
         if (!Array.isArray(settings.materials)) settings.materials = [];
 
-        if (oldVersion < SETTINGS_VERSION) {
-            if (
-                settings.printers.length === 0 ||
-                settings.printers.some(p => String(p.name || "").toLowerCase().includes("p1s")) ||
-                settings.printers.some(p => String(p.name || "").toLowerCase().includes("bambu printer")) ||
-                settings.printers.some(p => String(p.name || "").toLowerCase().includes("combo"))
-            ) {
-                settings.printers = structuredCloneSafe(DEFAULT_SETTINGS.printers);
-                settings.selectedPrinterId = "printer_default_a1";
-            }
-
-            settings.general.profitPercent = settings.general.profitPercent ?? 100;
-            settings.general.manualRate = settings.general.manualRate ?? 0;
-            settings.general.packagingCost = settings.general.packagingCost ?? 10;
-        }
-
         if (settings.printers.length === 0) {
             settings.printers = structuredCloneSafe(DEFAULT_SETTINGS.printers);
+            settings.selectedPrinterId = "printer_default_a1";
         }
 
         settings.printers = settings.printers.map(p => ({
             id: p.id || makeId("printer"),
             name: p.name || "BAMBU LAB A1",
-            hourlyRate: num(p.hourlyRate),
+            hourlyRate: num(p.hourlyRate) || 35,
             maintenanceLimit: num(p.maintenanceLimit) || 200,
             currentHours: num(p.currentHours)
         }));
@@ -1164,10 +1186,7 @@
         settings.printers.forEach(printer => {
             const opt = document.createElement("option");
             opt.value = printer.id;
-
-            /* هنا التعديل المهم: اسم الماكينة فقط بدون السعر جنبها */
             opt.textContent = printer.name;
-
             select.appendChild(opt);
         });
 
@@ -1372,8 +1391,8 @@
                 color: mat ? mat.color : "",
                 brand: mat ? mat.brand : "",
                 kgPrice: mat ? num(mat.kgPrice) : 0,
-                gramPrice: gramPrice,
-                weight: weight,
+                gramPrice,
+                weight,
                 cost: weight * gramPrice
             };
         }).filter(item => item.id);
@@ -1409,10 +1428,7 @@
         const hasWork = hasOrderWork(printHours, materialWeight, wasteWeight, manualMinutes);
 
         const machineCost = printHours * machineRate;
-
-        /* هنا التعديل المهم: الهالك داخل في الحساب */
         const wasteCost = wasteWeight * weightedGramCost;
-
         const manualCost = (manualMinutes / 60) * manualRate;
         const packagingCost = hasWork ? packagingInput : 0;
 
@@ -1498,6 +1514,24 @@
         return lines.join("\n");
     }
 
+    function copyText(text, okMessage) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => toast(okMessage)).catch(() => fallbackCopy(text, okMessage));
+        } else {
+            fallbackCopy(text, okMessage);
+        }
+    }
+
+    function fallbackCopy(text, okMessage) {
+        const tmp = document.createElement("textarea");
+        tmp.value = text;
+        document.body.appendChild(tmp);
+        tmp.select();
+        document.execCommand("copy");
+        tmp.remove();
+        toast(okMessage);
+    }
+
     function copyInvoice() {
         calculate();
 
@@ -1506,19 +1540,7 @@
             return;
         }
 
-        const text = invoiceText();
-
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).then(() => toast("تم نسخ الفاتورة"));
-        } else {
-            const tmp = document.createElement("textarea");
-            tmp.value = text;
-            document.body.appendChild(tmp);
-            tmp.select();
-            document.execCommand("copy");
-            tmp.remove();
-            toast("تم نسخ الفاتورة");
-        }
+        copyText(invoiceText(), "تم نسخ الفاتورة");
     }
 
     function sendWhatsApp() {
@@ -1533,6 +1555,135 @@
         window.location.href = "https://api.whatsapp.com/send?text=" + text;
     }
 
+    function buildPrintInvoiceHtml() {
+        const client = document.getElementById("clientName").value.trim() || "عميل";
+        const model = document.getElementById("modelName").value.trim() || "طلب طباعة 3D";
+        const date = new Date().toLocaleDateString("en-GB");
+
+        const discountBlock = lastCalc.discount > 0
+            ? `<div class="print-discount">🎁 الخصم: ${money(lastCalc.discount)} ج.م</div>`
+            : "";
+
+        return `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    @page {
+        size: A4;
+        margin: 10mm;
+    }
+
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: auto;
+        min-height: 0;
+        background: #ffffff;
+        color: #000000;
+        font-family: Arial, Tahoma, sans-serif;
+        overflow: hidden;
+    }
+
+    * {
+        box-sizing: border-box;
+        page-break-after: avoid;
+        page-break-before: avoid;
+    }
+
+    .print-invoice {
+        width: 100%;
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 0;
+        text-align: center;
+        direction: rtl;
+        page-break-inside: avoid;
+        break-inside: avoid;
+        page-break-after: avoid;
+        break-after: avoid;
+    }
+
+    .print-box {
+        border: 2px solid #19c878;
+        border-radius: 18px;
+        padding: 22px 18px;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    h1 {
+        margin: 0 0 22px;
+        font-size: 28px;
+        line-height: 1.4;
+    }
+
+    .print-info {
+        max-width: 460px;
+        margin: 0 auto;
+        text-align: right;
+        font-size: 18px;
+        line-height: 2;
+    }
+
+    .print-discount {
+        margin: 16px auto 0;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .line {
+        margin: 18px 0 8px;
+        font-size: 20px;
+        line-height: 1;
+    }
+
+    .total {
+        max-width: 460px;
+        margin: 0 auto;
+        background: #19c878;
+        color: #001208;
+        border-radius: 16px;
+        padding: 16px;
+        font-size: 25px;
+        font-weight: 900;
+        line-height: 1.5;
+    }
+
+    .thanks {
+        margin-top: 18px;
+        font-size: 20px;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+    <div class="print-invoice">
+        <div class="print-box">
+            <h1>✨ فاتورة طلب طباعة 3D ✨</h1>
+
+            <div class="print-info">
+                <div><strong>التاريخ:</strong> ${escapeHtml(date)}</div>
+                <div><strong>العميل:</strong> ${escapeHtml(client)}</div>
+                <div><strong>المجسم:</strong> ${escapeHtml(model)}</div>
+            </div>
+
+            ${discountBlock}
+
+            <div class="line">━━━━━━━━━━━━━━</div>
+            <div class="total">💚 الإجمالي النهائي: ${money(lastCalc.finalPrice)} ج.م</div>
+            <div class="line">━━━━━━━━━━━━━━</div>
+
+            <div class="thanks">شكرًا لاختيارك لنا ✨</div>
+        </div>
+    </div>
+</body>
+</html>`;
+    }
+
     function printInvoice() {
         calculate();
 
@@ -1541,65 +1692,20 @@
             return;
         }
 
-        const client = document.getElementById("clientName").value.trim() || "عميل";
-        const model = document.getElementById("modelName").value.trim() || "طلب طباعة 3D";
-        const date = new Date().toLocaleDateString("en-GB");
+        const html = buildPrintInvoiceHtml();
+        const area = document.getElementById("invoicePrintArea");
 
-        const discountBlock = lastCalc.discount > 0
-            ? `<div style="font-size:18px;margin:18px 0 0;color:#000">🎁 الخصم: ${money(lastCalc.discount)} ج.م</div>`
-            : "";
-
-        document.getElementById("invoicePrintArea").innerHTML = `
-            <div style="
-                max-width:720px;
-                margin:0 auto;
-                font-family:Arial,sans-serif;
-                color:#000;
-                text-align:center;
-                direction:rtl;
-                padding:20px;
-            ">
-                <div style="
-                    border:2px solid #19c878;
-                    border-radius:22px;
-                    padding:28px 22px;
-                    box-shadow:0 8px 24px rgba(0,0,0,0.08);
-                ">
-                    <h1 style="margin:0 0 26px;font-size:30px">✨ فاتورة طلب طباعة 3D ✨</h1>
-
-                    <div style="text-align:right;font-size:18px;line-height:2;margin:0 auto;max-width:460px">
-                        <div><strong>التاريخ:</strong> ${escapeHtml(date)}</div>
-                        <div><strong>العميل:</strong> ${escapeHtml(client)}</div>
-                        <div><strong>المجسم:</strong> ${escapeHtml(model)}</div>
-                    </div>
-
-                    ${discountBlock}
-
-                    <div style="font-size:24px;margin:22px 0 8px;color:#111">━━━━━━━━━━━━━━</div>
-
-                    <div style="
-                        background:#19c878;
-                        color:#001208;
-                        border-radius:18px;
-                        padding:18px;
-                        font-size:26px;
-                        font-weight:bold;
-                        margin:0 auto;
-                        max-width:460px;
-                    ">
-                        💚 الإجمالي النهائي: ${money(lastCalc.finalPrice)} ج.م
-                    </div>
-
-                    <div style="font-size:24px;margin:8px 0 22px;color:#111">━━━━━━━━━━━━━━</div>
-
-                    <div style="font-size:20px;font-weight:bold">شكرًا لاختيارك لنا ✨</div>
-                </div>
-            </div>
-        `;
+        area.innerHTML = html
+            .replace(/^<!DOCTYPE html>[\s\S]*?<body>/i, "")
+            .replace(/<\/body>[\s\S]*?<\/html>$/i, "");
 
         try {
             if (window.Android && Android.printPage) {
-                Android.printPage();
+                try {
+                    Android.printPage(html);
+                } catch (e1) {
+                    Android.printPage();
+                }
             } else {
                 window.print();
             }
@@ -1772,7 +1878,7 @@
                         ${discountHtml}
                     </div>
 
-                    <div class="sale-actions" style="gap:8px;flex-wrap:wrap">
+                    <div class="sale-actions">
                         <button class="secondary" onclick="copySaleInvoice('${sale.id}')">نسخ الفاتورة</button>
                         <button class="danger" onclick="deleteSale('${sale.id}')">حذف البيعة</button>
                     </div>
@@ -1820,19 +1926,7 @@
         lines.push("");
         lines.push("شكرًا لاختيارك لنا ✨");
 
-        const text = lines.join("\n");
-
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).then(() => toast("تم نسخ فاتورة البيعة"));
-        } else {
-            const tmp = document.createElement("textarea");
-            tmp.value = text;
-            document.body.appendChild(tmp);
-            tmp.select();
-            document.execCommand("copy");
-            tmp.remove();
-            toast("تم نسخ فاتورة البيعة");
-        }
+        copyText(lines.join("\n"), "تم نسخ فاتورة البيعة");
     }
 
     function deleteSale(id) {
@@ -1934,6 +2028,15 @@
         });
 
         const csv = "\uFEFF" + rows.join("\n");
+
+        try {
+            if (window.Android && Android.exportCSV) {
+                Android.exportCSV(csv, "bambu-sales-" + new Date().toISOString().slice(0, 10) + ".csv");
+                toast("تم تجهيز ملف CSV / Excel");
+                return;
+            }
+        } catch (e) {}
+
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -2246,6 +2349,11 @@
     }
 
     function useMaterial(id) {
+        const orderBox = document.getElementById("orderMaterials");
+        if (orderBox && orderBox.dataset.hasRows !== "1") {
+            orderBox.innerHTML = "";
+            orderBox.dataset.hasRows = "1";
+        }
         addOrderMaterialRow(id, "");
         showPage("calc");
         toast("تمت إضافة الخامة للطلب");
