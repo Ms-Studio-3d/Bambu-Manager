@@ -3,7 +3,7 @@
     <application
         android:allowBackup="true"
         android:icon="@drawable/icon"
-        android:label="Bambu Manager"
+        android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.BambuManager">
 
