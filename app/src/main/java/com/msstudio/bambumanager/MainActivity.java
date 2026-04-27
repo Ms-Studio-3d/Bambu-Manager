@@ -1,6 +1,8 @@
 package com.msstudio.bambumanager;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
@@ -13,6 +15,7 @@ import android.view.View;
 import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
 import android.webkit.SafeBrowsingResponse;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -25,55 +28,231 @@ import android.widget.Toast;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.webkit.WebViewAssetLoader;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "BambuManager";
+
     private static final String APP_URL = "file:///android_asset/index.html";
 
+    private static final String PREFS_NAME = "bambu_manager_prefs";
+    private static final String KEY_APP_SETTINGS = "app_settings_json";
+    private static final String KEY_SALES = "sales_json";
+    private static final String KEY_MAINTENANCE_HOURS = "maintenance_hours";
+
     private WebView webView;
+    private SharedPreferences prefs;
 
     public class AndroidBridge {
 
         @JavascriptInterface
-        public void printPage() {
-            runOnUiThread(() -> {
-                try {
-                    if (webView == null) {
-                        showToast("الطباعة غير متاحة الآن");
-                        Log.e(TAG, "printPage failed: webView is null");
-                        return;
-                    }
+        public String getAppSettings() {
+            try {
+                return prefs.getString(KEY_APP_SETTINGS, "");
+            } catch (Exception e) {
+                Log.e(TAG, "getAppSettings failed", e);
+                return "";
+            }
+        }
 
-                    PrintManager printManager = (PrintManager) getSystemService(PRINT_SERVICE);
-                    if (printManager == null) {
-                        showToast("خدمة الطباعة غير متاحة على الجهاز");
-                        Log.e(TAG, "printPage failed: PrintManager is null");
-                        return;
-                    }
-
-                    String jobName = getString(R.string.app_name) + " Invoice";
-                    PrintDocumentAdapter printAdapter = webView.createPrintDocumentAdapter(jobName);
-
-                    PrintAttributes printAttributes = new PrintAttributes.Builder()
-                            .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
-                            .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
-                            .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
-                            .build();
-
-                    printManager.print(jobName, printAdapter, printAttributes);
-
-                } catch (Exception e) {
-                    Log.e(TAG, "printPage failed", e);
-                    showToast("حدث خطأ أثناء الطباعة");
+        @JavascriptInterface
+        public void setAppSettings(String settingsJson) {
+            try {
+                if (settingsJson == null) {
+                    Log.w(TAG, "setAppSettings ignored null settingsJson");
+                    return;
                 }
-            });
+
+                new JSONObject(settingsJson);
+
+                prefs.edit()
+                        .putString(KEY_APP_SETTINGS, settingsJson)
+                        .apply();
+
+            } catch (Exception e) {
+                Log.e(TAG, "setAppSettings failed", e);
+                showToastOnUi("حدث خطأ أثناء حفظ الإعدادات");
+            }
+        }
+
+        @JavascriptInterface
+        public String getSales() {
+            try {
+                return prefs.getString(KEY_SALES, "[]");
+            } catch (Exception e) {
+                Log.e(TAG, "getSales failed", e);
+                return "[]";
+            }
+        }
+
+        @JavascriptInterface
+        public void saveSale(String saleJson) {
+            try {
+                if (saleJson == null || saleJson.trim().isEmpty()) {
+                    Log.w(TAG, "saveSale ignored empty saleJson");
+                    showToastOnUi("بيانات البيعة غير صالحة");
+                    return;
+                }
+
+                JSONObject sale = new JSONObject(saleJson);
+
+                String rawSales = prefs.getString(KEY_SALES, "[]");
+                JSONArray oldSales;
+
+                try {
+                    oldSales = new JSONArray(rawSales == null || rawSales.trim().isEmpty() ? "[]" : rawSales);
+                } catch (Exception e) {
+                    Log.e(TAG, "Existing sales JSON is corrupted, resetting sales list", e);
+                    oldSales = new JSONArray();
+                }
+
+                JSONArray newSales = new JSONArray();
+                newSales.put(sale);
+
+                for (int i = 0; i < oldSales.length(); i++) {
+                    newSales.put(oldSales.get(i));
+                }
+
+                prefs.edit()
+                        .putString(KEY_SALES, newSales.toString())
+                        .apply();
+
+            } catch (Exception e) {
+                Log.e(TAG, "saveSale failed", e);
+                showToastOnUi("حدث خطأ أثناء حفظ البيعة");
+            }
+        }
+
+        @JavascriptInterface
+        public void deleteSale(String saleId) {
+            try {
+                if (saleId == null || saleId.trim().isEmpty()) {
+                    Log.w(TAG, "deleteSale ignored empty saleId");
+                    return;
+                }
+
+                String rawSales = prefs.getString(KEY_SALES, "[]");
+                JSONArray oldSales;
+
+                try {
+                    oldSales = new JSONArray(rawSales == null || rawSales.trim().isEmpty() ? "[]" : rawSales);
+                } catch (Exception e) {
+                    Log.e(TAG, "Existing sales JSON is corrupted, resetting sales list", e);
+                    oldSales = new JSONArray();
+                }
+
+                JSONArray newSales = new JSONArray();
+
+                for (int i = 0; i < oldSales.length(); i++) {
+                    JSONObject sale = oldSales.optJSONObject(i);
+
+                    if (sale == null) {
+                        continue;
+                    }
+
+                    String id = String.valueOf(sale.opt("id"));
+
+                    if (!saleId.equals(id)) {
+                        newSales.put(sale);
+                    }
+                }
+
+                prefs.edit()
+                        .putString(KEY_SALES, newSales.toString())
+                        .apply();
+
+            } catch (Exception e) {
+                Log.e(TAG, "deleteSale failed", e);
+                showToastOnUi("تعذر حذف البيعة");
+            }
+        }
+
+        @JavascriptInterface
+        public void clearAllSales() {
+            try {
+                prefs.edit()
+                        .putString(KEY_SALES, "[]")
+                        .apply();
+
+            } catch (Exception e) {
+                Log.e(TAG, "clearAllSales failed", e);
+                showToastOnUi("تعذر مسح السجل");
+            }
+        }
+
+        @JavascriptInterface
+        public void setMaintenanceHours(String hours) {
+            try {
+                String safeHours = hours == null ? "0" : hours;
+
+                prefs.edit()
+                        .putString(KEY_MAINTENANCE_HOURS, safeHours)
+                        .apply();
+
+            } catch (Exception e) {
+                Log.e(TAG, "setMaintenanceHours failed", e);
+            }
+        }
+
+        @JavascriptInterface
+        public String getMaintenanceHours() {
+            try {
+                return prefs.getString(KEY_MAINTENANCE_HOURS, "0");
+            } catch (Exception e) {
+                Log.e(TAG, "getMaintenanceHours failed", e);
+                return "0";
+            }
+        }
+
+        @JavascriptInterface
+        public void exportCSV(String csvContent, String fileName) {
+            /*
+             * Offline-safe behavior:
+             * No internet, no share intent, no external upload.
+             * The current JS fallback can create a local Blob in browser contexts.
+             * Inside Android WebView, we keep this as a safe no-op with a user message.
+             *
+             * Later we can add Storage Access Framework if you want the user to pick
+             * a save location manually, without INTERNET permission.
+             */
+            try {
+                if (csvContent == null || csvContent.trim().isEmpty()) {
+                    showToastOnUi("لا توجد بيانات للتصدير");
+                    return;
+                }
+
+                Log.i(TAG, "CSV export requested. File name: " + fileName + ", length: " + csvContent.length());
+                showToastOnUi("التصدير جاهز، سنضيف حفظ الملف محليًا في المرحلة التالية");
+
+            } catch (Exception e) {
+                Log.e(TAG, "exportCSV failed", e);
+                showToastOnUi("تعذر تجهيز ملف CSV");
+            }
+        }
+
+        @JavascriptInterface
+        public void printPage() {
+            printCurrentWebView();
+        }
+
+        @JavascriptInterface
+        public void printPage(String html) {
+            /*
+             * WebView printing prints the current rendered page.
+             * The JS already injects invoice HTML into #invoicePrintArea before calling this method.
+             */
+            printCurrentWebView();
         }
 
         @JavascriptInterface
         public void showToast(String message) {
-            runOnUiThread(() -> MainActivity.this.showToast(message));
+            showToastOnUi(message);
         }
 
         @JavascriptInterface
@@ -93,18 +272,19 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         try {
+            prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+
             setContentView(R.layout.activity_main);
 
             webView = findViewById(R.id.webView);
             if (webView == null) {
                 Log.e(TAG, "WebView not found in activity_main.xml");
-                showToast("خطأ في تحميل واجهة التطبيق");
+                showToastOnUi("خطأ في تحميل واجهة التطبيق");
                 finish();
                 return;
             }
 
             configureWebView();
-
             webView.addJavascriptInterface(new AndroidBridge(), "Android");
 
             if (savedInstanceState != null) {
@@ -117,7 +297,7 @@ public class MainActivity extends AppCompatActivity {
 
         } catch (Exception e) {
             Log.e(TAG, "onCreate failed", e);
-            showToast("حدث خطأ أثناء تشغيل التطبيق");
+            showToastOnUi("حدث خطأ أثناء تشغيل التطبيق");
             finish();
         }
     }
@@ -135,12 +315,12 @@ public class MainActivity extends AppCompatActivity {
 
         /*
          * Offline-first hardening:
-         * - The app loads local assets only.
-         * - Network images are blocked.
-         * - External URLs are blocked in shouldOverrideUrlLoading.
-         * - No INTERNET permission exists in AndroidManifest.xml.
+         * - No INTERNET permission in AndroidManifest.xml.
+         * - Navigation is limited to local assets and internal generated URLs.
+         * - External HTTP/HTTPS/WhatsApp links are blocked.
          */
         settings.setBlockNetworkImage(true);
+
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
 
@@ -187,6 +367,7 @@ public class MainActivity extends AppCompatActivity {
                             break;
                     }
                 }
+
                 return true;
             }
         });
@@ -218,7 +399,18 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 Log.w(TAG, "Blocked external navigation: " + url);
-                showToast("التطبيق يعمل أوفلاين، تم منع فتح رابط خارجي");
+                showToastOnUi("التطبيق يعمل أوفلاين، تم منع فتح رابط خارجي");
+                return true;
+            }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                if (isAllowedLocalUrl(url)) {
+                    return false;
+                }
+
+                Log.w(TAG, "Blocked external navigation: " + url);
+                showToastOnUi("التطبيق يعمل أوفلاين، تم منع فتح رابط خارجي");
                 return true;
             }
 
@@ -236,10 +428,26 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 Log.w(TAG, "Blocked external resource: " + url);
+
                 return new WebResourceResponse(
                         "text/plain",
                         "UTF-8",
-                        null
+                        new ByteArrayInputStream(new byte[0])
+                );
+            }
+
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+                if (isAllowedLocalUrl(url)) {
+                    return super.shouldInterceptRequest(view, url);
+                }
+
+                Log.w(TAG, "Blocked external resource: " + url);
+
+                return new WebResourceResponse(
+                        "text/plain",
+                        "UTF-8",
+                        new ByteArrayInputStream(new byte[0])
                 );
             }
 
@@ -259,7 +467,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 Log.e(TAG, "Main frame load error: " + description + " URL: " + failingUrl);
-                showToast("حدث خطأ أثناء تحميل واجهة التطبيق");
+                showToastOnUi("حدث خطأ أثناء تحميل واجهة التطبيق");
             }
 
             @Override
@@ -275,7 +483,7 @@ public class MainActivity extends AppCompatActivity {
                     callback.backToSafety(true);
                 }
 
-                showToast("تم منع محتوى غير آمن");
+                showToastOnUi("تم منع محتوى غير آمن");
             }
         });
     }
@@ -287,7 +495,8 @@ public class MainActivity extends AppCompatActivity {
 
         return url.startsWith("file:///android_asset/")
                 || url.startsWith("about:blank")
-                || url.startsWith("data:");
+                || url.startsWith("data:")
+                || url.startsWith("blob:");
     }
 
     private void configureBackButton() {
@@ -308,12 +517,48 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void showToast(String message) {
-        String safeMessage = message == null || message.trim().isEmpty()
-                ? "حدث خطأ غير معروف"
-                : message;
+    private void printCurrentWebView() {
+        runOnUiThread(() -> {
+            try {
+                if (webView == null) {
+                    showToastOnUi("الطباعة غير متاحة الآن");
+                    Log.e(TAG, "printCurrentWebView failed: webView is null");
+                    return;
+                }
 
-        Toast.makeText(this, safeMessage, Toast.LENGTH_SHORT).show();
+                PrintManager printManager = (PrintManager) getSystemService(PRINT_SERVICE);
+                if (printManager == null) {
+                    showToastOnUi("خدمة الطباعة غير متاحة على الجهاز");
+                    Log.e(TAG, "printCurrentWebView failed: PrintManager is null");
+                    return;
+                }
+
+                String jobName = getString(R.string.app_name) + " Invoice";
+                PrintDocumentAdapter printAdapter = webView.createPrintDocumentAdapter(jobName);
+
+                PrintAttributes printAttributes = new PrintAttributes.Builder()
+                        .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
+                        .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
+                        .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
+                        .build();
+
+                printManager.print(jobName, printAdapter, printAttributes);
+
+            } catch (Exception e) {
+                Log.e(TAG, "printCurrentWebView failed", e);
+                showToastOnUi("حدث خطأ أثناء الطباعة");
+            }
+        });
+    }
+
+    private void showToastOnUi(String message) {
+        runOnUiThread(() -> {
+            String safeMessage = message == null || message.trim().isEmpty()
+                    ? "حدث خطأ غير معروف"
+                    : message;
+
+            Toast.makeText(MainActivity.this, safeMessage, Toast.LENGTH_SHORT).show();
+        });
     }
 
     @Override
