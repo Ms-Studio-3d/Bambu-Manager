@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bambu Business Manager v8.0</title>
+    <title>Bambu Business Manager v9.0</title>
     <style>
         :root {
             --bg-dark: #0a0c10;
@@ -51,14 +51,14 @@
 
         .tab-btn {
             flex: 1;
-            padding: 15px;
+            padding: 14px 8px;
             border: none;
             background: none;
             color: var(--text-muted);
             font-weight: bold;
             cursor: pointer;
             transition: 0.3s;
-            font-size: 15px;
+            font-size: 14px;
         }
 
         .tab-btn.active {
@@ -109,7 +109,7 @@
             margin-bottom: 6px;
         }
 
-        input {
+        input, select {
             width: 100%;
             background: #000;
             border: 1px solid #30363d;
@@ -122,7 +122,12 @@
             transition: 0.3s;
         }
 
-        input:focus {
+        select option {
+            background: #000;
+            color: #fff;
+        }
+
+        input:focus, select:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 2px rgba(0, 230, 118, 0.1);
         }
@@ -297,6 +302,30 @@
             margin-top: 15px;
         }
 
+        .btn-small {
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+
+        .btn-secondary {
+            background: rgba(41, 121, 255, 0.12);
+            color: var(--secondary);
+            border: 1px solid var(--secondary);
+        }
+
+        .btn-danger {
+            background: rgba(255, 82, 82, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .btn-warning {
+            background: rgba(255, 235, 59, 0.08);
+            color: var(--warning);
+            border: 1px solid rgba(255, 235, 59, 0.5);
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -318,6 +347,7 @@
         td {
             padding: 12px;
             border-bottom: 1px solid #30363d;
+            vertical-align: top;
         }
 
         .btn-del {
@@ -357,8 +387,72 @@
             margin-top: 6px;
         }
 
+        .hint {
+            color: var(--text-muted);
+            font-size: 12px;
+            line-height: 1.7;
+            margin-top: 8px;
+        }
+
+        .list-card {
+            background: rgba(0,0,0,0.28);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .list-card-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            font-weight: bold;
+        }
+
+        .list-card-sub {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 6px;
+            line-height: 1.6;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(0, 230, 118, 0.12);
+            color: var(--primary);
+            border: 1px solid rgba(0, 230, 118, 0.4);
+            padding: 3px 7px;
+            border-radius: 999px;
+            font-size: 11px;
+            margin-right: 4px;
+        }
+
         #pdf-template {
             display: none;
+        }
+
+        @media (max-width: 430px) {
+            .input-row {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .tab-btn {
+                font-size: 12px;
+                padding: 12px 4px;
+            }
+
+            .price-value {
+                font-size: 34px;
+            }
         }
 
         @media print {
@@ -408,8 +502,9 @@
 <body>
 
 <div class="tab-bar">
-    <button class="tab-btn active" onclick="showPage('calc-page', this)">🖩 الحاسبة السريعة</button>
-    <button class="tab-btn" onclick="showPage('sales-page', this); loadSales();">📊 السجل والأرباح</button>
+    <button class="tab-btn active" onclick="showPage('calc-page', this)">🖩 الحاسبة</button>
+    <button class="tab-btn" onclick="showPage('sales-page', this); loadSales();">📊 السجل</button>
+    <button class="tab-btn" onclick="showPage('settings-page', this); renderSettings();">⚙️ الإعدادات</button>
 </div>
 
 <div class="container">
@@ -427,9 +522,13 @@
     <div id="calc-page" class="page active">
         <div class="section">
             <h2 class="section-title">🛠️ حالة الماكينة</h2>
+            <div class="input-group" style="margin-bottom:10px;">
+                <label>اختار الماكينة</label>
+                <select id="machineSelect" class="calc-trigger"></select>
+            </div>
             <div class="maint-box">
                 <div style="display: flex; justify-content: space-between; font-size: 13px;">
-                    <span>الساعات المسجلة: <span id="maintHours">0</span> / 200 س</span>
+                    <span>الساعات المسجلة: <span id="maintHours">0</span> / <span id="maintLimit">200</span> س</span>
                     <button onclick="resetMaint()" style="background:none; border:none; color:var(--danger); text-decoration:underline; font-size:12px; cursor:pointer;">تصفير الصيانة</button>
                 </div>
                 <div class="maint-bar-bg"><div class="maint-bar-fill" id="maintBar"></div></div>
@@ -459,7 +558,7 @@
                     <input type="number" id="pTime" class="calc-trigger" placeholder="0" min="0" step="0.1">
                 </div>
                 <div class="input-group">
-                    <label>سعر الساعة (الماكينة)</label>
+                    <label>سعر ساعة التشغيل</label>
                     <input type="number" id="hRate" class="calc-trigger" value="20" min="0" step="0.01">
                 </div>
             </div>
@@ -474,7 +573,7 @@
             </datalist>
 
             <div id="filaments-container"></div>
-            <button onclick="addFil()" class="btn-add-color">➕ إضافة لون جديد</button>
+            <button onclick="addFil()" class="btn-add-color">➕ إضافة لون / خامة للطلب</button>
 
             <div class="input-group" style="margin-top:15px;">
                 <label>🗑️ وزن الهالك الإجمالي (جرام)</label>
@@ -483,6 +582,24 @@
         </div>
 
         <div class="section">
+            <h2 class="section-title">🧰 شغل يدوي وتغليف</h2>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>وقت الشغل اليدوي (دقائق)</label>
+                    <input type="number" id="manualMinutes" class="calc-trigger" value="0" min="0" step="1">
+                </div>
+                <div class="input-group">
+                    <label>سعر ساعة الشغل اليدوي</label>
+                    <input type="number" id="laborRate" class="calc-trigger" value="0" min="0" step="0.01">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>تكلفة التغليف</label>
+                <input type="number" id="packagingCost" class="calc-trigger" value="0" min="0" step="0.01">
+            </div>
+            <div class="hint">ممكن تسيب الشغل اليدوي أو التغليف بصفر لو الطلب مش محتاجهم.</div>
+        </div>
+                <div class="section">
             <h2 class="section-title">💰 الربح والخصم</h2>
             <div class="input-row">
                 <div class="input-group">
@@ -539,6 +656,78 @@
             <button onclick="exportCSV()" class="btn btn-export">📥 تصدير السجل لملف إكسيل (Excel)</button>
         </div>
     </div>
+
+    <div id="settings-page" class="page">
+        <div class="section">
+            <h2 class="section-title">⚙️ الإعدادات العامة</h2>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>نسبة الربح الافتراضية (%)</label>
+                    <input type="number" id="setDefaultProfit" value="100" min="0" step="0.01">
+                </div>
+                <div class="input-group">
+                    <label>تكلفة التغليف الافتراضية</label>
+                    <input type="number" id="setDefaultPackaging" value="0" min="0" step="0.01">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>سعر ساعة الشغل اليدوي الافتراضي</label>
+                <input type="number" id="setDefaultLaborRate" value="0" min="0" step="0.01">
+            </div>
+            <button onclick="saveGeneralSettings()" class="btn btn-save">💾 حفظ الإعدادات العامة</button>
+            <div class="hint">دي أرقام ثابتة تتحمل تلقائيًا كل مرة تفتح التطبيق، وتقدر تغيرها في أي وقت.</div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">🖨️ إدارة الماكينات</h2>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>اسم الماكينة</label>
+                    <input type="text" id="machineName" placeholder="Bambu Lab A1 Combo" maxlength="80">
+                </div>
+                <div class="input-group">
+                    <label>سعر ساعة التشغيل</label>
+                    <input type="number" id="machineRateInput" placeholder="20" min="0" step="0.01">
+                </div>
+            </div>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>حد الصيانة بالساعات</label>
+                    <input type="number" id="machineMaintLimitInput" placeholder="5000" min="1" step="1">
+                </div>
+                <div class="input-group">
+                    <label>الساعات الحالية</label>
+                    <input type="number" id="machineHoursInput" placeholder="0" min="0" step="0.1">
+                </div>
+            </div>
+            <button onclick="saveMachine()" class="btn btn-save" id="machineSaveBtn">➕ إضافة ماكينة</button>
+            <button onclick="clearMachineForm()" class="btn btn-secondary" style="width:100%; margin-top:10px;">تفريغ بيانات الماكينة</button>
+            <div id="machinesList" style="margin-top:15px;"></div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">🧵 إدارة الخامات</h2>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>نوع / اسم الخامة</label>
+                    <input type="text" id="filamentNameInput" placeholder="PLA - أبيض - Bambu" maxlength="100">
+                </div>
+                <div class="input-group">
+                    <label>السعر / كجم</label>
+                    <input type="number" id="filamentPriceInput" placeholder="1000" min="0" step="0.01">
+                </div>
+            </div>
+            <button onclick="saveFilamentItem()" class="btn btn-save" id="filamentSaveBtn">➕ إضافة خامة</button>
+            <button onclick="clearFilamentForm()" class="btn btn-secondary" style="width:100%; margin-top:10px;">تفريغ بيانات الخامة</button>
+            <div id="filamentsList" style="margin-top:15px;"></div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">🧹 أدوات البيانات</h2>
+            <button onclick="resetAllDefaults()" class="btn btn-danger" style="width:100%;">إرجاع الإعدادات الافتراضية</button>
+            <div class="hint">لن يمسح سجل المبيعات. سيعيد فقط الماكينات والخامات والإعدادات الافتراضية.</div>
+        </div>
+    </div>
 </div>
 
 <div id="pdf-template" dir="rtl">
@@ -580,11 +769,36 @@
         sales: 'bambu_sales',
         maintenance: 'bambu_maint',
         defaultRate: 'def_rate',
-        defaultFilaments: 'def_fils'
+        defaultFilaments: 'def_fils',
+        appSettings: 'bambu_app_settings_v9'
+    };
+
+    const DEFAULT_STATE = {
+        general: {
+            profit: 100,
+            laborRate: 0,
+            packagingCost: 0,
+            activeMachineId: 'machine_default'
+        },
+        machines: [
+            {
+                id: 'machine_default',
+                name: 'Bambu Lab A1 Combo',
+                hourlyRate: 20,
+                maintenanceLimit: 5000,
+                maintenanceHours: 0
+            }
+        ],
+        filaments: [
+            { id: 'fil_default_pla', name: 'PLA', pricePerKg: 1000 }
+        ]
     };
 
     let sales = [];
     let calcTimer = null;
+    let appState = loadAppState();
+    let editingMachineId = null;
+    let editingFilamentId = null;
 
     function hasAndroidBridge() {
         return !!(window.Android);
@@ -592,6 +806,7 @@
 
     function safeJSONParse(value, fallback) {
         try {
+            if (value === null || value === undefined || value === '') return fallback;
             return JSON.parse(value) ?? fallback;
         } catch {
             return fallback;
@@ -608,20 +823,94 @@
         return document.getElementById(id).value.trim();
     }
 
+    function makeId(prefix) {
+        return prefix + '_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+    }
+
+    function clone(obj) {
+        return JSON.parse(JSON.stringify(obj));
+    }
+
+    function loadAppState() {
+        const saved = safeJSONParse(localStorage.getItem(STORAGE_KEYS.appSettings), null);
+        let state = saved || clone(DEFAULT_STATE);
+
+        if (!state.general) state.general = clone(DEFAULT_STATE.general);
+        if (!Array.isArray(state.machines) || state.machines.length === 0) state.machines = clone(DEFAULT_STATE.machines);
+        if (!Array.isArray(state.filaments) || state.filaments.length === 0) state.filaments = clone(DEFAULT_STATE.filaments);
+
+        const oldRate = getDefaultRateValueRaw();
+        if (!saved && oldRate !== null) {
+            state.machines[0].hourlyRate = sanitizeNumber(oldRate, 20);
+        }
+
+        const oldMaint = getMaintenanceHoursValueRaw();
+        if (!saved && oldMaint > 0) {
+            state.machines[0].maintenanceHours = oldMaint;
+        }
+
+        const oldFils = getDefaultFilamentsValueRaw();
+        if (!saved && oldFils.length > 0) {
+            state.filaments = oldFils
+                .filter(f => String(f.t || '').trim() !== '' || sanitizeNumber(f.p) > 0)
+                .map((f, index) => ({
+                    id: 'old_fil_' + index + '_' + Date.now(),
+                    name: String(f.t || 'PLA').trim() || 'PLA',
+                    pricePerKg: sanitizeNumber(f.p, 1000)
+                }));
+            if (state.filaments.length === 0) state.filaments = clone(DEFAULT_STATE.filaments);
+        }
+
+        if (!state.general.activeMachineId || !state.machines.some(m => m.id === state.general.activeMachineId)) {
+            state.general.activeMachineId = state.machines[0].id;
+        }
+
+        return state;
+    }
+
+    function saveAppState() {
+        localStorage.setItem(STORAGE_KEYS.appSettings, JSON.stringify(appState));
+
+        const machine = getActiveMachine();
+        setDefaultRateValue(String(machine ? machine.hourlyRate : 20));
+        setMaintenanceHoursValue(machine ? machine.maintenanceHours : 0);
+
+        setDefaultFilamentsValue(appState.filaments.map(f => ({
+            t: f.name,
+            p: f.pricePerKg
+        })));
+    }
+
+    function getActiveMachine() {
+        return appState.machines.find(m => m.id === appState.general.activeMachineId) || appState.machines[0];
+    }
+
     function debounceCalculate() {
         clearTimeout(calcTimer);
         calcTimer = setTimeout(calculate, 80);
     }
 
-    function getMaintenanceHoursValue() {
+    function getMaintenanceHoursValueRaw() {
         if (hasAndroidBridge() && typeof Android.getMaintenanceHours === 'function') {
             return sanitizeNumber(Android.getMaintenanceHours());
         }
         return sanitizeNumber(localStorage.getItem(STORAGE_KEYS.maintenance));
     }
 
+    function getMaintenanceHoursValue() {
+        const machine = getActiveMachine();
+        return machine ? sanitizeNumber(machine.maintenanceHours) : getMaintenanceHoursValueRaw();
+    }
+
     function setMaintenanceHoursValue(value) {
         const safeValue = sanitizeNumber(value);
+        const machine = getActiveMachine();
+
+        if (machine) {
+            machine.maintenanceHours = safeValue;
+            localStorage.setItem(STORAGE_KEYS.appSettings, JSON.stringify(appState));
+        }
+
         if (hasAndroidBridge() && typeof Android.setMaintenanceHours === 'function') {
             Android.setMaintenanceHours(String(safeValue));
         } else {
@@ -629,12 +918,18 @@
         }
     }
 
-    function getDefaultRateValue() {
+    function getDefaultRateValueRaw() {
         if (hasAndroidBridge() && typeof Android.getDefaultRate === 'function') {
             const value = Android.getDefaultRate();
             return value !== null && value !== undefined ? value : null;
         }
         return localStorage.getItem(STORAGE_KEYS.defaultRate);
+    }
+
+    function getDefaultRateValue() {
+        const machine = getActiveMachine();
+        if (machine) return String(machine.hourlyRate);
+        return getDefaultRateValueRaw();
     }
 
     function setDefaultRateValue(value) {
@@ -645,12 +940,15 @@
             localStorage.setItem(STORAGE_KEYS.defaultRate, safeValue);
         }
     }
-
-    function getDefaultFilamentsValue() {
+        function getDefaultFilamentsValueRaw() {
         if (hasAndroidBridge() && typeof Android.getDefaultFilaments === 'function') {
             return safeJSONParse(Android.getDefaultFilaments(), []);
         }
         return safeJSONParse(localStorage.getItem(STORAGE_KEYS.defaultFilaments), []);
+    }
+
+    function getDefaultFilamentsValue() {
+        return appState.filaments.map(f => ({ t: f.name, p: f.pricePerKg }));
     }
 
     function setDefaultFilamentsValue(filaments) {
@@ -682,7 +980,7 @@
         if (hasAndroidBridge() && typeof Android.deleteSale === 'function') {
             Android.deleteSale(String(id));
         } else {
-            sales = sales.filter(s => s.id !== id);
+            sales = sales.filter(s => String(s.id) !== String(id));
             localStorage.setItem(STORAGE_KEYS.sales, JSON.stringify(sales));
         }
     }
@@ -696,6 +994,9 @@
         const rate = sanitizeNumber(document.getElementById('hRate').value);
         const wasteW = sanitizeNumber(document.getElementById('waste').value);
         const profit = sanitizeNumber(document.getElementById('prof').value);
+        const manualMinutes = sanitizeNumber(document.getElementById('manualMinutes').value);
+        const laborRate = sanitizeNumber(document.getElementById('laborRate').value);
+        const packagingCost = sanitizeNumber(document.getElementById('packagingCost').value);
         let discount = sanitizeNumber(document.getElementById('disc').value);
 
         let filamentCost = 0;
@@ -708,8 +1009,12 @@
             totalWeight += weight;
         });
 
-        const wasteCost = wasteW * (totalWeight > 0 ? filamentCost / totalWeight : 0);
-        const totalCost = (time * rate) + filamentCost + wasteCost;
+        const avgGramCost = totalWeight > 0 ? filamentCost / totalWeight : 0;
+        const wasteCost = wasteW * avgGramCost;
+        const machineCost = time * rate;
+        const laborCost = (manualMinutes / 60) * laborRate;
+
+        const totalCost = machineCost + filamentCost + wasteCost + laborCost + packagingCost;
         discount = Math.min(discount, totalCost * (1 + profit / 100));
 
         let finalPrice = (totalCost * (1 + profit / 100)) - discount;
@@ -719,9 +1024,15 @@
         return {
             time,
             rate,
+            machineCost,
             totalWeight,
+            filamentCost,
             wasteW,
             wasteCost,
+            manualMinutes,
+            laborRate,
+            laborCost,
+            packagingCost,
             totalCost,
             profit,
             discount,
@@ -745,17 +1056,62 @@
         if (btn) btn.classList.add('active');
     }
 
+    function refreshMachineSelect() {
+        const select = document.getElementById('machineSelect');
+        select.innerHTML = '';
+
+        appState.machines.forEach(machine => {
+            const opt = document.createElement('option');
+            opt.value = machine.id;
+            opt.textContent = `${machine.name} - ${sanitizeNumber(machine.hourlyRate).toFixed(2)} ج/س`;
+            select.appendChild(opt);
+        });
+
+        select.value = appState.general.activeMachineId;
+    }
+
+    function handleMachineChange() {
+        const select = document.getElementById('machineSelect');
+        const machine = appState.machines.find(m => m.id === select.value);
+        if (!machine) return;
+
+        appState.general.activeMachineId = machine.id;
+        document.getElementById('hRate').value = sanitizeNumber(machine.hourlyRate).toString();
+        saveAppState();
+        calculate();
+    }
+
+    function refreshFilamentDatalist() {
+        const list = document.getElementById('filamentTypes');
+        list.innerHTML = '';
+
+        const names = ['PLA', 'PLA Silk', 'PLA Matte', 'PETG', 'TPU', 'ABS'];
+        appState.filaments.forEach(f => names.push(f.name));
+
+        [...new Set(names.filter(Boolean))].forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            list.appendChild(opt);
+        });
+    }
+
+    function findFilamentByName(name) {
+        const target = String(name || '').trim().toLowerCase();
+        return appState.filaments.find(f => String(f.name || '').trim().toLowerCase() === target);
+    }
+
     function addFil(type = '', weight = '', price = '') {
         const div = document.createElement('div');
         div.className = 'filament-row';
+
         div.innerHTML = `
             <div class="filament-header">
-                <span style="font-size:13px; font-weight:bold; color:var(--text-light)">🎨 لون الخيط</span>
+                <span style="font-size:13px; font-weight:bold; color:var(--text-light)">🎨 لون / خامة</span>
                 <button class="btn-remove" type="button">❌ حذف</button>
             </div>
             <div class="input-row" style="margin-bottom:0;">
                 <div class="input-group" style="flex: 2;">
-                    <input type="text" class="f-t" list="filamentTypes" placeholder="النوع (PLA...)" maxlength="50">
+                    <input type="text" class="f-t" list="filamentTypes" placeholder="الخامة (PLA...)" maxlength="100">
                 </div>
                 <div class="input-group">
                     <input type="number" class="f-w calc-trigger" placeholder="الوزن (g)" min="0" step="0.1">
@@ -773,7 +1129,15 @@
         div.querySelector('.btn-remove').addEventListener('click', () => {
             div.remove();
             if (document.querySelectorAll('.filament-row').length === 0) {
-                addFil('PLA', '', '1000');
+                addFilFromInventory();
+            }
+            calculate();
+        });
+
+        div.querySelector('.f-t').addEventListener('change', () => {
+            const found = findFilamentByName(div.querySelector('.f-t').value);
+            if (found) {
+                div.querySelector('.f-p').value = sanitizeNumber(found.pricePerKg).toString();
             }
             calculate();
         });
@@ -781,11 +1145,27 @@
         document.getElementById('filaments-container').appendChild(div);
     }
 
+    function addFilFromInventory() {
+        const first = appState.filaments[0] || { name: 'PLA', pricePerKg: 1000 };
+        addFil(first.name, '', first.pricePerKg);
+    }
+
     function bindStaticEvents() {
         document.querySelectorAll('.calc-trigger').forEach(input => {
             input.removeEventListener('input', debounceCalculate);
             input.addEventListener('input', debounceCalculate);
         });
+
+        document.getElementById('hRate').addEventListener('input', () => {
+            const machine = getActiveMachine();
+            if (machine) {
+                machine.hourlyRate = sanitizeNumber(document.getElementById('hRate').value);
+                saveAppState();
+                refreshMachineSelect();
+            }
+        });
+
+        document.getElementById('machineSelect').addEventListener('change', handleMachineChange);
 
         document.getElementById('filaments-container').addEventListener('input', (e) => {
             if (e.target.closest('.filament-row')) {
@@ -796,23 +1176,32 @@
         document.getElementById('salesTable').addEventListener('click', (e) => {
             const btn = e.target.closest('.btn-del');
             if (!btn) return;
-            delSale(Number(btn.dataset.id));
+            delSale(btn.dataset.id);
         });
     }
 
     function updateMaintUI(currentOrderHours = 0) {
-        const savedH = getMaintenanceHoursValue();
+        const machine = getActiveMachine();
+        const savedH = machine ? sanitizeNumber(machine.maintenanceHours) : 0;
+        const limit = machine ? sanitizeNumber(machine.maintenanceLimit, 200) : 200;
+
         document.getElementById('maintHours').innerText = savedH.toFixed(1);
+        document.getElementById('maintLimit').innerText = limit.toFixed(0);
         document.getElementById('maintPreview').innerText = `بعد الطلب الحالي: ${(savedH + currentOrderHours).toFixed(1)} س`;
 
         const bar = document.getElementById('maintBar');
-        bar.style.width = Math.min((savedH / 200) * 100, 100) + '%';
-        bar.style.background = savedH >= 200 ? 'var(--danger)' : savedH >= 150 ? 'var(--warning)' : 'var(--primary)';
+        const percent = limit > 0 ? (savedH / limit) * 100 : 0;
+        bar.style.width = Math.min(percent, 100) + '%';
+        bar.style.background = percent >= 100 ? 'var(--danger)' : percent >= 75 ? 'var(--warning)' : 'var(--primary)';
     }
 
     function resetMaint() {
-        if (confirm('هل متأكد أنك قمت بصيانة الماكينة؟')) {
+        const machine = getActiveMachine();
+        const name = machine ? machine.name : 'الماكينة';
+
+        if (confirm(`هل متأكد أنك قمت بصيانة ${name} وتريد تصفير عدادها؟`)) {
             setMaintenanceHoursValue(0);
+            renderSettings();
             updateMaintUI(sanitizeNumber(document.getElementById('pTime').value));
         }
     }
@@ -825,16 +1214,25 @@
             return;
         }
 
+        const machine = getActiveMachine();
+
         const entry = {
             id: Date.now(),
             date: new Date().toLocaleDateString('ar-EG'),
             client: getText('cName') || 'عميل',
             model: getText('mName') || 'مجسم',
+            machine: machine ? machine.name : '',
             sale: order.finalPrice,
+            cost: order.totalCost,
             profit: order.netProfit,
             hours: order.time,
             weight: order.totalWeight,
-            waste: order.wasteW
+            waste: order.wasteW,
+            machineCost: order.machineCost,
+            filamentCost: order.filamentCost,
+            wasteCost: order.wasteCost,
+            laborCost: order.laborCost,
+            packagingCost: order.packagingCost
         };
 
         saveSaleToStorage(entry);
@@ -849,6 +1247,7 @@
         setTimeout(() => {
             refreshSalesFromStorage();
             loadSales();
+            renderSettings();
         }, hasAndroidBridge() ? 120 : 0);
     }
 
@@ -879,7 +1278,7 @@
             const modelSpan = document.createElement('span');
             modelSpan.style.color = 'var(--text-muted)';
             modelSpan.style.fontSize = '11px';
-            modelSpan.textContent = sale.model;
+            modelSpan.textContent = `${sale.model}${sale.machine ? ' - ' + sale.machine : ''}`;
 
             clientTd.appendChild(strong);
             clientTd.appendChild(document.createElement('br'));
@@ -934,18 +1333,25 @@
             return;
         }
 
-        let csv = 'التاريخ,اسم العميل,المجسم,سعر البيع,الربح الصافي,ساعات الطباعة,وزن المجسم(جرام),الهالك(جرام)\n';
+        let csv = 'التاريخ,اسم العميل,المجسم,الماكينة,سعر البيع,التكلفة,الربح الصافي,ساعات الطباعة,وزن المجسم(جرام),الهالك(جرام),تكلفة الماكينة,تكلفة الخامة,تكلفة الهالك,الشغل اليدوي,التغليف\n';
 
         sales.forEach(s => {
             csv += [
                 csvEscape(s.date),
                 csvEscape(s.client),
                 csvEscape(s.model),
+                csvEscape(s.machine || ''),
                 csvEscape(s.sale),
+                csvEscape(s.cost || ''),
                 csvEscape(s.profit),
                 csvEscape(s.hours),
                 csvEscape(s.weight),
-                csvEscape(s.waste)
+                csvEscape(s.waste),
+                csvEscape(s.machineCost || ''),
+                csvEscape(s.filamentCost || ''),
+                csvEscape(s.wasteCost || ''),
+                csvEscape(s.laborCost || ''),
+                csvEscape(s.packagingCost || '')
             ].join(',') + '\n';
         });
 
@@ -964,22 +1370,48 @@
         document.getElementById('cName').value = '';
         document.getElementById('mName').value = '';
         document.getElementById('disc').value = '0';
+        document.getElementById('manualMinutes').value = '0';
         document.querySelectorAll('.f-w').forEach(i => i.value = '');
+        applyGeneralSettingsToCalc(false);
         calculate();
     }
 
     function saveDefaults() {
-        setDefaultRateValue(document.getElementById('hRate').value || '0');
+        const machine = getActiveMachine();
+        if (machine) {
+            machine.hourlyRate = sanitizeNumber(document.getElementById('hRate').value);
+        }
 
-        const filaments = [];
+        appState.general.profit = sanitizeNumber(document.getElementById('prof').value);
+        appState.general.laborRate = sanitizeNumber(document.getElementById('laborRate').value);
+        appState.general.packagingCost = sanitizeNumber(document.getElementById('packagingCost').value);
+
+        const seen = new Map();
+
         document.querySelectorAll('.filament-row').forEach(row => {
-            filaments.push({
-                t: row.querySelector('.f-t').value.trim(),
-                p: sanitizeNumber(row.querySelector('.f-p').value)
-            });
+            const name = row.querySelector('.f-t').value.trim();
+            const price = sanitizeNumber(row.querySelector('.f-p').value);
+            if (name) seen.set(name.toLowerCase(), { name, pricePerKg: price });
         });
 
-        setDefaultFilamentsValue(filaments);
+        seen.forEach(item => {
+            const existing = findFilamentByName(item.name);
+            if (existing) {
+                existing.pricePerKg = item.pricePerKg;
+                existing.name = item.name;
+            } else {
+                appState.filaments.push({
+                    id: makeId('fil'),
+                    name: item.name,
+                    pricePerKg: item.pricePerKg
+                });
+            }
+        });
+
+        saveAppState();
+        refreshMachineSelect();
+        refreshFilamentDatalist();
+        renderSettings();
         alert('✅ تم حفظ أسعارك وإعداداتك بنجاح!');
     }
 
@@ -1045,26 +1477,322 @@
         if (window.Android && typeof Android.printPage === 'function') {
             Android.printPage();
         } else {
-            alert('ميزة الطباعة غير متاحة حالياً');
+            window.print();
         }
     }
 
-    window.onload = () => {
-        const rate = getDefaultRateValue();
-        if (rate !== null) document.getElementById('hRate').value = rate;
+    function renderSettings() {
+        document.getElementById('setDefaultProfit').value = sanitizeNumber(appState.general.profit).toString();
+        document.getElementById('setDefaultLaborRate').value = sanitizeNumber(appState.general.laborRate).toString();
+        document.getElementById('setDefaultPackaging').value = sanitizeNumber(appState.general.packagingCost).toString();
+
+        renderMachinesList();
+        renderFilamentsList();
+    }
+
+    function saveGeneralSettings() {
+        appState.general.profit = sanitizeNumber(document.getElementById('setDefaultProfit').value);
+        appState.general.laborRate = sanitizeNumber(document.getElementById('setDefaultLaborRate').value);
+        appState.general.packagingCost = sanitizeNumber(document.getElementById('setDefaultPackaging').value);
+
+        saveAppState();
+        applyGeneralSettingsToCalc(true);
+        alert('✅ تم حفظ الإعدادات العامة');
+    }
+
+    function applyGeneralSettingsToCalc(keepDiscount = true) {
+        document.getElementById('prof').value = sanitizeNumber(appState.general.profit).toString();
+        document.getElementById('laborRate').value = sanitizeNumber(appState.general.laborRate).toString();
+        document.getElementById('packagingCost').value = sanitizeNumber(appState.general.packagingCost).toString();
+
+        if (!keepDiscount) {
+            document.getElementById('disc').value = '0';
+        }
+    }
+
+    function renderMachinesList() {
+        const list = document.getElementById('machinesList');
+        list.innerHTML = '';
+
+        appState.machines.forEach(machine => {
+            const div = document.createElement('div');
+            div.className = 'list-card';
+            const isActive = machine.id === appState.general.activeMachineId;
+
+            div.innerHTML = `
+                <div class="list-card-title">
+                    <span>${machine.name} ${isActive ? '<span class="badge">المختارة</span>' : ''}</span>
+                </div>
+                <div class="list-card-sub">
+                    سعر الساعة: ${sanitizeNumber(machine.hourlyRate).toFixed(2)} ج |
+                    الصيانة: ${sanitizeNumber(machine.maintenanceHours).toFixed(1)} / ${sanitizeNumber(machine.maintenanceLimit).toFixed(0)} س
+                </div>
+                <div class="action-row">
+                    <button class="btn btn-small btn-secondary" onclick="selectMachine('${machine.id}')">اختيار</button>
+                    <button class="btn btn-small btn-warning" onclick="editMachine('${machine.id}')">تعديل</button>
+                    <button class="btn btn-small btn-danger" onclick="deleteMachine('${machine.id}')">حذف</button>
+                </div>
+            `;
+
+            list.appendChild(div);
+        });
+    }
+
+    function clearMachineForm() {
+        editingMachineId = null;
+        document.getElementById('machineName').value = '';
+        document.getElementById('machineRateInput').value = '';
+        document.getElementById('machineMaintLimitInput').value = '';
+        document.getElementById('machineHoursInput').value = '';
+        document.getElementById('machineSaveBtn').textContent = '➕ إضافة ماكينة';
+    }
+
+    function saveMachine() {
+        const name = getText('machineName');
+        const hourlyRate = sanitizeNumber(document.getElementById('machineRateInput').value);
+        const maintenanceLimit = sanitizeNumber(document.getElementById('machineMaintLimitInput').value, 1);
+        const maintenanceHours = sanitizeNumber(document.getElementById('machineHoursInput').value);
+
+        if (!name) {
+            alert('اكتب اسم الماكينة أولاً');
+            return;
+        }
+
+        if (editingMachineId) {
+            const machine = appState.machines.find(m => m.id === editingMachineId);
+            if (machine) {
+                machine.name = name;
+                machine.hourlyRate = hourlyRate;
+                machine.maintenanceLimit = maintenanceLimit;
+                machine.maintenanceHours = maintenanceHours;
+            }
+        } else {
+            const machine = {
+                id: makeId('machine'),
+                name,
+                hourlyRate,
+                maintenanceLimit,
+                maintenanceHours
+            };
+            appState.machines.push(machine);
+            appState.general.activeMachineId = machine.id;
+        }
+
+        saveAppState();
+        refreshMachineSelect();
+        const active = getActiveMachine();
+        if (active) {
+            document.getElementById('machineSelect').value = active.id;
+            document.getElementById('hRate').value = sanitizeNumber(active.hourlyRate).toString();
+        }
+
+        clearMachineForm();
+        renderSettings();
+        calculate();
+        alert('✅ تم حفظ بيانات الماكينة');
+    }
+
+    function editMachine(id) {
+        const machine = appState.machines.find(m => m.id === id);
+        if (!machine) return;
+
+        editingMachineId = id;
+        document.getElementById('machineName').value = machine.name;
+        document.getElementById('machineRateInput').value = sanitizeNumber(machine.hourlyRate).toString();
+        document.getElementById('machineMaintLimitInput').value = sanitizeNumber(machine.maintenanceLimit).toString();
+        document.getElementById('machineHoursInput').value = sanitizeNumber(machine.maintenanceHours).toString();
+        document.getElementById('machineSaveBtn').textContent = '💾 حفظ تعديل الماكينة';
+        document.getElementById('machineName').focus();
+    }
+
+    function selectMachine(id) {
+        const machine = appState.machines.find(m => m.id === id);
+        if (!machine) return;
+
+        appState.general.activeMachineId = id;
+        saveAppState();
+
+        refreshMachineSelect();
+        document.getElementById('machineSelect').value = id;
+        document.getElementById('hRate').value = sanitizeNumber(machine.hourlyRate).toString();
+        renderSettings();
+        calculate();
+    }
+
+    function deleteMachine(id) {
+        if (appState.machines.length <= 1) {
+            alert('لا يمكن حذف آخر ماكينة. لازم يكون فيه ماكينة واحدة على الأقل.');
+            return;
+        }
+
+        const machine = appState.machines.find(m => m.id === id);
+        if (!machine) return;
+
+        if (!confirm(`هل تريد حذف ماكينة "${machine.name}"؟`)) return;
+
+        appState.machines = appState.machines.filter(m => m.id !== id);
+        if (appState.general.activeMachineId === id) {
+            appState.general.activeMachineId = appState.machines[0].id;
+        }
+
+        saveAppState();
+        refreshMachineSelect();
+        const active = getActiveMachine();
+        document.getElementById('hRate').value = sanitizeNumber(active.hourlyRate).toString();
+        clearMachineForm();
+        renderSettings();
+        calculate();
+    }
+
+    function renderFilamentsList() {
+        const list = document.getElementById('filamentsList');
+        list.innerHTML = '';
+
+        appState.filaments.forEach(filament => {
+            const div = document.createElement('div');
+            div.className = 'list-card';
+
+            div.innerHTML = `
+                <div class="list-card-title">
+                    <span>${filament.name}</span>
+                </div>
+                <div class="list-card-sub">
+                    السعر / كجم: ${sanitizeNumber(filament.pricePerKg).toFixed(2)} ج |
+                    سعر الجرام: ${(sanitizeNumber(filament.pricePerKg) / 1000).toFixed(3)} ج
+                </div>
+                <div class="action-row">
+                    <button class="btn btn-small btn-secondary" onclick="addFil('${escapeForAttr(filament.name)}', '', '${sanitizeNumber(filament.pricePerKg)}'); showPage('calc-page', document.querySelector('.tab-btn'));">إضافة للطلب</button>
+                    <button class="btn btn-small btn-warning" onclick="editFilamentItem('${filament.id}')">تعديل</button>
+                    <button class="btn btn-small btn-danger" onclick="deleteFilamentItem('${filament.id}')">حذف</button>
+                </div>
+            `;
+
+            list.appendChild(div);
+        });
+    }
+
+    function escapeForAttr(value) {
+        return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    }
+
+    function clearFilamentForm() {
+        editingFilamentId = null;
+        document.getElementById('filamentNameInput').value = '';
+        document.getElementById('filamentPriceInput').value = '';
+        document.getElementById('filamentSaveBtn').textContent = '➕ إضافة خامة';
+    }
+
+    function saveFilamentItem() {
+        const name = getText('filamentNameInput');
+        const pricePerKg = sanitizeNumber(document.getElementById('filamentPriceInput').value);
+
+        if (!name) {
+            alert('اكتب اسم الخامة أولاً');
+            return;
+        }
+
+        if (editingFilamentId) {
+            const filament = appState.filaments.find(f => f.id === editingFilamentId);
+            if (filament) {
+                filament.name = name;
+                filament.pricePerKg = pricePerKg;
+            }
+        } else {
+            appState.filaments.push({
+                id: makeId('fil'),
+                name,
+                pricePerKg
+            });
+        }
+
+        saveAppState();
+        refreshFilamentDatalist();
+        clearFilamentForm();
+        renderSettings();
+        alert('✅ تم حفظ بيانات الخامة');
+    }
+
+    function editFilamentItem(id) {
+        const filament = appState.filaments.find(f => f.id === id);
+        if (!filament) return;
+
+        editingFilamentId = id;
+        document.getElementById('filamentNameInput').value = filament.name;
+        document.getElementById('filamentPriceInput').value = sanitizeNumber(filament.pricePerKg).toString();
+        document.getElementById('filamentSaveBtn').textContent = '💾 حفظ تعديل الخامة';
+        document.getElementById('filamentNameInput').focus();
+    }
+
+    function deleteFilamentItem(id) {
+        if (appState.filaments.length <= 1) {
+            alert('لا يمكن حذف آخر خامة. لازم يكون فيه خامة واحدة على الأقل.');
+            return;
+        }
+
+        const filament = appState.filaments.find(f => f.id === id);
+        if (!filament) return;
+
+        if (!confirm(`هل تريد حذف خامة "${filament.name}"؟`)) return;
+
+        appState.filaments = appState.filaments.filter(f => f.id !== id);
+        saveAppState();
+        refreshFilamentDatalist();
+        clearFilamentForm();
+        renderSettings();
+    }
+
+    function resetAllDefaults() {
+        if (!confirm('هل تريد إرجاع الإعدادات الافتراضية؟ لن يتم حذف سجل المبيعات.')) return;
+
+        appState = clone(DEFAULT_STATE);
+        saveAppState();
+
+        refreshMachineSelect();
+        refreshFilamentDatalist();
+
+        document.getElementById('filaments-container').innerHTML = '';
+        addFilFromInventory();
+
+        const active = getActiveMachine();
+        document.getElementById('hRate').value = sanitizeNumber(active.hourlyRate).toString();
+        applyGeneralSettingsToCalc(false);
+
+        clearMachineForm();
+        clearFilamentForm();
+        renderSettings();
+        calculate();
+
+        alert('✅ تم إرجاع الإعدادات الافتراضية');
+    }
+
+    function initializeApp() {
+        refreshSalesFromStorage();
+
+        refreshMachineSelect();
+        refreshFilamentDatalist();
+
+        const machine = getActiveMachine();
+        if (machine) {
+            document.getElementById('machineSelect').value = machine.id;
+            document.getElementById('hRate').value = sanitizeNumber(machine.hourlyRate).toString();
+        }
+
+        applyGeneralSettingsToCalc(true);
 
         const filaments = getDefaultFilamentsValue();
         if (filaments.length > 0) {
-            filaments.forEach(f => addFil(f.t, '', f.p));
+            filaments.slice(0, 1).forEach(f => addFil(f.t, '', f.p));
         } else {
-            addFil('PLA', '', '1000');
+            addFilFromInventory();
         }
 
         bindStaticEvents();
-        refreshSalesFromStorage();
+        renderSettings();
         calculate();
         loadSales();
-    };
+    }
+
+    window.onload = initializeApp;
 </script>
 </body>
 </html>
