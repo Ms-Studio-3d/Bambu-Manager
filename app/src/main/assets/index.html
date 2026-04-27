@@ -512,31 +512,155 @@
             }
         }
 
-        @media (max-width: 720px) {
-            .grid,
-            .grid-3,
+                @media (max-width: 720px) {
+            .app {
+                padding: 10px;
+                padding-bottom: 32px;
+            }
+
+            .card {
+                padding: 12px;
+                margin-bottom: 10px;
+                border-radius: 16px;
+            }
+
+            h1 {
+                font-size: 22px;
+                margin: 8px 0 12px;
+            }
+
+            h2 {
+                font-size: 17px;
+                margin-bottom: 10px;
+            }
+
+            h3 {
+                font-size: 15px;
+                margin-bottom: 8px;
+            }
+
+            .top-tabs {
+                gap: 6px;
+                margin-bottom: 10px;
+            }
+
+            .tab-btn {
+                padding: 10px 5px;
+                font-size: 12px;
+            }
+
+            .grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
+            }
+
+            .grid-3 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
+            }
+
             .stats {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
+            }
+
+            .field {
+                gap: 4px;
+            }
+
+            label {
+                font-size: 12px;
+            }
+
+            input,
+            select,
+            textarea {
+                padding: 10px 9px;
+                font-size: 14px;
+                border-radius: 12px;
+            }
+
+            button,
+            .download-btn {
+                padding: 10px 11px;
+                font-size: 13px;
+                border-radius: 12px;
+            }
+
+            .status-line {
+                padding: 9px 10px;
+                font-size: 13px;
             }
 
             .filament-row {
-                grid-template-columns: 1fr 0.8fr 42px;
+                grid-template-columns: 1fr 0.72fr 38px;
+                gap: 6px;
+            }
+
+            .result-card {
+                padding: 16px;
+                border-radius: 20px;
             }
 
             .final-price {
-                font-size: 36px;
+                font-size: 34px;
+            }
+
+            .result-mini {
+                gap: 8px;
+            }
+
+            .sale-head {
+                grid-template-columns: 1fr auto;
+            }
+
+            .sale-price {
+                text-align: left;
+                font-size: 18px;
+            }
+
+            .sale-details {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 7px;
+            }
+
+            .sale-pill {
+                padding: 8px;
+                border-radius: 12px;
+            }
+
+            .sale-pill small {
+                font-size: 11px;
+            }
+
+            .sale-pill strong {
+                font-size: 13px;
             }
 
             .list-item {
                 grid-template-columns: 1fr;
             }
+        }
 
-            .sale-head {
-                grid-template-columns: 1fr;
+                @media (max-width: 380px) {
+            .grid,
+            .grid-3 {
+                gap: 6px;
             }
 
-            .sale-price {
-                text-align: right;
+            label {
+                font-size: 11px;
+            }
+
+            input,
+            select,
+            textarea {
+                padding: 9px 7px;
+                font-size: 13px;
+            }
+
+            .tab-btn {
+                font-size: 11px;
             }
 
             .sale-details {
@@ -1513,30 +1637,44 @@
             box.innerHTML = `<div class="empty-note">لا توجد مبيعات مسجلة.</div>`;
         } else {
             salesCache.forEach(sale => {
+                const hasDiscount = num(sale.discount || 0) > 0;
+
+                const discountHtml = hasDiscount
+                    ? `
+                        <div class="sale-pill">
+                            <small>الخصم</small>
+                            <strong>${money(sale.discount || 0)} ج</strong>
+                        </div>
+                    `
+                    : "";
+
                 const card = document.createElement("div");
                 card.className = "sale-card";
 
                 card.innerHTML = `
                     <div class="sale-head">
                         <div>
-                            <div class="sale-client">${escapeHtml(sale.client || "عميل")}</div>
-                            <div class="sale-model">${escapeHtml(sale.model || "مجسم")}</div>
-                            <div class="muted" style="margin-top:5px">${escapeHtml(sale.date || "")}</div>
+                            <div class="sale-client">👤 ${escapeHtml(sale.client || "عميل")}</div>
+                            <div class="sale-model">🧩 ${escapeHtml(sale.model || "مجسم")}</div>
+                            <div class="muted" style="margin-top:5px">🕒 ${escapeHtml(sale.date || "")}</div>
                         </div>
-                        <div class="sale-price">${money(sale.sale || sale.finalPrice || 0)} ج</div>
+                        <div class="sale-price">
+                            ${money(sale.sale || sale.finalPrice || 0)} ج
+                            <div class="muted" style="font-size:12px;margin-top:3px;text-align:inherit">السعر النهائي</div>
+                        </div>
                     </div>
 
                     <div class="sale-details">
+                        <div class="sale-pill">
+                            <small>صافي الربح</small>
+                            <strong style="color:#8dffc8">${money(sale.profit || sale.netProfit || 0)} ج</strong>
+                        </div>
                         <div class="sale-pill">
                             <small>التكلفة</small>
                             <strong>${money(sale.totalCost || 0)} ج</strong>
                         </div>
                         <div class="sale-pill">
-                            <small>صافي الربح</small>
-                            <strong>${money(sale.profit || sale.netProfit || 0)} ج</strong>
-                        </div>
-                        <div class="sale-pill">
-                            <small>الوقت</small>
+                            <small>وقت الطباعة</small>
                             <strong>${fixed(sale.hours || 0, 1)} س</strong>
                         </div>
                         <div class="sale-pill">
@@ -1547,13 +1685,11 @@
                             <small>الهالك</small>
                             <strong>${fixed(sale.waste || 0, 1)} جم</strong>
                         </div>
-                        <div class="sale-pill">
-                            <small>الخصم</small>
-                            <strong>${money(sale.discount || 0)} ج</strong>
-                        </div>
+                        ${discountHtml}
                     </div>
 
-                    <div class="sale-actions">
+                    <div class="sale-actions" style="gap:8px;flex-wrap:wrap">
+                        <button class="secondary" onclick="copySaleInvoice('${sale.id}')">نسخ الفاتورة</button>
                         <button class="danger" onclick="deleteSale('${sale.id}')">حذف البيعة</button>
                     </div>
                 `;
@@ -1571,6 +1707,48 @@
         document.getElementById("statProfit").textContent = money(totalProfit) + " ج";
         document.getElementById("statHours").textContent = fixed(totalHours, 1) + " س";
         document.getElementById("statWeight").textContent = fixed(totalWeight / 1000, 2) + " كجم";
+    }
+
+    function copySaleInvoice(saleId) {
+        const sale = salesCache.find(s => String(s.id) === String(saleId));
+
+        if (!sale) {
+            toast("لم يتم العثور على البيعة");
+            return;
+        }
+
+        const lines = [
+            "✨ فاتورة طلب طباعة 3D ✨",
+            "",
+            "التاريخ: " + String(sale.date || "").split(" ")[0],
+            "العميل: " + (sale.client || "عميل"),
+            "المجسم: " + (sale.model || "طلب طباعة 3D"),
+            ""
+        ];
+
+        if (num(sale.discount || 0) > 0) {
+            lines.push("🎁 الخصم: " + money(sale.discount || 0) + " ج.م");
+        }
+
+        lines.push("━━━━━━━━━━━━━━");
+        lines.push("💚 الإجمالي النهائي: " + money(sale.sale || sale.finalPrice || 0) + " ج.م");
+        lines.push("━━━━━━━━━━━━━━");
+        lines.push("");
+        lines.push("شكرًا لاختيارك لنا ✨");
+
+        const text = lines.join("\n");
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => toast("تم نسخ فاتورة البيعة"));
+        } else {
+            const tmp = document.createElement("textarea");
+            tmp.value = text;
+            document.body.appendChild(tmp);
+            tmp.select();
+            document.execCommand("copy");
+            tmp.remove();
+            toast("تم نسخ فاتورة البيعة");
+        }
     }
 
     function deleteSale(id) {
