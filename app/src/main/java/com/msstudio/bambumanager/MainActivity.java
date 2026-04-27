@@ -1,425 +1,347 @@
 package com.msstudio.bambumanager;
 
 import android.annotation.SuppressLint;
-import android.content.ActivityNotFoundException;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
+import android.util.Log;
+import android.view.View;
+import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
+import android.webkit.SafeBrowsingResponse;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import androidx.webkit.WebViewAssetLoader;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final String TAG = "BambuManager";
     private static final String APP_URL = "file:///android_asset/index.html";
 
-    private static final String PREFS_NAME = "bambu_prefs";
-    private static final String KEY_MAINTENANCE = "bambu_maint";
-    private static final String KEY_DEFAULT_RATE = "def_rate";
-    private static final String KEY_DEFAULT_FILAMENTS = "def_fils";
-    private static final String KEY_APP_SETTINGS = "app_settings_v2";
-
     private WebView webView;
-    private AppDatabase database;
-    private SharedPreferences preferences;
-
-    private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor();
 
     public class AndroidBridge {
+
         @JavascriptInterface
         public void printPage() {
             runOnUiThread(() -> {
-                if (webView == null) {
-                    return;
-                }
-
-                PrintManager printManager = (PrintManager) getSystemService(PRINT_SERVICE);
-                if (printManager == null) {
-                    return;
-                }
-
-                String jobName = getString(R.string.app_name) + " Invoice";
-                PrintDocumentAdapter printAdapter = webView.createPrintDocumentAdapter(jobName);
-
-                printManager.print(
-                        jobName,
-                        printAdapter,
-                        new PrintAttributes.Builder().build()
-                );
-            });
-        }
-
-        @JavascriptInterface
-        public String getAppSettings() {
-            return preferences.getString(KEY_APP_SETTINGS, "");
-        }
-
-        @JavascriptInterface
-        public void setAppSettings(String json) {
-            preferences.edit()
-                    .putString(KEY_APP_SETTINGS, json == null ? "" : json)
-                    .apply();
-        }
-
-        @JavascriptInterface
-        public String getMaintenanceHours() {
-            return String.valueOf(preferences.getFloat(KEY_MAINTENANCE, 0f));
-        }
-
-        @JavascriptInterface
-        public void setMaintenanceHours(String value) {
-            float parsedValue = safeFloat(value);
-            preferences.edit().putFloat(KEY_MAINTENANCE, parsedValue).apply();
-        }
-
-        @JavascriptInterface
-        public String getDefaultRate() {
-            return preferences.getString(KEY_DEFAULT_RATE, null);
-        }
-
-        @JavascriptInterface
-        public void setDefaultRate(String value) {
-            preferences.edit()
-                    .putString(KEY_DEFAULT_RATE, value == null ? "0" : value)
-                    .apply();
-        }
-
-        @JavascriptInterface
-        public String getDefaultFilaments() {
-            return preferences.getString(KEY_DEFAULT_FILAMENTS, "[]");
-        }
-
-        @JavascriptInterface
-        public void setDefaultFilaments(String json) {
-            preferences.edit()
-                    .putString(KEY_DEFAULT_FILAMENTS, json == null ? "[]" : json)
-                    .apply();
-        }
-
-        @JavascriptInterface
-        public void saveSale(String saleJson) {
-            dbExecutor.execute(() -> {
                 try {
-                    JSONObject obj = new JSONObject(saleJson);
+                    if (webView == null) {
+                        showToast("الطباعة غير متاحة الآن");
+                        Log.e(TAG, "printPage failed: webView is null");
+                        return;
+                    }
 
-                    SaleEntity sale = new SaleEntity(
-                            obj.optLong("id", System.currentTimeMillis()),
-                            obj.optString("date", ""),
-                            obj.optString("client", "عميل"),
-                            obj.optString("model", "مجسم"),
-                            obj.optDouble("sale", obj.optDouble("finalPrice", 0)),
-                            obj.optDouble("profit", obj.optDouble("netProfit", 0)),
-                            obj.optDouble("hours", 0),
-                            obj.optDouble("weight", 0),
-                            obj.optDouble("waste", 0),
+                    PrintManager printManager = (PrintManager) getSystemService(PRINT_SERVICE);
+                    if (printManager == null) {
+                        showToast("خدمة الطباعة غير متاحة على الجهاز");
+                        Log.e(TAG, "printPage failed: PrintManager is null");
+                        return;
+                    }
 
-                            obj.optString("printerName", ""),
-                            obj.optDouble("machineRate", 0),
-                            obj.optDouble("machineCost", 0),
-                            obj.optString("materialsJson", "[]"),
-                            obj.optDouble("materialCost", 0),
-                            obj.optDouble("averageGramCost", 0),
-                            obj.optDouble("wasteCost", 0),
-                            obj.optDouble("manualMinutes", 0),
-                            obj.optDouble("manualRate", 0),
-                            obj.optDouble("manualCost", 0),
-                            obj.optDouble("packagingCost", 0),
-                            obj.optDouble("totalCost", 0),
-                            obj.optDouble("profitPercent", 0),
-                            obj.optDouble("priceBeforeDiscount", 0),
-                            obj.optDouble("discount", 0),
-                            obj.optDouble("priceAfterDiscount", 0),
-                            obj.optDouble("finalPrice", obj.optDouble("sale", 0)),
-                            obj.optDouble("netProfit", obj.optDouble("profit", 0))
-                    );
+                    String jobName = getString(R.string.app_name) + " Invoice";
+                    PrintDocumentAdapter printAdapter = webView.createPrintDocumentAdapter(jobName);
 
-                    database.saleDao().insert(sale);
-                } catch (Exception ignored) {
+                    PrintAttributes printAttributes = new PrintAttributes.Builder()
+                            .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
+                            .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
+                            .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
+                            .build();
+
+                    printManager.print(jobName, printAdapter, printAttributes);
+
+                } catch (Exception e) {
+                    Log.e(TAG, "printPage failed", e);
+                    showToast("حدث خطأ أثناء الطباعة");
                 }
             });
         }
 
         @JavascriptInterface
-        public String getSales() {
-            try {
-                List<SaleEntity> sales = database.saleDao().getAllSales();
-                JSONArray array = new JSONArray();
-
-                for (SaleEntity sale : sales) {
-                    JSONObject obj = new JSONObject();
-
-                    obj.put("id", sale.id);
-                    obj.put("date", sale.date);
-                    obj.put("client", sale.client);
-                    obj.put("model", sale.model);
-                    obj.put("sale", sale.sale);
-                    obj.put("profit", sale.profit);
-                    obj.put("hours", sale.hours);
-                    obj.put("weight", sale.weight);
-                    obj.put("waste", sale.waste);
-
-                    obj.put("printerName", sale.printerName);
-                    obj.put("machineRate", sale.machineRate);
-                    obj.put("machineCost", sale.machineCost);
-                    obj.put("materialsJson", sale.materialsJson);
-                    obj.put("materialCost", sale.materialCost);
-                    obj.put("averageGramCost", sale.averageGramCost);
-                    obj.put("wasteCost", sale.wasteCost);
-                    obj.put("manualMinutes", sale.manualMinutes);
-                    obj.put("manualRate", sale.manualRate);
-                    obj.put("manualCost", sale.manualCost);
-                    obj.put("packagingCost", sale.packagingCost);
-                    obj.put("totalCost", sale.totalCost);
-                    obj.put("profitPercent", sale.profitPercent);
-                    obj.put("priceBeforeDiscount", sale.priceBeforeDiscount);
-                    obj.put("discount", sale.discount);
-                    obj.put("priceAfterDiscount", sale.priceAfterDiscount);
-                    obj.put("finalPrice", sale.finalPrice);
-                    obj.put("netProfit", sale.netProfit);
-
-                    array.put(obj);
-                }
-
-                return array.toString();
-            } catch (Exception e) {
-                return "[]";
-            }
+        public void showToast(String message) {
+            runOnUiThread(() -> MainActivity.this.showToast(message));
         }
 
         @JavascriptInterface
-        public void deleteSale(String saleId) {
-            dbExecutor.execute(() -> {
-                try {
-                    long id = Long.parseLong(saleId);
-                    database.saleDao().deleteById(id);
-                } catch (Exception ignored) {
-                }
-            });
+        public void logError(String message) {
+            Log.e(TAG, message == null ? "Unknown JavaScript error" : message);
         }
 
         @JavascriptInterface
-        public void clearAllSales() {
-            dbExecutor.execute(() -> {
-                try {
-                    database.saleDao().deleteAll();
-                } catch (Exception ignored) {
-                }
-            });
-        }
-
-        private float safeFloat(String value) {
-            try {
-                return Float.parseFloat(value);
-            } catch (Exception e) {
-                return 0f;
-            }
+        public void logInfo(String message) {
+            Log.i(TAG, message == null ? "JavaScript info" : message);
         }
     }
 
-    @SuppressLint({"SetJavaScriptEnabled"})
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
-        preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        database = AppDatabase.getInstance(this);
+        try {
+            setContentView(R.layout.activity_main);
 
-        webView = findViewById(R.id.webView);
-        configureWebView();
+            webView = findViewById(R.id.webView);
+            if (webView == null) {
+                Log.e(TAG, "WebView not found in activity_main.xml");
+                showToast("خطأ في تحميل واجهة التطبيق");
+                finish();
+                return;
+            }
 
-        if (savedInstanceState != null) {
-            webView.restoreState(savedInstanceState);
-        } else {
-            webView.loadUrl(APP_URL);
+            configureWebView();
+
+            webView.addJavascriptInterface(new AndroidBridge(), "Android");
+
+            if (savedInstanceState != null) {
+                webView.restoreState(savedInstanceState);
+            } else {
+                webView.loadUrl(APP_URL);
+            }
+
+            configureBackButton();
+
+        } catch (Exception e) {
+            Log.e(TAG, "onCreate failed", e);
+            showToast("حدث خطأ أثناء تشغيل التطبيق");
+            finish();
         }
-
-        setupBackHandler();
     }
 
     @SuppressLint("SetJavaScriptEnabled")
     private void configureWebView() {
-        webView.addJavascriptInterface(new AndroidBridge(), "Android");
-        webView.setWebChromeClient(new WebChromeClient());
-        webView.setWebViewClient(createWebViewClient());
-
-        webView.setHorizontalScrollBarEnabled(false);
-        webView.setVerticalScrollBarEnabled(false);
-        webView.setScrollBarStyle(WebView.SCROLLBARS_INSIDE_OVERLAY);
-
         WebSettings settings = webView.getSettings();
 
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
-        settings.setDatabaseEnabled(false);
-        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        settings.setDatabaseEnabled(true);
+
+        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         settings.setLoadsImagesAutomatically(true);
-        settings.setBlockNetworkImage(false);
+
+        /*
+         * Offline-first hardening:
+         * - The app loads local assets only.
+         * - Network images are blocked.
+         * - External URLs are blocked in shouldOverrideUrlLoading.
+         * - No INTERNET permission exists in AndroidManifest.xml.
+         */
+        settings.setBlockNetworkImage(true);
         settings.setAllowFileAccess(true);
-        settings.setAllowContentAccess(false);
+        settings.setAllowContentAccess(true);
+
+        settings.setAllowFileAccessFromFileURLs(false);
+        settings.setAllowUniversalAccessFromFileURLs(false);
+
         settings.setUseWideViewPort(true);
         settings.setLoadWithOverviewMode(true);
+
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
         settings.setSupportZoom(false);
-        settings.setMediaPlaybackRequiresUserGesture(true);
-        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-            settings.setAllowFileAccessFromFileURLs(false);
-            settings.setAllowUniversalAccessFromFileURLs(false);
+        settings.setMediaPlaybackRequiresUserGesture(true);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         }
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             settings.setSafeBrowsingEnabled(true);
         }
-    }
 
-    private WebViewClient createWebViewClient() {
-        return new WebViewClient() {
+        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+                if (consoleMessage != null) {
+                    String message = consoleMessage.message();
+                    int lineNumber = consoleMessage.lineNumber();
+                    String sourceId = consoleMessage.sourceId();
+
+                    switch (consoleMessage.messageLevel()) {
+                        case ERROR:
+                            Log.e(TAG, "JS error: " + message + " at " + sourceId + ":" + lineNumber);
+                            break;
+                        case WARNING:
+                            Log.w(TAG, "JS warning: " + message + " at " + sourceId + ":" + lineNumber);
+                            break;
+                        default:
+                            Log.d(TAG, "JS console: " + message + " at " + sourceId + ":" + lineNumber);
+                            break;
+                    }
+                }
+                return true;
+            }
+        });
+
+        webView.setWebViewClient(new WebViewClient() {
+
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                Log.i(TAG, "Page loading started: " + url);
                 super.onPageStarted(view, url, favicon);
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                Log.i(TAG, "Page loading finished: " + url);
+                super.onPageFinished(view, url);
             }
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 if (request == null || request.getUrl() == null) {
+                    return true;
+                }
+
+                String url = request.getUrl().toString();
+
+                if (isAllowedLocalUrl(url)) {
                     return false;
                 }
 
-                return handleUrl(request.getUrl().toString());
+                Log.w(TAG, "Blocked external navigation: " + url);
+                showToast("التطبيق يعمل أوفلاين، تم منع فتح رابط خارجي");
+                return true;
             }
 
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                return handleUrl(url);
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                if (request == null || request.getUrl() == null) {
+                    return super.shouldInterceptRequest(view, request);
+                }
+
+                Uri uri = request.getUrl();
+                String url = uri.toString();
+
+                if (isAllowedLocalUrl(url)) {
+                    return super.shouldInterceptRequest(view, request);
+                }
+
+                Log.w(TAG, "Blocked external resource: " + url);
+                return new WebResourceResponse(
+                        "text/plain",
+                        "UTF-8",
+                        null
+                );
             }
-        };
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                super.onReceivedError(view, request, error);
+
+                if (request == null || !request.isForMainFrame()) {
+                    return;
+                }
+
+                String failingUrl = request.getUrl() == null ? "unknown" : request.getUrl().toString();
+                String description = "unknown";
+
+                if (error != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    description = String.valueOf(error.getDescription());
+                }
+
+                Log.e(TAG, "Main frame load error: " + description + " URL: " + failingUrl);
+                showToast("حدث خطأ أثناء تحميل واجهة التطبيق");
+            }
+
+            @Override
+            public void onSafeBrowsingHit(
+                    WebView view,
+                    WebResourceRequest request,
+                    int threatType,
+                    SafeBrowsingResponse callback
+            ) {
+                Log.e(TAG, "Safe browsing blocked threat type: " + threatType);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && callback != null) {
+                    callback.backToSafety(true);
+                }
+
+                showToast("تم منع محتوى غير آمن");
+            }
+        });
     }
 
-    private boolean handleUrl(String url) {
-        if (url == null || url.trim().isEmpty()) {
-            return true;
-        }
-
-        if (isLocalAppUrl(url)) {
+    private boolean isAllowedLocalUrl(String url) {
+        if (url == null) {
             return false;
         }
 
-        if (isWhatsAppUrl(url)) {
-            return openExternalUrl(url);
-        }
-
-        if (url.startsWith("tel:")
-                || url.startsWith("mailto:")
-                || url.startsWith("intent:")
-                || url.startsWith("market:")
-                || url.startsWith("https://")
-                || url.startsWith("http://")) {
-            return openExternalUrl(url);
-        }
-
-        return false;
-    }
-
-    private boolean isLocalAppUrl(String url) {
         return url.startsWith("file:///android_asset/")
                 || url.startsWith("about:blank")
-                || url.startsWith("data:")
-                || url.startsWith("blob:");
+                || url.startsWith("data:");
     }
 
-    private boolean isWhatsAppUrl(String url) {
-        return url.startsWith("https://api.whatsapp.com/")
-                || url.startsWith("https://wa.me/")
-                || url.startsWith("whatsapp://");
-    }
-
-    private boolean openExternalUrl(String url) {
-        try {
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-            startActivity(intent);
-            return true;
-        } catch (ActivityNotFoundException e) {
-            return true;
-        } catch (Exception e) {
-            return true;
-        }
-    }
-
-    private void setupBackHandler() {
+    private void configureBackButton() {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                if (webView != null && webView.canGoBack()) {
-                    webView.goBack();
-                } else {
+                try {
+                    if (webView != null && webView.canGoBack()) {
+                        webView.goBack();
+                    } else {
+                        finish();
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Back press failed", e);
                     finish();
                 }
             }
         });
     }
 
+    private void showToast(String message) {
+        String safeMessage = message == null || message.trim().isEmpty()
+                ? "حدث خطأ غير معروف"
+                : message;
+
+        Toast.makeText(this, safeMessage, Toast.LENGTH_SHORT).show();
+    }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        if (webView != null) {
-            webView.saveState(outState);
+        try {
+            if (webView != null) {
+                webView.saveState(outState);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Saving WebView state failed", e);
         }
 
         super.onSaveInstanceState(outState);
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-
-        if (webView != null) {
-            webView.onResume();
-            webView.resumeTimers();
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        if (webView != null) {
-            webView.onPause();
-            webView.pauseTimers();
-        }
-
-        super.onPause();
-    }
-
-    @Override
     protected void onDestroy() {
-        if (webView != null) {
-            webView.loadUrl("about:blank");
-            webView.stopLoading();
-            webView.setWebChromeClient(null);
-            webView.setWebViewClient(null);
-            webView.removeJavascriptInterface("Android");
-            webView.destroy();
-            webView = null;
+        try {
+            if (webView != null) {
+                webView.removeJavascriptInterface("Android");
+                webView.stopLoading();
+                webView.clearHistory();
+                webView.destroy();
+                webView = null;
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Destroying WebView failed", e);
         }
-
-        dbExecutor.shutdown();
 
         super.onDestroy();
     }
