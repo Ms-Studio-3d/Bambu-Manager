@@ -1,15 +1,19 @@
 package com.msstudio.bambumanager;
 
 import android.annotation.SuppressLint;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.webkit.ConsoleMessage;
@@ -32,6 +36,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -216,12 +224,17 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                Log.i(TAG, "CSV export requested. File name: " + fileName + ", length: " + csvContent.length());
-                showToastOnUi("التصدير جاهز، سنضيف حفظ الملف محليًا في المرحلة التالية");
+                String safeFileName = makeSafeCsvFileName(fileName);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    saveCsvToDownloadsAndroid10Plus(csvContent, safeFileName);
+                } else {
+                    saveCsvToAppDocuments(csvContent, safeFileName);
+                }
 
             } catch (Exception e) {
                 Log.e(TAG, "exportCSV failed", e);
-                showToastOnUi("تعذر تجهيز ملف CSV");
+                showToastOnUi("تعذر حفظ ملف CSV");
             }
         }
 
@@ -640,6 +653,85 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e(TAG, "destroyPrintWebView failed", e);
         }
+    }
+
+    private String makeSafeCsvFileName(String fileName) {
+        String safeName = fileName == null || fileName.trim().isEmpty()
+                ? "bambu-sales.csv"
+                : fileName.trim();
+
+        safeName = safeName
+                .replace("\\", "_")
+                .replace("/", "_")
+                .replace(":", "_")
+                .replace("*", "_")
+                .replace("?", "_")
+                .replace("\"", "_")
+                .replace("<", "_")
+                .replace(">", "_")
+                .replace("|", "_");
+
+        if (!safeName.toLowerCase().endsWith(".csv")) {
+            safeName = safeName + ".csv";
+        }
+
+        return safeName;
+    }
+
+    private void saveCsvToDownloadsAndroid10Plus(String csvContent, String fileName) throws Exception {
+        ContentResolver resolver = getContentResolver();
+
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Downloads.DISPLAY_NAME, fileName);
+        values.put(MediaStore.Downloads.MIME_TYPE, "text/csv");
+        values.put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/Bambu Manager");
+        values.put(MediaStore.Downloads.IS_PENDING, 1);
+
+        Uri uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+
+        if (uri == null) {
+            throw new IllegalStateException("Failed to create CSV file in Downloads");
+        }
+
+        try (OutputStream outputStream = resolver.openOutputStream(uri)) {
+            if (outputStream == null) {
+                throw new IllegalStateException("Failed to open CSV output stream");
+            }
+
+            outputStream.write(csvContent.getBytes(StandardCharsets.UTF_8));
+            outputStream.flush();
+        }
+
+        values.clear();
+        values.put(MediaStore.Downloads.IS_PENDING, 0);
+        resolver.update(uri, values, null, null);
+
+        showToastOnUi("تم حفظ CSV في Downloads / Bambu Manager");
+        Log.i(TAG, "CSV saved to Downloads: " + fileName);
+    }
+
+    private void saveCsvToAppDocuments(String csvContent, String fileName) throws Exception {
+        File dir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+
+        if (dir == null) {
+            dir = getFilesDir();
+        }
+
+        File bambuDir = new File(dir, "Bambu Manager");
+
+        if (!bambuDir.exists() && !bambuDir.mkdirs()) {
+            throw new IllegalStateException("Failed to create documents directory");
+        }
+
+        File file = new File(bambuDir, fileName);
+
+        try (FileOutputStream outputStream = new FileOutputStream(file)) {
+            outputStream.write(csvContent.getBytes(StandardCharsets.UTF_8));
+            outputStream.flush();
+        }
+
+        showToastOnUi("تم حفظ CSV داخل ملفات التطبيق");
+        Log.i(TAG, "CSV saved to: " + file.getAbsolutePath());
     }
 
     private void showToastOnUi(String message) {
