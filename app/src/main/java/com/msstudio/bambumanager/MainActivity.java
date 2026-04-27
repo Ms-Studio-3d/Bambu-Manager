@@ -678,6 +678,7 @@ public class MainActivity extends AppCompatActivity {
         return safeName;
     }
 
+    @SuppressLint("NewApi")
     private void saveCsvToDownloadsAndroid10Plus(String csvContent, String fileName) throws Exception {
         ContentResolver resolver = getContentResolver();
 
