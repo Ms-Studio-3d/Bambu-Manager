@@ -2,9 +2,18 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
 
 jobs:
   build:
+    name: Build, Lint, Test
     runs-on: ubuntu-latest
 
     env:
@@ -19,11 +28,12 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
 
-      - name: Setup Gradle 8.7
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
       - name: Accept licenses and install required SDK packages
@@ -31,11 +41,29 @@ jobs:
           yes | sdkmanager --licenses || true
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
-      - name: Build debug APK
-        run: gradle assembleDebug
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
 
-      - name: Upload APK artifact
+      - name: Run unit tests
+        run: ./gradlew testDebugUnitTest
+
+      - name: Run Android lint
+        run: ./gradlew lintDebug
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Build release APK
+        run: ./gradlew assembleRelease
+
+      - name: Upload debug APK artifact
         uses: actions/upload-artifact@v6
         with:
           name: bambu-manager-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload release APK artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: bambu-manager-release-apk
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
