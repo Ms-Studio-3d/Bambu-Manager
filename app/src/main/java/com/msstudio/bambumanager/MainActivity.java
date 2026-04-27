@@ -232,7 +232,12 @@ public class MainActivity extends AppCompatActivity {
 
         @JavascriptInterface
         public void printPage(String html) {
-            printCurrentWebView();
+            if (html == null || html.trim().isEmpty()) {
+                printCurrentWebView();
+                return;
+            }
+
+            printHtmlInSeparateWebView(html);
         }
 
         @JavascriptInterface
@@ -269,7 +274,7 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            configureWebView();
+            configureWebView(webView);
             webView.addJavascriptInterface(new AndroidBridge(), "Android");
 
             if (savedInstanceState != null) {
@@ -288,8 +293,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    private void configureWebView() {
-        WebSettings settings = webView.getSettings();
+    private void configureWebView(WebView targetWebView) {
+        WebSettings settings = targetWebView.getSettings();
 
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
@@ -323,10 +328,10 @@ public class MainActivity extends AppCompatActivity {
             settings.setSafeBrowsingEnabled(true);
         }
 
-        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+        targetWebView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        targetWebView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
 
-        webView.setWebChromeClient(new WebChromeClient() {
+        targetWebView.setWebChromeClient(new WebChromeClient() {
             @Override
             public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
                 if (consoleMessage != null) {
@@ -351,7 +356,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        webView.setWebViewClient(new WebViewClient() {
+        targetWebView.setWebViewClient(new WebViewClient() {
 
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
@@ -528,6 +533,113 @@ public class MainActivity extends AppCompatActivity {
                 showToastOnUi("حدث خطأ أثناء الطباعة");
             }
         });
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private void printHtmlInSeparateWebView(String html) {
+        runOnUiThread(() -> {
+            try {
+                WebView printWebView = new WebView(MainActivity.this);
+                configurePrintOnlyWebView(printWebView);
+
+                printWebView.setWebViewClient(new WebViewClient() {
+                    private boolean printed = false;
+
+                    @Override
+                    public void onPageFinished(WebView view, String url) {
+                        super.onPageFinished(view, url);
+
+                        if (printed) {
+                            return;
+                        }
+
+                        printed = true;
+
+                        view.postDelayed(() -> {
+                            try {
+                                PrintManager printManager = (PrintManager) getSystemService(PRINT_SERVICE);
+                                if (printManager == null) {
+                                    showToastOnUi("خدمة الطباعة غير متاحة على الجهاز");
+                                    destroyPrintWebView(view);
+                                    return;
+                                }
+
+                                String jobName = getString(R.string.app_name) + " Invoice";
+                                PrintDocumentAdapter printAdapter = view.createPrintDocumentAdapter(jobName);
+
+                                PrintAttributes printAttributes = new PrintAttributes.Builder()
+                                        .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
+                                        .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
+                                        .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
+                                        .build();
+
+                                printManager.print(jobName, printAdapter, printAttributes);
+
+                                view.postDelayed(() -> destroyPrintWebView(view), 3000);
+
+                            } catch (Exception e) {
+                                Log.e(TAG, "printHtmlInSeparateWebView print failed", e);
+                                showToastOnUi("حدث خطأ أثناء الطباعة");
+                                destroyPrintWebView(view);
+                            }
+                        }, 350);
+                    }
+                });
+
+                printWebView.loadDataWithBaseURL(
+                        "file:///android_asset/",
+                        html,
+                        "text/html",
+                        "UTF-8",
+                        null
+                );
+
+            } catch (Exception e) {
+                Log.e(TAG, "printHtmlInSeparateWebView failed", e);
+                showToastOnUi("حدث خطأ أثناء تجهيز الفاتورة للطباعة");
+            }
+        });
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private void configurePrintOnlyWebView(WebView printWebView) {
+        WebSettings settings = printWebView.getSettings();
+
+        settings.setJavaScriptEnabled(false);
+        settings.setDomStorageEnabled(false);
+        settings.setDatabaseEnabled(false);
+        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        settings.setLoadsImagesAutomatically(true);
+
+        settings.setBlockNetworkImage(true);
+
+        settings.setAllowFileAccess(true);
+        settings.setAllowContentAccess(false);
+        settings.setAllowFileAccessFromFileURLs(false);
+        settings.setAllowUniversalAccessFromFileURLs(false);
+
+        settings.setUseWideViewPort(false);
+        settings.setLoadWithOverviewMode(false);
+
+        settings.setBuiltInZoomControls(false);
+        settings.setDisplayZoomControls(false);
+        settings.setSupportZoom(false);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        }
+    }
+
+    private void destroyPrintWebView(WebView view) {
+        try {
+            if (view != null) {
+                view.stopLoading();
+                view.clearHistory();
+                view.destroy();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "destroyPrintWebView failed", e);
+        }
     }
 
     private void showToastOnUi(String message) {
