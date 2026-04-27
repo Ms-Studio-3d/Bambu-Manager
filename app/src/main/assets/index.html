@@ -6,19 +6,21 @@
     <title>Bambu Business Manager</title>
     <style>
         :root {
-            --bg: #07110d;
-            --bg2: #0b1b14;
-            --card: #10231a;
-            --card2: #132a20;
-            --main: #18c37e;
-            --main-dark: #0f8d5b;
-            --main-soft: rgba(24, 195, 126, 0.14);
-            --text: #eefdf6;
-            --muted: #99b8aa;
-            --border: rgba(176, 235, 207, 0.15);
+            --bg: #000000;
+            --bg2: #050505;
+            --card: #101010;
+            --card2: #151515;
+            --card3: #1b1b1b;
+            --main: #19c878;
+            --main-dark: #0d8f51;
+            --main-soft: rgba(25, 200, 120, 0.12);
+            --text: #f4f4f4;
+            --muted: #a6a6a6;
+            --border: rgba(255, 255, 255, 0.10);
+            --border-green: rgba(25, 200, 120, 0.28);
             --danger: #ff5b5b;
-            --warning: #f7b955;
-            --shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+            --warning: #f3b34c;
+            --shadow: 0 14px 32px rgba(0, 0, 0, 0.45);
             --radius: 18px;
         }
 
@@ -30,9 +32,10 @@
             margin: 0;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background:
-                radial-gradient(circle at top right, rgba(24, 195, 126, 0.16), transparent 34%),
-                linear-gradient(180deg, var(--bg2), var(--bg));
+                    radial-gradient(circle at top right, rgba(25, 200, 120, 0.11), transparent 28%),
+                    linear-gradient(180deg, var(--bg2), var(--bg));
             color: var(--text);
+            min-height: 100vh;
         }
 
         .app {
@@ -50,26 +53,26 @@
             position: sticky;
             top: 0;
             z-index: 10;
-            background: rgba(7, 17, 13, 0.92);
+            background: rgba(0, 0, 0, 0.92);
             backdrop-filter: blur(10px);
             padding: 8px 0;
         }
 
         .tab-btn {
             border: 1px solid var(--border);
-            background: #0d1d16;
+            background: #0b0b0b;
             color: var(--text);
             padding: 11px 8px;
             border-radius: 999px;
             font-weight: 900;
             cursor: pointer;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+            box-shadow: var(--shadow);
         }
 
         .tab-btn.active {
-            background: linear-gradient(135deg, var(--main), var(--main-dark));
-            color: #03110b;
-            border-color: rgba(24, 195, 126, 0.65);
+            background: var(--main);
+            color: #001208;
+            border-color: var(--main);
         }
 
         .page {
@@ -129,7 +132,7 @@
 
         label {
             font-weight: 900;
-            color: #d7f6e8;
+            color: #eeeeee;
             font-size: 14px;
         }
 
@@ -140,7 +143,7 @@
             border: 1px solid var(--border);
             border-radius: 14px;
             padding: 12px;
-            background: rgba(3, 16, 10, 0.56);
+            background: #050505;
             color: var(--text);
             font-size: 15px;
             outline: none;
@@ -148,11 +151,11 @@
 
         input::placeholder,
         textarea::placeholder {
-            color: rgba(238, 253, 246, 0.42);
+            color: rgba(255, 255, 255, 0.35);
         }
 
         select option {
-            background: #10231a;
+            background: #111111;
             color: var(--text);
         }
 
@@ -160,7 +163,7 @@
         select:focus,
         textarea:focus {
             border-color: var(--main);
-            box-shadow: 0 0 0 3px rgba(24, 195, 126, 0.16);
+            box-shadow: 0 0 0 3px rgba(25, 200, 120, 0.14);
         }
 
         .muted {
@@ -170,11 +173,12 @@
 
         .empty-note {
             padding: 12px;
-            border: 1px dashed rgba(24, 195, 126, 0.35);
+            border: 1px dashed var(--border-green);
             border-radius: 14px;
             color: var(--muted);
-            background: rgba(24, 195, 126, 0.06);
+            background: rgba(25, 200, 120, 0.05);
             margin-bottom: 10px;
+            line-height: 1.8;
         }
 
         .machine-status {
@@ -190,22 +194,23 @@
             gap: 10px;
             padding: 10px 12px;
             border-radius: 14px;
-            background: rgba(3, 16, 10, 0.42);
+            background: #050505;
             border: 1px solid var(--border);
         }
 
         .progress {
             height: 10px;
-            background: rgba(255, 255, 255, 0.08);
+            background: #050505;
             border-radius: 999px;
             overflow: hidden;
+            border: 1px solid var(--border);
         }
 
         .progress span {
             display: block;
             height: 100%;
             width: 0;
-            background: linear-gradient(90deg, var(--main), #7af0b9);
+            background: var(--main);
             border-radius: 999px;
             transition: 0.25s;
         }
@@ -219,8 +224,8 @@
         button,
         .download-btn {
             border: 0;
-            background: linear-gradient(135deg, var(--main), var(--main-dark));
-            color: #03110b;
+            background: var(--main);
+            color: #001208;
             padding: 11px 14px;
             border-radius: 14px;
             font-weight: 1000;
@@ -235,21 +240,21 @@
 
         button.secondary,
         .download-btn.secondary {
-            background: rgba(24, 195, 126, 0.12);
-            color: #b8ffdc;
-            border: 1px solid rgba(24, 195, 126, 0.28);
+            background: #0a0a0a;
+            color: #8dffc8;
+            border: 1px solid var(--border-green);
         }
 
         button.danger {
-            background: rgba(255, 91, 91, 0.12);
-            color: #ffb4b4;
-            border: 1px solid rgba(255, 91, 91, 0.3);
+            background: rgba(255, 91, 91, 0.10);
+            color: #ffaaaa;
+            border: 1px solid rgba(255, 91, 91, 0.35);
         }
 
         button.warning {
-            background: rgba(247, 185, 85, 0.13);
-            color: #ffd99d;
-            border: 1px solid rgba(247, 185, 85, 0.32);
+            background: rgba(243, 179, 76, 0.12);
+            color: #ffd793;
+            border: 1px solid rgba(243, 179, 76, 0.35);
         }
 
         button.full {
@@ -271,14 +276,14 @@
 
         .result-card {
             background:
-                radial-gradient(circle at top left, rgba(255, 255, 255, 0.16), transparent 30%),
-                linear-gradient(160deg, #08784f, #18c37e);
-            color: #fff;
+                    radial-gradient(circle at top left, rgba(255, 255, 255, 0.10), transparent 25%),
+                    linear-gradient(160deg, #075934, #19c878);
+            color: #ffffff;
             border-radius: 24px;
             padding: 20px;
-            box-shadow: 0 18px 40px rgba(24, 195, 126, 0.22);
+            box-shadow: 0 18px 42px rgba(25, 200, 120, 0.18);
             margin-bottom: 14px;
-            border: 1px solid rgba(164, 255, 211, 0.22);
+            border: 1px solid rgba(25, 200, 120, 0.35);
         }
 
         .result-title {
@@ -303,8 +308,8 @@
         }
 
         .result-mini div {
-            background: rgba(0, 0, 0, 0.16);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.20);
+            border: 1px solid rgba(255, 255, 255, 0.20);
             border-radius: 16px;
             padding: 10px;
         }
@@ -321,21 +326,21 @@
         }
 
         .result-card button {
-            background: #eefdf6;
-            color: #06462e;
+            background: #ffffff;
+            color: #06351f;
         }
 
         .result-card button.secondary {
-            background: rgba(0, 0, 0, 0.14);
+            background: rgba(0, 0, 0, 0.16);
             color: #fff;
-            border-color: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.24);
         }
 
         .confirm-btn {
             margin-top: 8px;
             width: 100%;
-            background: #eefdf6 !important;
-            color: #06462e !important;
+            background: #ffffff !important;
+            color: #06351f !important;
             font-size: 16px;
             padding: 14px;
         }
@@ -365,30 +370,75 @@
             font-size: 18px;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            overflow: hidden;
-            border-radius: 16px;
+        .sales-list {
+            display: grid;
+            gap: 10px;
         }
 
-        th,
-        td {
-            padding: 10px 8px;
-            border-bottom: 1px solid var(--border);
-            text-align: right;
-            vertical-align: top;
+        .sale-card {
+            background: #080808;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 14px;
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.24);
+        }
+
+        .sale-head {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+
+        .sale-client {
+            font-size: 17px;
+            font-weight: 1000;
+            margin-bottom: 3px;
+        }
+
+        .sale-model {
+            color: var(--muted);
             font-size: 13px;
         }
 
-        th {
-            background: rgba(3, 16, 10, 0.5);
+        .sale-price {
+            text-align: left;
             font-weight: 1000;
-            color: #d7f6e8;
+            font-size: 20px;
+            color: #8dffc8;
+            white-space: nowrap;
         }
 
-        tr:last-child td {
-            border-bottom: 0;
+        .sale-details {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .sale-pill {
+            background: #111111;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 9px;
+        }
+
+        .sale-pill small {
+            display: block;
+            color: var(--muted);
+            font-weight: 900;
+            margin-bottom: 3px;
+        }
+
+        .sale-pill strong {
+            font-size: 14px;
+        }
+
+        .sale-actions {
+            display: flex;
+            justify-content: flex-start;
+            margin-top: 10px;
         }
 
         .list-item {
@@ -397,7 +447,7 @@
             gap: 10px;
             align-items: center;
             border: 1px solid var(--border);
-            background: rgba(3, 16, 10, 0.38);
+            background: #080808;
             border-radius: 16px;
             padding: 12px;
             margin-bottom: 8px;
@@ -418,8 +468,8 @@
             right: 14px;
             left: 14px;
             bottom: 14px;
-            background: #eafff5;
-            color: #062b1d;
+            background: #ffffff;
+            color: #000000;
             padding: 12px 14px;
             border-radius: 14px;
             box-shadow: var(--shadow);
@@ -478,6 +528,18 @@
             }
 
             .list-item {
+                grid-template-columns: 1fr;
+            }
+
+            .sale-head {
+                grid-template-columns: 1fr;
+            }
+
+            .sale-price {
+                text-align: right;
+            }
+
+            .sale-details {
                 grid-template-columns: 1fr;
             }
         }
@@ -632,32 +694,15 @@
         </div>
 
         <div class="card" style="margin-top:14px">
-            <h2>سجل المبيعات (الدفتر)</h2>
+            <h2>سجل المبيعات</h2>
             <div class="btn-row" style="margin-bottom:12px">
                 <button class="secondary" onclick="loadSales()">تحديث السجل</button>
                 <button class="secondary" onclick="exportCSV()">تصدير CSV / Excel</button>
                 <button class="danger" onclick="clearSales()">مسح كل السجل</button>
             </div>
 
-            <div style="overflow:auto">
-                <table>
-                    <thead>
-                    <tr>
-                        <th>التاريخ</th>
-                        <th>العميل والمجسم</th>
-                        <th>البيع</th>
-                        <th>التكلفة</th>
-                        <th>الربح</th>
-                        <th>تفاصيل</th>
-                        <th>حذف</th>
-                    </tr>
-                    </thead>
-                    <tbody id="salesTable">
-                    <tr>
-                        <td colspan="7">لا توجد مبيعات مسجلة.</td>
-                    </tr>
-                    </tbody>
-                </table>
+            <div id="salesList" class="sales-list">
+                <div class="empty-note">لا توجد مبيعات مسجلة.</div>
             </div>
         </div>
     </section>
@@ -690,7 +735,7 @@
             <div class="grid">
                 <div class="field">
                     <label>اسم الماكينة</label>
-                    <input id="printerName" type="text" placeholder="مثال: BAMBU LAB A1 COMBO">
+                    <input id="printerName" type="text" placeholder="مثال: BAMBU LAB A1">
                 </div>
                 <div class="field">
                     <label>سعر ساعة التشغيل</label>
@@ -728,7 +773,7 @@
                 </div>
                 <div class="field">
                     <label>السعر لكل كجم / 1000 جرام</label>
-                    <input id="matKgPrice" type="number" min="0" step="0.1" placeholder="مثال: 900">
+                    <input id="matKgPrice" type="number" min="0" step="0.1" placeholder="مثال: 1000">
                 </div>
             </div>
             <div style="height:12px"></div>
@@ -743,7 +788,7 @@
 <div id="toast" class="toast"></div>
 
 <script>
-    const SETTINGS_VERSION = 3;
+    const SETTINGS_VERSION = 4;
 
     const DEFAULT_SETTINGS = {
         settingsVersion: SETTINGS_VERSION,
@@ -755,8 +800,8 @@
         },
         printers: [
             {
-                id: "printer_default_a1_combo",
-                name: "BAMBU LAB A1 COMBO",
+                id: "printer_default_a1",
+                name: "BAMBU LAB A1",
                 hourlyRate: 35,
                 maintenanceLimit: 200,
                 currentHours: 0
@@ -799,8 +844,7 @@
     }
 
     function moneyExact(value) {
-        const n = num(value);
-        return n.toLocaleString("ar-EG", {
+        return num(value).toLocaleString("ar-EG", {
             maximumFractionDigits: 2
         });
     }
@@ -899,7 +943,7 @@
             const hasOnlyOldDefaultMaterial =
                 settings.materials.length === 1 &&
                 String(settings.materials[0].name || "").toLowerCase() === "pla" &&
-                num(settings.materials[0].kgPrice) === 900;
+                (num(settings.materials[0].kgPrice) === 900 || num(settings.materials[0].kgPrice) === 1000);
 
             if (hasOnlyOldDefaultMaterial) {
                 settings.materials = [];
@@ -908,10 +952,11 @@
             if (
                 settings.printers.length === 0 ||
                 settings.printers.some(p => String(p.name || "").toLowerCase().includes("p1s")) ||
-                settings.printers.some(p => String(p.name || "").toLowerCase().includes("bambu printer"))
+                settings.printers.some(p => String(p.name || "").toLowerCase().includes("bambu printer")) ||
+                settings.printers.some(p => String(p.name || "").toLowerCase().includes("combo"))
             ) {
                 settings.printers = structuredCloneSafe(DEFAULT_SETTINGS.printers);
-                settings.selectedPrinterId = "printer_default_a1_combo";
+                settings.selectedPrinterId = "printer_default_a1";
             }
         }
 
@@ -921,7 +966,7 @@
 
         settings.printers = settings.printers.map(p => ({
             id: p.id || makeId("printer"),
-            name: p.name || "BAMBU LAB A1 COMBO",
+            name: p.name || "BAMBU LAB A1",
             hourlyRate: num(p.hourlyRate),
             maintenanceLimit: num(p.maintenanceLimit) || 200,
             currentHours: num(p.currentHours)
@@ -972,7 +1017,7 @@
         settings.printers.forEach(printer => {
             const opt = document.createElement("option");
             opt.value = printer.id;
-            opt.textContent = printer.name + " - " + money(printer.hourlyRate) + " ج/س";
+            opt.textContent = printer.name + " | " + money(printer.hourlyRate) + " ج لكل ساعة";
             select.appendChild(opt);
         });
 
@@ -1050,7 +1095,7 @@
         if (settings.materials.length === 0) {
             box.innerHTML = `
                 <div class="empty-note">
-                    لا توجد خامات مضافة. افتح تبويب الإعدادات وأضف الخامة أولًا، مثال: PLA بسعر 900 ج لكل كجم / 1000 جرام.
+                    لا توجد خامات مضافة. افتح تبويب الإعدادات وأضف الخامة أولًا.
                 </div>
             `;
             box.dataset.hasRows = "0";
@@ -1244,20 +1289,28 @@
 
         const client = document.getElementById("clientName").value.trim() || "عميل";
         const model = document.getElementById("modelName").value.trim() || "طلب طباعة 3D";
-        const date = new Date().toLocaleString("ar-EG");
+        const date = new Date().toLocaleDateString("ar-EG");
 
-        return [
-            "فاتورة طلب طباعة 3D",
-            "Bambu Lab Services",
+        const lines = [
+            "✨ فاتورة طلب طباعة 3D ✨",
             "",
             "التاريخ: " + date,
-            "اسم العميل: " + client,
-            "وصف المجسم: " + model,
-            "",
-            "إجمالي السعر للطباعة والخامات: " + money(lastCalc.beforeDiscount) + " ج.م",
-            "قيمة الخصم: " + money(lastCalc.discount) + " ج.م",
-            "الإجمالي النهائي المستحق: " + money(lastCalc.finalPrice) + " ج.م"
-        ].join("\n");
+            "العميل: " + client,
+            "المجسم: " + model,
+            ""
+        ];
+
+        if (lastCalc.discount > 0) {
+            lines.push("🎁 الخصم: " + money(lastCalc.discount) + " ج.م");
+        }
+
+        lines.push("━━━━━━━━━━━━━━");
+        lines.push("💚 الإجمالي النهائي: " + money(lastCalc.finalPrice) + " ج.م");
+        lines.push("━━━━━━━━━━━━━━");
+        lines.push("");
+        lines.push("شكرًا لاختيارك لنا ✨");
+
+        return lines.join("\n");
     }
 
     function copyInvoice() {
@@ -1286,34 +1339,57 @@
 
         const client = document.getElementById("clientName").value.trim() || "عميل";
         const model = document.getElementById("modelName").value.trim() || "طلب طباعة 3D";
-        const date = new Date().toLocaleString("ar-EG");
+        const date = new Date().toLocaleDateString("ar-EG");
+
+        const discountBlock = lastCalc.discount > 0
+            ? `<div style="font-size:18px;margin:18px 0 0;color:#000">🎁 الخصم: ${money(lastCalc.discount)} ج.م</div>`
+            : "";
 
         document.getElementById("invoicePrintArea").innerHTML = `
-            <div style="max-width:720px;margin:0 auto;font-family:Arial,sans-serif">
-                <h1 style="text-align:center;margin-bottom:4px">فاتورة طلب طباعة 3D</h1>
-                <p style="text-align:center;margin-top:0">Bambu Lab Services</p>
-                <hr>
-                <p><strong>التاريخ:</strong> ${escapeHtml(date)}</p>
-                <p><strong>اسم العميل:</strong> ${escapeHtml(client)}</p>
-                <p><strong>وصف المجسم:</strong> ${escapeHtml(model)}</p>
-                <table style="width:100%;border-collapse:collapse;margin-top:18px">
-                    <tr>
-                        <th style="border:1px solid #ddd;padding:10px;text-align:right">البيان</th>
-                        <th style="border:1px solid #ddd;padding:10px;text-align:right">المبلغ</th>
-                    </tr>
-                    <tr>
-                        <td style="border:1px solid #ddd;padding:10px">إجمالي السعر للطباعة والخامات</td>
-                        <td style="border:1px solid #ddd;padding:10px">${money(lastCalc.beforeDiscount)} ج.م</td>
-                    </tr>
-                    <tr>
-                        <td style="border:1px solid #ddd;padding:10px">قيمة الخصم</td>
-                        <td style="border:1px solid #ddd;padding:10px">- ${money(lastCalc.discount)} ج.م</td>
-                    </tr>
-                    <tr>
-                        <td style="border:1px solid #ddd;padding:10px"><strong>الإجمالي النهائي المستحق</strong></td>
-                        <td style="border:1px solid #ddd;padding:10px"><strong>${money(lastCalc.finalPrice)} ج.م</strong></td>
-                    </tr>
-                </table>
+            <div style="
+                max-width:720px;
+                margin:0 auto;
+                font-family:Arial,sans-serif;
+                color:#000;
+                text-align:center;
+                direction:rtl;
+                padding:20px;
+            ">
+                <div style="
+                    border:2px solid #19c878;
+                    border-radius:22px;
+                    padding:28px 22px;
+                    box-shadow:0 8px 24px rgba(0,0,0,0.08);
+                ">
+                    <h1 style="margin:0 0 26px;font-size:30px">✨ فاتورة طلب طباعة 3D ✨</h1>
+
+                    <div style="text-align:right;font-size:18px;line-height:2;margin:0 auto;max-width:460px">
+                        <div><strong>التاريخ:</strong> ${escapeHtml(date)}</div>
+                        <div><strong>العميل:</strong> ${escapeHtml(client)}</div>
+                        <div><strong>المجسم:</strong> ${escapeHtml(model)}</div>
+                    </div>
+
+                    ${discountBlock}
+
+                    <div style="font-size:24px;margin:22px 0 8px;color:#111">━━━━━━━━━━━━━━</div>
+
+                    <div style="
+                        background:#19c878;
+                        color:#001208;
+                        border-radius:18px;
+                        padding:18px;
+                        font-size:26px;
+                        font-weight:bold;
+                        margin:0 auto;
+                        max-width:460px;
+                    ">
+                        💚 الإجمالي النهائي: ${money(lastCalc.finalPrice)} ج.م
+                    </div>
+
+                    <div style="font-size:24px;margin:8px 0 22px;color:#111">━━━━━━━━━━━━━━</div>
+
+                    <div style="font-size:20px;font-weight:bold">شكرًا لاختيارك لنا ✨</div>
+                </div>
             </div>
         `;
 
@@ -1411,36 +1487,59 @@
     }
 
     function renderSales() {
-        const tbody = document.getElementById("salesTable");
-        tbody.innerHTML = "";
+        const box = document.getElementById("salesList");
+        box.innerHTML = "";
 
         if (!salesCache.length) {
-            tbody.innerHTML = `<tr><td colspan="7">لا توجد مبيعات مسجلة.</td></tr>`;
+            box.innerHTML = `<div class="empty-note">لا توجد مبيعات مسجلة.</div>`;
         } else {
             salesCache.forEach(sale => {
-                const details = [
-                    sale.printerName ? "ماكينة: " + sale.printerName : "",
-                    "ساعات: " + fixed(sale.hours || 0, 1),
-                    "خامات: " + fixed(sale.weight || 0, 1) + " جم",
-                    "هالك: " + fixed(sale.waste || 0, 1) + " جم",
-                    "يدوي: " + fixed(sale.manualMinutes || 0, 0) + " د",
-                    "خصم: " + money(sale.discount || 0) + " ج"
-                ].filter(Boolean).join("<br>");
+                const card = document.createElement("div");
+                card.className = "sale-card";
 
-                const tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td>${escapeHtml(sale.date || "")}</td>
-                    <td>
-                        <strong>${escapeHtml(sale.client || "")}</strong><br>
-                        <span class="muted">${escapeHtml(sale.model || "")}</span>
-                    </td>
-                    <td>${money(sale.sale || sale.finalPrice || 0)} ج</td>
-                    <td>${money(sale.totalCost || 0)} ج</td>
-                    <td>${money(sale.profit || sale.netProfit || 0)} ج</td>
-                    <td>${details}</td>
-                    <td><button class="danger" onclick="deleteSale('${sale.id}')">حذف</button></td>
+                card.innerHTML = `
+                    <div class="sale-head">
+                        <div>
+                            <div class="sale-client">${escapeHtml(sale.client || "عميل")}</div>
+                            <div class="sale-model">${escapeHtml(sale.model || "مجسم")}</div>
+                            <div class="muted" style="margin-top:5px">${escapeHtml(sale.date || "")}</div>
+                        </div>
+                        <div class="sale-price">${money(sale.sale || sale.finalPrice || 0)} ج</div>
+                    </div>
+
+                    <div class="sale-details">
+                        <div class="sale-pill">
+                            <small>التكلفة</small>
+                            <strong>${money(sale.totalCost || 0)} ج</strong>
+                        </div>
+                        <div class="sale-pill">
+                            <small>صافي الربح</small>
+                            <strong>${money(sale.profit || sale.netProfit || 0)} ج</strong>
+                        </div>
+                        <div class="sale-pill">
+                            <small>الوقت</small>
+                            <strong>${fixed(sale.hours || 0, 1)} س</strong>
+                        </div>
+                        <div class="sale-pill">
+                            <small>الخامة</small>
+                            <strong>${fixed(sale.weight || 0, 1)} جم</strong>
+                        </div>
+                        <div class="sale-pill">
+                            <small>الهالك</small>
+                            <strong>${fixed(sale.waste || 0, 1)} جم</strong>
+                        </div>
+                        <div class="sale-pill">
+                            <small>الخصم</small>
+                            <strong>${money(sale.discount || 0)} ج</strong>
+                        </div>
+                    </div>
+
+                    <div class="sale-actions">
+                        <button class="danger" onclick="deleteSale('${sale.id}')">حذف البيعة</button>
+                    </div>
                 `;
-                tbody.appendChild(tr);
+
+                box.appendChild(card);
             });
         }
 
@@ -1669,7 +1768,7 @@
                 <div>
                     <div class="list-title">${escapeHtml(printer.name)} ${printer.id === settings.selectedPrinterId ? "✅" : ""}</div>
                     <div class="list-sub">
-                        ${money(printer.hourlyRate)} ج/ساعة · الصيانة ${fixed(printer.currentHours, 1)} / ${fixed(printer.maintenanceLimit, 0)} س
+                        ${money(printer.hourlyRate)} ج لكل ساعة · الصيانة ${fixed(printer.currentHours, 1)} / ${fixed(printer.maintenanceLimit, 0)} س
                     </div>
                 </div>
                 <div class="btn-row">
