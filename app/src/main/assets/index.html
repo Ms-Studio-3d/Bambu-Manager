@@ -1467,9 +1467,28 @@
             }
         }
 
+        clearOrderFormAfterSale();
+
         toast("تم تسجيل البيعة في الدفتر");
         loadSales();
         renderAll();
+    }
+
+    function clearOrderFormAfterSale() {
+        document.getElementById("clientName").value = "";
+        document.getElementById("modelName").value = "";
+        document.getElementById("printHours").value = "";
+        document.getElementById("wasteWeight").value = "";
+        document.getElementById("manualMinutes").value = "";
+        document.getElementById("discount").value = "";
+
+        const orderBox = document.getElementById("orderMaterials");
+        if (orderBox) {
+            orderBox.dataset.hasRows = "0";
+        }
+
+        renderOrderMaterials();
+        calculate();
     }
 
     function loadSales() {
