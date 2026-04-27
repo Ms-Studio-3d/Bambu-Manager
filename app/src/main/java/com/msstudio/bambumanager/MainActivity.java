@@ -15,7 +15,6 @@ import android.view.View;
 import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
 import android.webkit.SafeBrowsingResponse;
-import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -33,7 +32,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -212,15 +210,6 @@ public class MainActivity extends AppCompatActivity {
 
         @JavascriptInterface
         public void exportCSV(String csvContent, String fileName) {
-            /*
-             * Offline-safe behavior:
-             * No internet, no share intent, no external upload.
-             * The current JS fallback can create a local Blob in browser contexts.
-             * Inside Android WebView, we keep this as a safe no-op with a user message.
-             *
-             * Later we can add Storage Access Framework if you want the user to pick
-             * a save location manually, without INTERNET permission.
-             */
             try {
                 if (csvContent == null || csvContent.trim().isEmpty()) {
                     showToastOnUi("لا توجد بيانات للتصدير");
@@ -243,10 +232,6 @@ public class MainActivity extends AppCompatActivity {
 
         @JavascriptInterface
         public void printPage(String html) {
-            /*
-             * WebView printing prints the current rendered page.
-             * The JS already injects invoice HTML into #invoicePrintArea before calling this method.
-             */
             printCurrentWebView();
         }
 
@@ -313,12 +298,6 @@ public class MainActivity extends AppCompatActivity {
         settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         settings.setLoadsImagesAutomatically(true);
 
-        /*
-         * Offline-first hardening:
-         * - No INTERNET permission in AndroidManifest.xml.
-         * - Navigation is limited to local assets and internal generated URLs.
-         * - External HTTP/HTTPS/WhatsApp links are blocked.
-         */
         settings.setBlockNetworkImage(true);
 
         settings.setAllowFileAccess(true);
@@ -479,7 +458,7 @@ public class MainActivity extends AppCompatActivity {
             ) {
                 Log.e(TAG, "Safe browsing blocked threat type: " + threatType);
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && callback != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 && callback != null) {
                     callback.backToSafety(true);
                 }
 
