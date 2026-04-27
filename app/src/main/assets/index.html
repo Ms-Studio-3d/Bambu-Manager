@@ -4,23 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bambu Business Manager</title>
+
     <style>
         :root {
             --bg: #000000;
             --bg2: #050505;
             --card: #101010;
             --card2: #151515;
-            --card3: #1b1b1b;
             --main: #19c878;
-            --main-dark: #0d8f51;
-            --main-soft: rgba(25, 200, 120, 0.12);
             --text: #f4f4f4;
             --muted: #a6a6a6;
-            --border: rgba(255, 255, 255, 0.10);
-            --border-green: rgba(25, 200, 120, 0.28);
+            --border: rgba(255,255,255,0.10);
+            --border-green: rgba(25,200,120,0.28);
             --danger: #ff5b5b;
             --warning: #f3b34c;
-            --shadow: 0 14px 32px rgba(0, 0, 0, 0.45);
+            --shadow: 0 14px 32px rgba(0,0,0,0.45);
             --radius: 18px;
         }
 
@@ -32,8 +30,8 @@
             margin: 0;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background:
-                    radial-gradient(circle at top right, rgba(25, 200, 120, 0.10), transparent 28%),
-                    linear-gradient(180deg, var(--bg2), var(--bg));
+                radial-gradient(circle at top right, rgba(25,200,120,0.10), transparent 28%),
+                linear-gradient(180deg, var(--bg2), var(--bg));
             color: var(--text);
             min-height: 100vh;
         }
@@ -53,7 +51,7 @@
             position: sticky;
             top: 0;
             z-index: 10;
-            background: rgba(0, 0, 0, 0.92);
+            background: rgba(0,0,0,0.92);
             backdrop-filter: blur(10px);
             padding: 8px 0;
         }
@@ -88,19 +86,16 @@
             text-align: center;
             font-size: 26px;
             letter-spacing: -0.5px;
-            color: var(--text);
         }
 
         h2 {
             font-size: 19px;
             margin: 0 0 14px;
-            color: var(--text);
         }
 
         h3 {
             font-size: 16px;
             margin: 0 0 10px;
-            color: var(--text);
         }
 
         .card {
@@ -151,7 +146,7 @@
 
         input::placeholder,
         textarea::placeholder {
-            color: rgba(255, 255, 255, 0.35);
+            color: rgba(255,255,255,0.35);
         }
 
         select option {
@@ -163,7 +158,7 @@
         select:focus,
         textarea:focus {
             border-color: var(--main);
-            box-shadow: 0 0 0 3px rgba(25, 200, 120, 0.14);
+            box-shadow: 0 0 0 3px rgba(25,200,120,0.14);
         }
 
         .muted {
@@ -176,7 +171,7 @@
             border: 1px dashed var(--border-green);
             border-radius: 14px;
             color: var(--muted);
-            background: rgba(25, 200, 120, 0.05);
+            background: rgba(25,200,120,0.05);
             margin-bottom: 10px;
             line-height: 1.8;
         }
@@ -184,7 +179,7 @@
         .hint-box {
             padding: 10px 12px;
             border-radius: 14px;
-            background: rgba(25, 200, 120, 0.07);
+            background: rgba(25,200,120,0.07);
             border: 1px solid var(--border-green);
             color: #c9ffe3;
             font-size: 13px;
@@ -232,8 +227,7 @@
             gap: 8px;
         }
 
-        button,
-        .download-btn {
+        button {
             border: 0;
             background: var(--main);
             color: #001208;
@@ -241,7 +235,6 @@
             border-radius: 14px;
             font-weight: 1000;
             cursor: pointer;
-            text-decoration: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -249,27 +242,22 @@
             font-size: 14px;
         }
 
-        button.secondary,
-        .download-btn.secondary {
+        button.secondary {
             background: #0a0a0a;
             color: #8dffc8;
             border: 1px solid var(--border-green);
         }
 
         button.danger {
-            background: rgba(255, 91, 91, 0.10);
+            background: rgba(255,91,91,0.10);
             color: #ffaaaa;
-            border: 1px solid rgba(255, 91, 91, 0.35);
+            border: 1px solid rgba(255,91,91,0.35);
         }
 
         button.warning {
-            background: rgba(243, 179, 76, 0.12);
+            background: rgba(243,179,76,0.12);
             color: #ffd793;
-            border: 1px solid rgba(243, 179, 76, 0.35);
-        }
-
-        button.full {
-            width: 100%;
+            border: 1px solid rgba(243,179,76,0.35);
         }
 
         button:disabled {
@@ -287,14 +275,14 @@
 
         .result-card {
             background:
-                    radial-gradient(circle at top left, rgba(255, 255, 255, 0.10), transparent 25%),
-                    linear-gradient(160deg, #075934, #19c878);
+                radial-gradient(circle at top left, rgba(255,255,255,0.10), transparent 25%),
+                linear-gradient(160deg, #075934, #19c878);
             color: #ffffff;
             border-radius: 24px;
             padding: 20px;
-            box-shadow: 0 18px 42px rgba(25, 200, 120, 0.18);
+            box-shadow: 0 18px 42px rgba(25,200,120,0.18);
             margin-bottom: 14px;
-            border: 1px solid rgba(25, 200, 120, 0.35);
+            border: 1px solid rgba(25,200,120,0.35);
         }
 
         .result-title {
@@ -319,8 +307,8 @@
         }
 
         .result-mini div {
-            background: rgba(0, 0, 0, 0.20);
-            border: 1px solid rgba(255, 255, 255, 0.20);
+            background: rgba(0,0,0,0.20);
+            border: 1px solid rgba(255,255,255,0.20);
             border-radius: 16px;
             padding: 10px;
         }
@@ -342,9 +330,9 @@
         }
 
         .result-card button.secondary {
-            background: rgba(0, 0, 0, 0.16);
+            background: rgba(0,0,0,0.16);
             color: #fff;
-            border-color: rgba(255, 255, 255, 0.24);
+            border-color: rgba(255,255,255,0.24);
         }
 
         .confirm-btn {
@@ -391,7 +379,7 @@
             border: 1px solid var(--border);
             border-radius: 18px;
             padding: 14px;
-            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.24);
+            box-shadow: 0 10px 22px rgba(0,0,0,0.24);
         }
 
         .sale-head {
@@ -560,11 +548,7 @@
                 font-size: 12px;
             }
 
-            .grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 8px;
-            }
-
+            .grid,
             .grid-3 {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 8px;
@@ -591,8 +575,7 @@
                 border-radius: 12px;
             }
 
-            button,
-            .download-btn {
+            button {
                 padding: 10px 11px;
                 font-size: 13px;
                 border-radius: 12px;
@@ -621,12 +604,7 @@
                 gap: 8px;
             }
 
-            .sale-head {
-                grid-template-columns: 1fr auto;
-            }
-
             .sale-price {
-                text-align: left;
                 font-size: 18px;
             }
 
@@ -680,6 +658,7 @@
         }
     </style>
 </head>
+
 <body>
 <div class="app">
     <div class="top-tabs">
@@ -726,14 +705,15 @@
 
         <div class="card">
             <h2>⚙️ التشغيل والخامات</h2>
+
             <div class="grid">
                 <div class="field">
                     <label>وقت الطباعة (ساعات)</label>
-                    <input id="printHours" type="number" min="0" step="0.1" placeholder="0" oninput="calculate()">
+                    <input id="printHours" type="text" inputmode="decimal" placeholder="0" oninput="calculate()">
                 </div>
                 <div class="field">
                     <label>سعر الساعة (الماكينة)</label>
-                    <input id="machineRate" type="number" min="0" step="0.1" placeholder="0" oninput="calculate()">
+                    <input id="machineRate" type="text" inputmode="decimal" placeholder="0" oninput="calculate()">
                 </div>
             </div>
 
@@ -748,11 +728,11 @@
             <div class="grid">
                 <div class="field">
                     <label>وزن الهالك الإجمالي (جرام)</label>
-                    <input id="wasteWeight" type="number" min="0" step="0.1" placeholder="0" oninput="calculate()">
+                    <input id="wasteWeight" type="text" inputmode="decimal" placeholder="0" oninput="calculate()">
                 </div>
                 <div class="field">
                     <label>دقائق الشغل اليدوي</label>
-                    <input id="manualMinutes" type="number" min="0" step="1" placeholder="0" oninput="calculate()">
+                    <input id="manualMinutes" type="text" inputmode="decimal" placeholder="0" oninput="calculate()">
                 </div>
             </div>
         </div>
@@ -762,21 +742,22 @@
             <div class="grid">
                 <div class="field">
                     <label>نسبة الربح على التكلفة (%)</label>
-                    <input id="profitPercent" type="number" min="0" step="0.1" placeholder="0" oninput="calculate()">
+                    <input id="profitPercent" type="text" inputmode="decimal" placeholder="0" oninput="calculate()">
                 </div>
                 <div class="field">
                     <label>خصم (جنيه)</label>
-                    <input id="discount" type="number" min="0" step="0.1" placeholder="0" oninput="calculate()">
+                    <input id="discount" type="text" inputmode="decimal" placeholder="0" oninput="calculate()">
                 </div>
                 <div class="field">
                     <label>سعر ساعة الشغل اليدوي</label>
-                    <input id="manualRate" type="number" min="0" step="0.1" placeholder="0" oninput="calculate()">
+                    <input id="manualRate" type="text" inputmode="decimal" placeholder="0" oninput="calculate()">
                 </div>
                 <div class="field">
                     <label>تكلفة التغليف</label>
-                    <input id="packagingCost" type="number" min="0" step="0.1" placeholder="0" oninput="calculate()">
+                    <input id="packagingCost" type="text" inputmode="decimal" placeholder="0" oninput="calculate()">
                 </div>
             </div>
+
             <div style="height:12px"></div>
             <button class="secondary" onclick="saveGeneralFromCalculator()">حفظ الإعدادات كأساسي</button>
         </div>
@@ -830,6 +811,7 @@
 
         <div class="card" style="margin-top:14px">
             <h2>سجل المبيعات</h2>
+
             <div class="btn-row" style="margin-bottom:12px">
                 <button class="secondary" onclick="loadSales()">تحديث السجل</button>
                 <button class="secondary" onclick="exportCSV()">تصدير CSV / Excel</button>
@@ -847,27 +829,33 @@
 
         <div class="card">
             <h2>الإعدادات العامة</h2>
+
             <div class="grid-3">
                 <div class="field">
                     <label>نسبة الربح الافتراضية (%)</label>
-                    <input id="setProfitPercent" type="number" min="0" step="0.1" placeholder="0">
+                    <input id="setProfitPercent" type="text" inputmode="decimal" placeholder="0">
                 </div>
                 <div class="field">
                     <label>سعر ساعة الشغل اليدوي الافتراضي</label>
-                    <input id="setManualRate" type="number" min="0" step="0.1" placeholder="0">
+                    <input id="setManualRate" type="text" inputmode="decimal" placeholder="0">
                 </div>
                 <div class="field">
                     <label>تكلفة التغليف الافتراضية</label>
-                    <input id="setPackagingCost" type="number" min="0" step="0.1" placeholder="0">
+                    <input id="setPackagingCost" type="text" inputmode="decimal" placeholder="0">
                 </div>
             </div>
+
             <div style="height:12px"></div>
             <button onclick="saveGeneralSettings()">حفظ الإعدادات العامة</button>
         </div>
 
         <div class="card">
             <h2>إدارة الماكينات</h2>
-            <div class="hint-box" id="printerEditHint" style="display:none">وضع تعديل ماكينة شغال. عدّل البيانات واضغط حفظ تعديل الماكينة أو إلغاء التعديل.</div>
+
+            <div class="hint-box" id="printerEditHint" style="display:none">
+                وضع تعديل ماكينة شغال. عدّل البيانات واضغط حفظ تعديل الماكينة أو إلغاء التعديل.
+            </div>
+
             <div class="grid">
                 <div class="field">
                     <label>اسم الماكينة</label>
@@ -875,29 +863,36 @@
                 </div>
                 <div class="field">
                     <label>سعر ساعة التشغيل</label>
-                    <input id="printerRate" type="number" min="0" step="0.1" placeholder="مثال: 35">
+                    <input id="printerRate" type="text" inputmode="decimal" placeholder="مثال: 35">
                 </div>
                 <div class="field">
                     <label>حد الصيانة بالساعات</label>
-                    <input id="printerMaintenanceLimit" type="number" min="0" step="1" placeholder="مثال: 200">
+                    <input id="printerMaintenanceLimit" type="text" inputmode="decimal" placeholder="مثال: 200">
                 </div>
                 <div class="field">
                     <label>الساعات الحالية</label>
-                    <input id="printerCurrentHours" type="number" min="0" step="0.1" placeholder="0">
+                    <input id="printerCurrentHours" type="text" inputmode="decimal" placeholder="0">
                 </div>
             </div>
+
             <div style="height:12px"></div>
+
             <div class="btn-row">
                 <button id="printerSaveBtn" onclick="savePrinter()">إضافة ماكينة</button>
                 <button id="printerCancelBtn" class="secondary" onclick="cancelPrinterEdit()" style="display:none">إلغاء التعديل</button>
             </div>
+
             <div style="height:12px"></div>
             <div id="printersList"></div>
         </div>
 
         <div class="card">
             <h2>إدارة الخامات</h2>
-            <div class="hint-box" id="materialEditHint" style="display:none">وضع تعديل خامة شغال. عدّل البيانات واضغط حفظ تعديل الخامة أو إلغاء التعديل.</div>
+
+            <div class="hint-box" id="materialEditHint" style="display:none">
+                وضع تعديل خامة شغال. عدّل البيانات واضغط حفظ تعديل الخامة أو إلغاء التعديل.
+            </div>
+
             <div class="grid">
                 <div class="field">
                     <label>اسم / نوع الخامة</label>
@@ -913,14 +908,17 @@
                 </div>
                 <div class="field">
                     <label>السعر لكل كجم / 1000 جرام</label>
-                    <input id="matKgPrice" type="number" min="0" step="0.1" placeholder="مثال: 1000">
+                    <input id="matKgPrice" type="text" inputmode="decimal" placeholder="مثال: 1000">
                 </div>
             </div>
+
             <div style="height:12px"></div>
+
             <div class="btn-row">
                 <button id="materialSaveBtn" onclick="saveMaterial()">إضافة خامة</button>
                 <button id="materialCancelBtn" class="secondary" onclick="cancelMaterialEdit()" style="display:none">إلغاء التعديل</button>
             </div>
+
             <div style="height:12px"></div>
             <div id="materialsList"></div>
         </div>
@@ -931,7 +929,7 @@
 <div id="toast" class="toast"></div>
 
 <script>
-    const SETTINGS_VERSION = 4;
+    const SETTINGS_VERSION = 5;
 
     const DEFAULT_SETTINGS = {
         settingsVersion: SETTINGS_VERSION,
@@ -973,29 +971,48 @@
         return JSON.parse(JSON.stringify(obj));
     }
 
+    function toEnglishDigits(value) {
+        return String(value ?? "")
+            .replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
+            .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
+    }
+
     function num(value) {
-        const n = parseFloat(value);
+        const clean = toEnglishDigits(value)
+            .replace(/,/g, "")
+            .replace(/٫/g, ".")
+            .replace(/،/g, ".")
+            .trim();
+
+        const n = parseFloat(clean);
         return isNaN(n) ? 0 : n;
     }
 
-    function setInputValue(id, value) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.value = num(value) === 0 ? "" : String(value);
+    function fmt(value, digits = 0) {
+        return num(value).toLocaleString("en-US", {
+            minimumFractionDigits: digits,
+            maximumFractionDigits: digits
+        });
     }
 
     function money(value) {
-        return Math.round(num(value)).toLocaleString("ar-EG");
+        return Math.round(num(value)).toLocaleString("en-US");
     }
 
     function moneyExact(value) {
-        return num(value).toLocaleString("ar-EG", {
+        return num(value).toLocaleString("en-US", {
             maximumFractionDigits: 2
         });
     }
 
     function fixed(value, digits = 1) {
         return num(value).toFixed(digits);
+    }
+
+    function setInputValue(id, value) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.value = num(value) === 0 ? "" : String(num(value));
     }
 
     function makeId(prefix) {
@@ -1009,12 +1026,22 @@
         setTimeout(() => el.classList.remove("show"), 2200);
     }
 
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
     function showPage(name) {
         document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
         document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+
         document.getElementById("page-" + name).classList.add("active");
 
-        const map = {calc: 0, log: 1, settings: 2};
+        const map = { calc: 0, log: 1, settings: 2 };
         document.querySelectorAll(".tab-btn")[map[name]].classList.add("active");
 
         if (name === "log") loadSales();
@@ -1025,19 +1052,14 @@
         try {
             if (window.Android && Android.getAppSettings) {
                 const raw = Android.getAppSettings();
-                if (raw) {
-                    settings = JSON.parse(raw);
-                }
+                if (raw) settings = JSON.parse(raw);
                 return;
             }
-        } catch (e) {
-        }
+        } catch (e) {}
 
         try {
             const raw = localStorage.getItem("bambu_app_settings_v2");
-            if (raw) {
-                settings = JSON.parse(raw);
-            }
+            if (raw) settings = JSON.parse(raw);
         } catch (e) {
             settings = structuredCloneSafe(DEFAULT_SETTINGS);
         }
@@ -1045,20 +1067,17 @@
 
     function saveSettings() {
         normalizeSettings();
-
         const raw = JSON.stringify(settings);
 
         try {
             localStorage.setItem("bambu_app_settings_v2", raw);
-        } catch (e) {
-        }
+        } catch (e) {}
 
         try {
             if (window.Android && Android.setAppSettings) {
                 Android.setAppSettings(raw);
             }
-        } catch (e) {
-        }
+        } catch (e) {}
     }
 
     function normalizeSettings() {
@@ -1068,32 +1087,11 @@
 
         const oldVersion = num(settings.settingsVersion);
 
-        if (!settings.general) {
-            settings.general = {};
-        }
-
-        if (!Array.isArray(settings.printers)) {
-            settings.printers = [];
-        }
-
-        if (!Array.isArray(settings.materials)) {
-            settings.materials = [];
-        }
+        if (!settings.general) settings.general = {};
+        if (!Array.isArray(settings.printers)) settings.printers = [];
+        if (!Array.isArray(settings.materials)) settings.materials = [];
 
         if (oldVersion < SETTINGS_VERSION) {
-            settings.general.profitPercent = 100;
-            settings.general.manualRate = 0;
-            settings.general.packagingCost = 10;
-
-            const hasOnlyOldDefaultMaterial =
-                settings.materials.length === 1 &&
-                String(settings.materials[0].name || "").toLowerCase() === "pla" &&
-                (num(settings.materials[0].kgPrice) === 900 || num(settings.materials[0].kgPrice) === 1000);
-
-            if (hasOnlyOldDefaultMaterial) {
-                settings.materials = [];
-            }
-
             if (
                 settings.printers.length === 0 ||
                 settings.printers.some(p => String(p.name || "").toLowerCase().includes("p1s")) ||
@@ -1103,6 +1101,10 @@
                 settings.printers = structuredCloneSafe(DEFAULT_SETTINGS.printers);
                 settings.selectedPrinterId = "printer_default_a1";
             }
+
+            settings.general.profitPercent = settings.general.profitPercent ?? 100;
+            settings.general.manualRate = settings.general.manualRate ?? 0;
+            settings.general.packagingCost = settings.general.packagingCost ?? 10;
         }
 
         if (settings.printers.length === 0) {
@@ -1162,7 +1164,10 @@
         settings.printers.forEach(printer => {
             const opt = document.createElement("option");
             opt.value = printer.id;
-            opt.textContent = printer.name + " | " + money(printer.hourlyRate) + " ج لكل ساعة";
+
+            /* هنا التعديل المهم: اسم الماكينة فقط بدون السعر جنبها */
+            opt.textContent = printer.name;
+
             select.appendChild(opt);
         });
 
@@ -1175,9 +1180,11 @@
 
     function onMachineChanged() {
         settings.selectedPrinterId = document.getElementById("machineSelect").value;
-        const printer = selectedPrinter();
 
-        setInputValue("machineRate", printer.hourlyRate);
+        const printer = selectedPrinter();
+        if (printer) {
+            setInputValue("machineRate", printer.hourlyRate);
+        }
 
         saveSettings();
         updateMachineStatus();
@@ -1187,7 +1194,10 @@
     function applyDefaultsToCalculator() {
         const printer = selectedPrinter();
 
-        setInputValue("machineRate", printer.hourlyRate);
+        if (printer) {
+            setInputValue("machineRate", printer.hourlyRate);
+        }
+
         setInputValue("profitPercent", settings.general.profitPercent);
         setInputValue("manualRate", settings.general.manualRate);
         setInputValue("packagingCost", settings.general.packagingCost);
@@ -1195,6 +1205,8 @@
 
     function updateMachineStatus() {
         const printer = selectedPrinter();
+        if (!printer) return;
+
         const current = num(printer.currentHours);
         const limit = num(printer.maintenanceLimit) || 1;
         const printHours = num(document.getElementById("printHours").value);
@@ -1212,6 +1224,7 @@
     function resetSelectedMachineHours() {
         const printer = selectedPrinter();
         if (!printer) return;
+
         if (!confirm("تصفير ساعات الصيانة لهذه الماكينة؟")) return;
 
         printer.currentHours = 0;
@@ -1223,14 +1236,14 @@
             if (window.Android && Android.setMaintenanceHours) {
                 Android.setMaintenanceHours("0");
             }
-        } catch (e) {
-        }
+        } catch (e) {}
 
         toast("تم تصفير ساعات الصيانة");
     }
 
     function materialLabel(mat) {
-        return [mat.name, mat.color, mat.brand].filter(Boolean).join(" - ") + " (" + money(mat.kgPrice) + " ج/كجم)";
+        const name = [mat.name, mat.color, mat.brand].filter(Boolean).join(" - ");
+        return name + " (" + money(mat.kgPrice) + " ج/كجم)";
     }
 
     function renderOrderMaterials() {
@@ -1254,7 +1267,9 @@
             box.innerHTML = "";
             addOrderMaterialRow();
         } else {
-            document.querySelectorAll(".order-material-select").forEach(sel => fillMaterialSelect(sel, sel.value));
+            document.querySelectorAll(".order-material-select").forEach(sel => {
+                fillMaterialSelect(sel, sel.value);
+            });
         }
     }
 
@@ -1307,11 +1322,10 @@
 
         const weightInput = document.createElement("input");
         weightInput.className = "order-material-weight";
-        weightInput.type = "number";
-        weightInput.min = "0";
-        weightInput.step = "0.1";
+        weightInput.type = "text";
+        weightInput.inputMode = "decimal";
         weightInput.placeholder = "الوزن جرام";
-        weightInput.value = weight === 0 || weight === "0" ? "" : String(weight || "");
+        weightInput.value = num(weight) === 0 ? "" : String(num(weight));
         weightInput.oninput = calculate;
 
         weightWrap.appendChild(weightInput);
@@ -1321,10 +1335,12 @@
         del.textContent = "×";
         del.onclick = function () {
             row.remove();
+
             if (document.querySelectorAll(".filament-row").length === 0) {
                 box.dataset.hasRows = "0";
                 renderOrderMaterials();
             }
+
             calculate();
         };
 
@@ -1332,19 +1348,22 @@
         row.appendChild(weightWrap);
         row.appendChild(del);
         box.appendChild(row);
+
         calculate();
     }
 
     function getOrderMaterials() {
-        if (settings.materials.length === 0) {
-            return [];
-        }
+        if (settings.materials.length === 0) return [];
 
         const rows = Array.from(document.querySelectorAll(".filament-row"));
+
         return rows.map(row => {
-            const matId = row.querySelector(".order-material-select").value;
+            const select = row.querySelector(".order-material-select");
+            const weightInput = row.querySelector(".order-material-weight");
+
+            const matId = select ? select.value : "";
             const mat = settings.materials.find(m => m.id === matId);
-            const weight = num(row.querySelector(".order-material-weight").value);
+            const weight = num(weightInput ? weightInput.value : 0);
             const gramPrice = mat ? num(mat.kgPrice) / 1000 : 0;
 
             return {
@@ -1353,11 +1372,11 @@
                 color: mat ? mat.color : "",
                 brand: mat ? mat.brand : "",
                 kgPrice: mat ? num(mat.kgPrice) : 0,
-                gramPrice,
-                weight,
+                gramPrice: gramPrice,
+                weight: weight,
                 cost: weight * gramPrice
             };
-        }).filter(item => item.weight > 0 || item.id);
+        }).filter(item => item.id);
     }
 
     function hasOrderWork(printHours, materialWeight, wasteWeight, manualMinutes) {
@@ -1375,15 +1394,28 @@
         const discount = num(document.getElementById("discount").value);
 
         const materials = getOrderMaterials();
+
         const materialWeight = materials.reduce((sum, m) => sum + num(m.weight), 0);
         const materialCost = materials.reduce((sum, m) => sum + num(m.cost), 0);
-        const weightedGramCost = materialWeight > 0 ? materialCost / materialWeight : 0;
+
+        let weightedGramCost = 0;
+
+        if (materialWeight > 0) {
+            weightedGramCost = materialCost / materialWeight;
+        } else if (materials.length > 0) {
+            weightedGramCost = num(materials[0].gramPrice);
+        }
+
         const hasWork = hasOrderWork(printHours, materialWeight, wasteWeight, manualMinutes);
 
         const machineCost = printHours * machineRate;
+
+        /* هنا التعديل المهم: الهالك داخل في الحساب */
         const wasteCost = wasteWeight * weightedGramCost;
+
         const manualCost = (manualMinutes / 60) * manualRate;
         const packagingCost = hasWork ? packagingInput : 0;
+
         const totalCost = machineCost + materialCost + wasteCost + manualCost + packagingCost;
         const beforeDiscount = totalCost * (1 + profitPercent / 100);
         const afterDiscount = hasWork ? Math.max(0, beforeDiscount - discount) : 0;
@@ -1442,7 +1474,7 @@
 
         const client = document.getElementById("clientName").value.trim() || "عميل";
         const model = document.getElementById("modelName").value.trim() || "طلب طباعة 3D";
-        const date = new Date().toLocaleDateString("ar-EG");
+        const date = new Date().toLocaleDateString("en-GB");
 
         const lines = [
             "✨ فاتورة طلب طباعة 3D ✨",
@@ -1467,6 +1499,8 @@
     }
 
     function copyInvoice() {
+        calculate();
+
         if (!lastCalc.hasWork) {
             toast("أدخل بيانات الطلب أولًا");
             return;
@@ -1488,6 +1522,8 @@
     }
 
     function sendWhatsApp() {
+        calculate();
+
         if (!lastCalc.hasWork) {
             toast("أدخل بيانات الطلب أولًا");
             return;
@@ -1507,7 +1543,7 @@
 
         const client = document.getElementById("clientName").value.trim() || "عميل";
         const model = document.getElementById("modelName").value.trim() || "طلب طباعة 3D";
-        const date = new Date().toLocaleDateString("ar-EG");
+        const date = new Date().toLocaleDateString("en-GB");
 
         const discountBlock = lastCalc.discount > 0
             ? `<div style="font-size:18px;margin:18px 0 0;color:#000">🎁 الخصم: ${money(lastCalc.discount)} ج.م</div>`
@@ -1586,7 +1622,7 @@
 
         const sale = {
             id: Date.now(),
-            date: new Date().toLocaleString("ar-EG"),
+            date: new Date().toLocaleString("en-GB"),
             client,
             model,
             sale: lastCalc.finalPrice,
@@ -1636,8 +1672,7 @@
                 if (window.Android && Android.setMaintenanceHours) {
                     Android.setMaintenanceHours(String(printer.currentHours));
                 }
-            } catch (e) {
-            }
+            } catch (e) {}
         }
 
         clearOrderFormAfterSale();
@@ -1811,6 +1846,7 @@
                 salesCache = salesCache.filter(s => String(s.id) !== String(id));
                 localStorage.setItem("bambu_sales_v2", JSON.stringify(salesCache));
             }
+
             renderSales();
             toast("تم حذف البيعة");
         } catch (e) {
@@ -1827,6 +1863,7 @@
             } else {
                 localStorage.removeItem("bambu_sales_v2");
             }
+
             salesCache = [];
             renderSales();
             toast("تم مسح السجل");
@@ -1838,7 +1875,9 @@
     function materialSummaryForSale(sale) {
         try {
             const arr = JSON.parse(sale.materialsJson || "[]");
+
             if (!Array.isArray(arr) || arr.length === 0) return "";
+
             return arr
                 .filter(m => num(m.weight) > 0)
                 .map(m => {
@@ -1895,15 +1934,17 @@
         });
 
         const csv = "\uFEFF" + rows.join("\n");
-        const blob = new Blob([csv], {type: "text/csv;charset=utf-8"});
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         const date = new Date().toISOString().slice(0, 10);
+
         a.href = url;
         a.download = "bambu-sales-" + date + ".csv";
         document.body.appendChild(a);
         a.click();
         a.remove();
+
         URL.revokeObjectURL(url);
 
         toast("تم تجهيز ملف CSV / Excel");
@@ -2022,17 +2063,9 @@
         const cancelBtn = document.getElementById("printerCancelBtn");
         const hint = document.getElementById("printerEditHint");
 
-        if (saveBtn) {
-            saveBtn.textContent = "إضافة ماكينة";
-        }
-
-        if (cancelBtn) {
-            cancelBtn.style.display = "none";
-        }
-
-        if (hint) {
-            hint.style.display = "none";
-        }
+        if (saveBtn) saveBtn.textContent = "إضافة ماكينة";
+        if (cancelBtn) cancelBtn.style.display = "none";
+        if (hint) hint.style.display = "none";
     }
 
     function deletePrinter(id) {
@@ -2075,6 +2108,7 @@
         settings.printers.forEach(printer => {
             const item = document.createElement("div");
             item.className = "list-item";
+
             item.innerHTML = `
                 <div>
                     <div class="list-title">${escapeHtml(printer.name)} ${printer.id === settings.selectedPrinterId ? "✅" : ""}</div>
@@ -2088,6 +2122,7 @@
                     <button class="danger" onclick="deletePrinter('${printer.id}')">حذف</button>
                 </div>
             `;
+
             box.appendChild(item);
         });
     }
@@ -2140,9 +2175,7 @@
         saveSettings();
 
         const orderBox = document.getElementById("orderMaterials");
-        if (orderBox) {
-            orderBox.dataset.hasRows = "0";
-        }
+        if (orderBox) orderBox.dataset.hasRows = "0";
 
         renderAll();
         calculate();
@@ -2188,17 +2221,9 @@
         const cancelBtn = document.getElementById("materialCancelBtn");
         const hint = document.getElementById("materialEditHint");
 
-        if (saveBtn) {
-            saveBtn.textContent = "إضافة خامة";
-        }
-
-        if (cancelBtn) {
-            cancelBtn.style.display = "none";
-        }
-
-        if (hint) {
-            hint.style.display = "none";
-        }
+        if (saveBtn) saveBtn.textContent = "إضافة خامة";
+        if (cancelBtn) cancelBtn.style.display = "none";
+        if (hint) hint.style.display = "none";
     }
 
     function deleteMaterial(id) {
@@ -2211,9 +2236,7 @@
         }
 
         const orderBox = document.getElementById("orderMaterials");
-        if (orderBox) {
-            orderBox.dataset.hasRows = "0";
-        }
+        if (orderBox) orderBox.dataset.hasRows = "0";
 
         saveSettings();
         renderAll();
@@ -2244,11 +2267,12 @@
         settings.materials.forEach(mat => {
             const item = document.createElement("div");
             item.className = "list-item";
+
             item.innerHTML = `
                 <div>
-                    <div class="list-title">${escapeHtml(mat.name)} ${escapeHtml(mat.color ? " - " + mat.color : "")}</div>
+                    <div class="list-title">${escapeHtml([mat.name, mat.color, mat.brand].filter(Boolean).join(" - "))}</div>
                     <div class="list-sub">
-                        ${escapeHtml(mat.brand || "بدون شركة")} · ${money(mat.kgPrice)} ج/كجم · ${moneyExact(num(mat.kgPrice) / 1000)} ج/جرام
+                        ${money(mat.kgPrice)} ج / كجم · سعر الجرام ${moneyExact(num(mat.kgPrice) / 1000)} ج
                     </div>
                 </div>
                 <div class="btn-row">
@@ -2257,17 +2281,9 @@
                     <button class="danger" onclick="deleteMaterial('${mat.id}')">حذف</button>
                 </div>
             `;
+
             box.appendChild(item);
         });
-    }
-
-    function escapeHtml(text) {
-        return String(text)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
     }
 </script>
 </body>
