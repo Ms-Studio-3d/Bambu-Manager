@@ -67,6 +67,14 @@ function moneyExact(value) {
     });
 }
 
+function currency(value) {
+    return money(value) + " جنيه";
+}
+
+function currencyExact(value) {
+    return moneyExact(value) + " جنيه";
+}
+
 function fixed(value, digits = 1) {
     return num(value).toFixed(digits);
 }
@@ -308,7 +316,7 @@ function resetSelectedMachineHours() {
 
 function materialLabel(mat) {
     const name = [mat.name, mat.color, mat.brand].filter(Boolean).join(" - ");
-    return name + " (" + money(mat.kgPrice) + " ج/كجم)";
+    return name + " (" + currency(mat.kgPrice) + " / كجم)";
 }
 
 function renderOrderMaterials() {
@@ -548,11 +556,11 @@ function invoiceText() {
     ];
 
     if (lastCalc.discount > 0) {
-        lines.push("🎁 الخصم: " + money(lastCalc.discount) + " ج.م");
+        lines.push("🎁 الخصم: " + currency(lastCalc.discount));
     }
 
     lines.push("━━━━━━━━━━━━━━");
-    lines.push("💚 الإجمالي النهائي: " + money(lastCalc.finalPrice) + " ج.م");
+    lines.push("💚 الإجمالي النهائي: " + currency(lastCalc.finalPrice));
     lines.push("━━━━━━━━━━━━━━");
     lines.push("");
     lines.push("شكرًا لاختيارك لنا ✨");
@@ -608,7 +616,7 @@ function buildPrintInvoiceHtml() {
     const date = new Date().toLocaleDateString("en-GB");
 
     const discountBlock = lastCalc.discount > 0
-        ? `<div class="print-discount">🎁 الخصم: ${money(lastCalc.discount)} ج.م</div>`
+        ? `<div class="print-discount">🎁 الخصم: ${currency(lastCalc.discount)}</div>`
         : "";
 
     return `<!DOCTYPE html>
@@ -619,7 +627,7 @@ function buildPrintInvoiceHtml() {
 <style>
     @page {
         size: A4;
-        margin: 10mm;
+        margin: 8mm;
     }
 
     html,
@@ -627,18 +635,14 @@ function buildPrintInvoiceHtml() {
         margin: 0;
         padding: 0;
         width: 100%;
-        height: auto;
-        min-height: 0;
         background: #ffffff;
         color: #000000;
         font-family: Arial, Tahoma, sans-serif;
-        overflow: hidden;
+        overflow: visible;
     }
 
     * {
         box-sizing: border-box;
-        page-break-after: avoid;
-        page-break-before: avoid;
     }
 
     .print-invoice {
@@ -650,41 +654,39 @@ function buildPrintInvoiceHtml() {
         direction: rtl;
         page-break-inside: avoid;
         break-inside: avoid;
-        page-break-after: avoid;
-        break-after: avoid;
     }
 
     .print-box {
         border: 2px solid #19c878;
         border-radius: 18px;
-        padding: 22px 18px;
+        padding: 20px 16px;
         page-break-inside: avoid;
         break-inside: avoid;
     }
 
     h1 {
-        margin: 0 0 22px;
-        font-size: 28px;
-        line-height: 1.4;
+        margin: 0 0 18px;
+        font-size: 26px;
+        line-height: 1.35;
     }
 
     .print-info {
         max-width: 460px;
         margin: 0 auto;
         text-align: right;
-        font-size: 18px;
-        line-height: 2;
+        font-size: 17px;
+        line-height: 1.9;
     }
 
     .print-discount {
-        margin: 16px auto 0;
+        margin: 14px auto 0;
         font-size: 18px;
         font-weight: bold;
     }
 
     .line {
-        margin: 18px 0 8px;
-        font-size: 20px;
+        margin: 16px 0 8px;
+        font-size: 19px;
         line-height: 1;
     }
 
@@ -694,15 +696,15 @@ function buildPrintInvoiceHtml() {
         background: #19c878;
         color: #001208;
         border-radius: 16px;
-        padding: 16px;
-        font-size: 25px;
+        padding: 15px;
+        font-size: 24px;
         font-weight: 900;
         line-height: 1.5;
     }
 
     .thanks {
-        margin-top: 18px;
-        font-size: 20px;
+        margin-top: 16px;
+        font-size: 19px;
         font-weight: bold;
     }
 </style>
@@ -721,7 +723,7 @@ function buildPrintInvoiceHtml() {
             ${discountBlock}
 
             <div class="line">━━━━━━━━━━━━━━</div>
-            <div class="total">💚 الإجمالي النهائي: ${money(lastCalc.finalPrice)} ج.م</div>
+            <div class="total">💚 الإجمالي النهائي: ${currency(lastCalc.finalPrice)}</div>
             <div class="line">━━━━━━━━━━━━━━</div>
 
             <div class="thanks">شكرًا لاختيارك لنا ✨</div>
@@ -885,7 +887,7 @@ function renderSales() {
                 ? `
                     <div class="sale-pill">
                         <small>الخصم</small>
-                        <strong>${money(sale.discount || 0)} ج</strong>
+                        <strong>${currency(sale.discount || 0)}</strong>
                     </div>
                 `
                 : "";
@@ -901,7 +903,7 @@ function renderSales() {
                         <div class="muted" style="margin-top:5px">🕒 ${escapeHtml(sale.date || "")}</div>
                     </div>
                     <div class="sale-price">
-                        ${money(sale.sale || sale.finalPrice || 0)} ج
+                        ${currency(sale.sale || sale.finalPrice || 0)}
                         <div class="muted" style="font-size:12px;margin-top:3px;text-align:inherit">السعر النهائي</div>
                     </div>
                 </div>
@@ -909,11 +911,11 @@ function renderSales() {
                 <div class="sale-details">
                     <div class="sale-pill">
                         <small>صافي الربح</small>
-                        <strong style="color:#8dffc8">${money(sale.profit || sale.netProfit || 0)} ج</strong>
+                        <strong style="color:#8dffc8">${currency(sale.profit || sale.netProfit || 0)}</strong>
                     </div>
                     <div class="sale-pill">
                         <small>التكلفة</small>
-                        <strong>${money(sale.totalCost || 0)} ج</strong>
+                        <strong>${currency(sale.totalCost || 0)}</strong>
                     </div>
                     <div class="sale-pill">
                         <small>وقت الطباعة</small>
@@ -945,8 +947,8 @@ function renderSales() {
     const totalHours = salesCache.reduce((s, x) => s + num(x.hours), 0);
     const totalWeight = salesCache.reduce((s, x) => s + num(x.weight), 0);
 
-    document.getElementById("statSales").textContent = money(totalSales) + " ج";
-    document.getElementById("statProfit").textContent = money(totalProfit) + " ج";
+    document.getElementById("statSales").textContent = currency(totalSales);
+    document.getElementById("statProfit").textContent = currency(totalProfit);
     document.getElementById("statHours").textContent = fixed(totalHours, 1) + " س";
     document.getElementById("statWeight").textContent = fixed(totalWeight / 1000, 2) + " كجم";
 }
@@ -969,11 +971,11 @@ function copySaleInvoice(saleId) {
     ];
 
     if (num(sale.discount || 0) > 0) {
-        lines.push("🎁 الخصم: " + money(sale.discount || 0) + " ج.م");
+        lines.push("🎁 الخصم: " + currency(sale.discount || 0));
     }
 
     lines.push("━━━━━━━━━━━━━━");
-    lines.push("💚 الإجمالي النهائي: " + money(sale.sale || sale.finalPrice || 0) + " ج.م");
+    lines.push("💚 الإجمالي النهائي: " + currency(sale.sale || sale.finalPrice || 0));
     lines.push("━━━━━━━━━━━━━━");
     lines.push("");
     lines.push("شكرًا لاختيارك لنا ✨");
@@ -1273,7 +1275,7 @@ function renderPrintersList() {
             <div>
                 <div class="list-title">${escapeHtml(printer.name)} ${printer.id === settings.selectedPrinterId ? "✅" : ""}</div>
                 <div class="list-sub">
-                    ${money(printer.hourlyRate)} ج لكل ساعة · الصيانة ${fixed(printer.currentHours, 1)} / ${fixed(printer.maintenanceLimit, 0)} س
+                    ${currency(printer.hourlyRate)} لكل ساعة · الصيانة ${fixed(printer.currentHours, 1)} / ${fixed(printer.maintenanceLimit, 0)} س
                 </div>
             </div>
             <div class="btn-row">
@@ -1438,7 +1440,7 @@ function renderMaterialsList() {
             <div>
                 <div class="list-title">${escapeHtml([mat.name, mat.color, mat.brand].filter(Boolean).join(" - "))}</div>
                 <div class="list-sub">
-                    ${money(mat.kgPrice)} ج / كجم · سعر الجرام ${moneyExact(num(mat.kgPrice) / 1000)} ج
+                    ${currency(mat.kgPrice)} / كجم · سعر الجرام ${currencyExact(num(mat.kgPrice) / 1000)}
                 </div>
             </div>
             <div class="btn-row">
