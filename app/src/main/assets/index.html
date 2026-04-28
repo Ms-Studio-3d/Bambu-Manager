@@ -1,286 +1,324 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bambu Business Manager</title>
-
-    <link rel="stylesheet" href="css/app.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>Bambu Business Manager</title>
+  <link rel="stylesheet" href="css/style.css" />
 </head>
-
 <body>
-<div class="app">
-    <div class="top-tabs">
+  <div class="app">
+    <header class="top-header">
+      <h1>Bambu Business Manager</h1>
+      <nav class="tabs">
         <button class="tab-btn active" onclick="showPage('calc')">الحاسبة السريعة</button>
         <button class="tab-btn" onclick="showPage('log')">السجل والأرباح</button>
         <button class="tab-btn" onclick="showPage('settings')">الإعدادات</button>
-    </div>
+      </nav>
+    </header>
 
-    <section id="page-calc" class="page active">
-        <h1>Bambu Business Manager</h1>
+    <main>
+      <section id="page-calc" class="page active">
+        <section class="card">
+          <h2>⚙️ حالة الماكينة</h2>
 
-        <div class="card soft">
-            <h2>⚙️ حالة الماكينة</h2>
-            <div class="machine-status">
-                <div class="field">
-                    <label>اختيار ماكينة للحساب</label>
-                    <select id="machineSelect" onchange="onMachineChanged()"></select>
-                </div>
-                <div class="status-line">
-                    <strong id="machineHoursText">الساعات المسجلة: 0 / 200 س</strong>
-                    <button class="secondary" onclick="resetSelectedMachineHours()">تصفير الصيانة</button>
-                </div>
-                <div class="progress"><span id="maintenanceProgress"></span></div>
-                <div class="status-line">
-                    <span>بعد الطلب الحالي:</span>
-                    <strong id="afterOrderHours">0.0 س</strong>
-                </div>
-            </div>
-        </div>
+          <label>
+            اختيار ماكينة للحساب
+            <select id="machineSelect" onchange="onMachineChanged()"></select>
+          </label>
 
-        <div class="card">
-            <h2>👤 العميل والطلب</h2>
-            <div class="grid">
-                <div class="field">
-                    <label>اسم العميل</label>
-                    <input id="clientName" type="text" placeholder="مثال: أحمد محمد">
-                </div>
-                <div class="field">
-                    <label>اسم المجسم</label>
-                    <input id="modelName" type="text" placeholder="مثال: حامل موبايل">
-                </div>
-            </div>
-        </div>
+          <div class="machine-status">
+            <p id="machineHoursText">الساعات المسجلة: 0 / 200 س</p>
+            <button type="button" onclick="resetSelectedMachineHours()">تصفير الصيانة</button>
+          </div>
 
-        <div class="card">
-            <h2>⚙️ التشغيل والخامات</h2>
+          <p>بعد الطلب الحالي: <strong id="afterOrderHours">0.0 س</strong></p>
+          <div class="progress">
+            <div id="maintenanceProgress"></div>
+          </div>
+        </section>
 
-            <div class="grid">
-                <div class="field">
-                    <label>وقت الطباعة بالساعات</label>
-                    <input id="printHours" type="text" inputmode="decimal" placeholder="مثال: 4.5" oninput="calculate()">
-                </div>
-                <div class="field">
-                    <label>سعر ساعة تشغيل الماكينة</label>
-                    <input id="machineRate" type="text" inputmode="decimal" placeholder="مثال: 35 جنيه" oninput="calculate()">
-                </div>
-            </div>
+        <section class="card">
+          <h2>العميل والطلب</h2>
 
-            <div style="height:12px"></div>
+          <label>
+            اسم العميل
+            <input id="clientName" type="text" placeholder="اسم العميل" />
+          </label>
 
-            <h3>الخامات المستخدمة في الطلب</h3>
-            <div id="orderMaterials"></div>
-            <button id="addOrderMaterialBtn" class="secondary" onclick="addOrderMaterialRow()">➕ إضافة خامة للطلب</button>
+          <label>
+            اسم المجسم
+            <input id="modelName" type="text" placeholder="اسم المجسم" />
+          </label>
+        </section>
 
-            <div style="height:12px"></div>
+        <section class="card">
+          <h2>⚙️ التشغيل والخامات</h2>
 
-            <div class="grid">
-                <div class="field">
-                    <label>وزن الهالك الإجمالي بالجرام</label>
-                    <input id="wasteWeight" type="text" inputmode="decimal" placeholder="مثال: 10" oninput="calculate()">
-                </div>
-                <div class="field">
-                    <label>دقائق شغلك اليدوي في الطلب</label>
-                    <input id="manualMinutes" type="text" inputmode="decimal" placeholder="مثال: 30 دقيقة" oninput="calculate()">
-                    <div class="muted">دي مدة التجهيز، التنضيف، الصنفرة، التجميع أو أي شغل بإيدك على الطلب.</div>
-                </div>
-            </div>
-        </div>
+          <label>
+            وقت الطباعة بالساعات
+            <input id="printHours" type="text" inputmode="decimal" oninput="calculate()" />
+          </label>
 
-        <div class="card">
-            <h2>💰 الربح والخصم</h2>
-            <div class="grid">
-                <div class="field">
-                    <label>نسبة الربح على التكلفة (%)</label>
-                    <input id="profitPercent" type="text" inputmode="decimal" placeholder="مثال: 100" oninput="calculate()">
-                </div>
-                <div class="field">
-                    <label>خصم بالجنيه</label>
-                    <input id="discount" type="text" inputmode="decimal" placeholder="مثال: 20 جنيه" oninput="calculate()">
-                </div>
-                <div class="field">
-                    <label>سعر ساعة شغلك اليدوي</label>
-                    <input id="manualRate" type="text" inputmode="decimal" placeholder="مثال: 120 جنيه" oninput="calculate()">
-                    <div class="muted">مثال: لو اشتغلت 30 دقيقة وسعر ساعتك 120 جنيه، تكلفة الشغل اليدوي = 60 جنيه.</div>
-                </div>
-                <div class="field">
-                    <label>تكلفة التغليف بالجنيه</label>
-                    <input id="packagingCost" type="text" inputmode="decimal" placeholder="مثال: 10 جنيه" oninput="calculate()">
-                </div>
-            </div>
+          <label>
+            سعر ساعة تشغيل الماكينة
+            <input id="machineRate" type="text" inputmode="decimal" oninput="calculate()" />
+          </label>
 
-            <div style="height:12px"></div>
-            <button class="secondary" onclick="saveGeneralFromCalculator()">حفظ الإعدادات كأساسي</button>
-        </div>
+          <label>
+            الكهرباء / ساعة
+            <input id="electricityCostPerHour" type="text" inputmode="decimal" oninput="calculate()" />
+          </label>
 
-        <div class="result-card">
-            <div class="result-title">السعر النهائي للعميل</div>
-            <div class="final-price"><span id="finalPrice">0</span> جنيه</div>
+          <h3>الخامات المستخدمة في الطلب</h3>
+          <div id="orderMaterials"></div>
 
-            <div class="result-mini">
-                <div>
-                    <span>التكلفة عليك</span>
-                    <strong><span id="totalCost">0</span> جنيه</strong>
-                </div>
-                <div>
-                    <span>صافي ربحك</span>
-                    <strong><span id="netProfit">0</span> جنيه</strong>
-                </div>
-            </div>
+          <button id="addOrderMaterialBtn" type="button" onclick="addOrderMaterialRow()">➕ إضافة خامة للطلب</button>
 
-            <div class="btn-row">
-                <button onclick="copyInvoice()">نسخ الفاتورة</button>
-                <button onclick="sendWhatsApp()">نسخ للواتساب</button>
-                <button onclick="printInvoice()">طباعة / PDF</button>
-            </div>
+          <label>
+            دقائق شغلك اليدوي في الطلب
+            <input id="manualMinutes" type="text" inputmode="decimal" oninput="calculate()" />
+          </label>
+          <small>دي مدة التجهيز، التنضيف، الصنفرة، التجميع أو أي شغل بإيدك على الطلب.</small>
+        </section>
 
-            <button class="confirm-btn" onclick="confirmSale()">✅ تأكيد البيعة وتسجيلها في الدفتر</button>
-        </div>
-    </section>
+        <section class="card">
+          <h2>الربح والخصم</h2>
 
-    <section id="page-log" class="page">
+          <label>
+            نسبة الربح على التكلفة (%)
+            <input id="profitPercent" type="text" inputmode="decimal" oninput="calculate()" />
+          </label>
+
+          <label>
+            خصم بالجنيه
+            <input id="discount" type="text" inputmode="decimal" oninput="calculate()" />
+          </label>
+
+          <label>
+            سعر ساعة شغلك اليدوي
+            <input id="manualRate" type="text" inputmode="decimal" oninput="calculate()" />
+          </label>
+          <small>مثال: لو اشتغلت 30 دقيقة وسعر ساعتك 120 جنيه، تكلفة الشغل اليدوي = 60 جنيه.</small>
+
+          <label>
+            تكلفة التغليف بالجنيه
+            <input id="packagingCost" type="text" inputmode="decimal" oninput="calculate()" />
+          </label>
+
+          <label>
+            الشحن / مصاريف إضافية
+            <input id="shippingCost" type="text" inputmode="decimal" oninput="calculate()" />
+          </label>
+
+          <label>
+            الهالك / المخاطرة (%)
+            <input id="failurePercent" type="text" inputmode="decimal" oninput="calculate()" />
+          </label>
+          <small>الهالك هنا نسبة من التكلفة الأساسية، مش جرامات خامة.</small>
+
+          <label>
+            الضريبة (%)
+            <input id="taxPercent" type="text" inputmode="decimal" oninput="calculate()" />
+          </label>
+
+          <label>
+            التقريب لأعلى أقرب
+            <input id="roundingStep" type="text" inputmode="decimal" oninput="calculate()" />
+          </label>
+
+          <button type="button" onclick="saveGeneralFromCalculator()">حفظ الإعدادات كأساسي</button>
+        </section>
+
+        <section class="total-card">
+          <p>السعر النهائي للعميل</p>
+          <h2><span id="finalPrice">0</span> جنيه</h2>
+
+          <div class="totals-row">
+            <span>التكلفة عليك <strong id="totalCost">0</strong> جنيه</span>
+            <span>صافي ربحك <strong id="netProfit">0</strong> جنيه</span>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>تفصيل الحسبة</h2>
+          <div id="breakdown"></div>
+        </section>
+
+        <section class="actions">
+          <button type="button" onclick="copyInvoice()">نسخ الفاتورة</button>
+          <button type="button" onclick="sendWhatsApp()">نسخ للواتساب</button>
+          <button type="button" onclick="printInvoice()">طباعة / PDF</button>
+          <button type="button" onclick="confirmSale()">✅ تأكيد البيعة وتسجيلها في الدفتر</button>
+        </section>
+      </section>
+
+      <section id="page-log" class="page">
         <h1>السجل والأرباح</h1>
 
-        <div class="stats">
-            <div class="stat">
-                <small>إجمالي المبيعات</small>
-                <strong id="statSales">0 جنيه</strong>
-            </div>
-            <div class="stat">
-                <small>إجمالي الأرباح</small>
-                <strong id="statProfit">0 جنيه</strong>
-            </div>
-            <div class="stat">
-                <small>ساعات العمل</small>
-                <strong id="statHours">0 س</strong>
-            </div>
-            <div class="stat">
-                <small>استهلاك الخامات</small>
-                <strong id="statWeight">0 كجم</strong>
-            </div>
-        </div>
+        <section class="stats">
+          <div>
+            <h3>إجمالي المبيعات</h3>
+            <p id="statSales">0 جنيه</p>
+          </div>
+          <div>
+            <h3>إجمالي الأرباح</h3>
+            <p id="statProfit">0 جنيه</p>
+          </div>
+          <div>
+            <h3>ساعات العمل</h3>
+            <p id="statHours">0 س</p>
+          </div>
+          <div>
+            <h3>استهلاك الخامات</h3>
+            <p id="statWeight">0 كجم</p>
+          </div>
+        </section>
 
-        <div class="card" style="margin-top:14px">
-            <h2>سجل المبيعات</h2>
+        <section class="card">
+          <h2>سجل المبيعات</h2>
+          <button type="button" onclick="loadSales()">تحديث السجل</button>
+          <button type="button" onclick="exportCSV()">تصدير CSV / Excel</button>
+          <button type="button" onclick="clearSales()">مسح كل السجل</button>
 
-            <div class="btn-row" style="margin-bottom:12px">
-                <button class="secondary" onclick="loadSales()">تحديث السجل</button>
-                <button class="secondary" onclick="exportCSV()">تصدير CSV / Excel</button>
-                <button class="danger" onclick="clearSales()">مسح كل السجل</button>
-            </div>
+          <div id="salesList">
+            لا توجد مبيعات مسجلة.
+          </div>
+        </section>
+      </section>
 
-            <div id="salesList" class="sales-list">
-                <div class="empty-note">لا توجد مبيعات مسجلة.</div>
-            </div>
-        </div>
-    </section>
-
-    <section id="page-settings" class="page">
+      <section id="page-settings" class="page">
         <h1>الإعدادات</h1>
 
-        <div class="card">
-            <h2>الإعدادات العامة</h2>
+        <section class="card">
+          <h2>الإعدادات العامة</h2>
 
-            <div class="grid-3">
-                <div class="field">
-                    <label>نسبة الربح الافتراضية (%)</label>
-                    <input id="setProfitPercent" type="text" inputmode="decimal" placeholder="مثال: 100">
-                </div>
-                <div class="field">
-                    <label>سعر ساعة شغلك اليدوي الافتراضي</label>
-                    <input id="setManualRate" type="text" inputmode="decimal" placeholder="مثال: 120 جنيه">
-                    <div class="muted">دي قيمة ساعة شغلك، أما دقائق الشغل اليدوي في الحاسبة فهي مدة شغلك في الطلب نفسه.</div>
-                </div>
-                <div class="field">
-                    <label>تكلفة التغليف الافتراضية</label>
-                    <input id="setPackagingCost" type="text" inputmode="decimal" placeholder="مثال: 10 جنيه">
-                </div>
-            </div>
+          <label>
+            نسبة الربح الافتراضية (%)
+            <input id="setProfitPercent" type="text" inputmode="decimal" />
+          </label>
 
-            <div style="height:12px"></div>
-            <button onclick="saveGeneralSettings()">حفظ الإعدادات العامة</button>
-        </div>
+          <label>
+            دقائق خدمة / شغل يدوي افتراضية
+            <input id="setDefaultManualMinutes" type="text" inputmode="decimal" />
+          </label>
 
-        <div class="card">
-            <h2>إدارة الماكينات</h2>
+          <label>
+            سعر ساعة شغلك اليدوي الافتراضي
+            <input id="setManualRate" type="text" inputmode="decimal" />
+          </label>
+          <small>دي قيمة ساعة شغلك، أما دقائق الشغل اليدوي في الحاسبة فهي مدة شغلك في الطلب نفسه.</small>
 
-            <div class="hint-box" id="printerEditHint" style="display:none">
-                وضع تعديل ماكينة شغال. عدّل البيانات واضغط حفظ تعديل الماكينة أو إلغاء التعديل.
-            </div>
+          <label>
+            تكلفة التغليف الافتراضية
+            <input id="setPackagingCost" type="text" inputmode="decimal" />
+          </label>
 
-            <div class="grid">
-                <div class="field">
-                    <label>اسم الماكينة</label>
-                    <input id="printerName" type="text" placeholder="مثال: BAMBU LAB A1">
-                </div>
-                <div class="field">
-                    <label>سعر ساعة التشغيل بالجنيه</label>
-                    <input id="printerRate" type="text" inputmode="decimal" placeholder="مثال: 35 جنيه">
-                </div>
-                <div class="field">
-                    <label>حد الصيانة بالساعات</label>
-                    <input id="printerMaintenanceLimit" type="text" inputmode="decimal" placeholder="مثال: 200">
-                </div>
-                <div class="field">
-                    <label>الساعات الحالية</label>
-                    <input id="printerCurrentHours" type="text" inputmode="decimal" placeholder="0">
-                </div>
-            </div>
+          <label>
+            الكهرباء / ساعة
+            <input id="setElectricityCostPerHour" type="text" inputmode="decimal" />
+          </label>
 
-            <div style="height:12px"></div>
+          <label>
+            الشحن / مصاريف إضافية افتراضية
+            <input id="setShippingCost" type="text" inputmode="decimal" />
+          </label>
 
-            <div class="btn-row">
-                <button id="printerSaveBtn" onclick="savePrinter()">إضافة ماكينة</button>
-                <button id="printerCancelBtn" class="secondary" onclick="cancelPrinterEdit()" style="display:none">إلغاء التعديل</button>
-            </div>
+          <label>
+            الهالك / المخاطرة الافتراضي (%)
+            <input id="setFailurePercent" type="text" inputmode="decimal" />
+          </label>
 
-            <div style="height:12px"></div>
-            <div id="printersList"></div>
-        </div>
+          <label>
+            الضريبة الافتراضية (%)
+            <input id="setTaxPercent" type="text" inputmode="decimal" />
+          </label>
 
-        <div class="card">
-            <h2>إدارة الخامات</h2>
+          <label>
+            الخصم الافتراضي
+            <input id="setDiscount" type="text" inputmode="decimal" />
+          </label>
 
-            <div class="hint-box" id="materialEditHint" style="display:none">
-                وضع تعديل خامة شغال. عدّل البيانات واضغط حفظ تعديل الخامة أو إلغاء التعديل.
-            </div>
+          <label>
+            التقريب لأعلى أقرب
+            <input id="setRoundingStep" type="text" inputmode="decimal" />
+          </label>
 
-            <div class="grid">
-                <div class="field">
-                    <label>اسم / نوع الخامة</label>
-                    <input id="matName" type="text" placeholder="مثال: PLA">
-                </div>
-                <div class="field">
-                    <label>اللون</label>
-                    <input id="matColor" type="text" placeholder="مثال: أسود">
-                </div>
-                <div class="field">
-                    <label>الشركة</label>
-                    <input id="matBrand" type="text" placeholder="مثال: Bambu Lab">
-                </div>
-                <div class="field">
-                    <label>السعر لكل كجم / 1000 جرام</label>
-                    <input id="matKgPrice" type="text" inputmode="decimal" placeholder="مثال: 1000 جنيه">
-                </div>
-            </div>
+          <button type="button" onclick="saveGeneralSettings()">حفظ الإعدادات العامة</button>
+        </section>
 
-            <div style="height:12px"></div>
+        <section class="card">
+          <h2>إدارة الماكينات</h2>
 
-            <div class="btn-row">
-                <button id="materialSaveBtn" onclick="saveMaterial()">إضافة خامة</button>
-                <button id="materialCancelBtn" class="secondary" onclick="cancelMaterialEdit()" style="display:none">إلغاء التعديل</button>
-            </div>
+          <p id="printerEditHint" style="display:none">
+            وضع تعديل ماكينة شغال. عدّل البيانات واضغط حفظ تعديل الماكينة أو إلغاء التعديل.
+          </p>
 
-            <div style="height:12px"></div>
-            <div id="materialsList"></div>
-        </div>
-    </section>
-</div>
+          <label>
+            اسم الماكينة
+            <input id="printerName" type="text" />
+          </label>
 
-<div id="invoicePrintArea"></div>
-<div id="toast" class="toast"></div>
+          <label>
+            سعر ساعة التشغيل بالجنيه
+            <input id="printerRate" type="text" inputmode="decimal" />
+          </label>
 
-<script src="js/app.js"></script>
+          <label>
+            حد الصيانة بالساعات
+            <input id="printerMaintenanceLimit" type="text" inputmode="decimal" />
+          </label>
 
+          <label>
+            الساعات الحالية
+            <input id="printerCurrentHours" type="text" inputmode="decimal" />
+          </label>
+
+          <button id="printerSaveBtn" type="button" onclick="savePrinter()">إضافة ماكينة</button>
+          <button id="printerCancelBtn" type="button" onclick="cancelPrinterEdit()" style="display:none">إلغاء التعديل</button>
+
+          <div id="printersList"></div>
+        </section>
+
+        <section class="card">
+          <h2>إدارة الخامات</h2>
+
+          <p id="materialEditHint" style="display:none">
+            وضع تعديل خامة شغال. عدّل البيانات واضغط حفظ تعديل الخامة أو إلغاء التعديل.
+          </p>
+
+          <label>
+            اسم / نوع الخامة
+            <input id="matName" type="text" />
+          </label>
+
+          <label>
+            اللون
+            <input id="matColor" type="text" />
+          </label>
+
+          <label>
+            الشركة
+            <input id="matBrand" type="text" />
+          </label>
+
+          <label>
+            السعر لكل كجم / 1000 جرام
+            <input id="matKgPrice" type="text" inputmode="decimal" />
+          </label>
+
+          <button id="materialSaveBtn" type="button" onclick="saveMaterial()">إضافة خامة</button>
+          <button id="materialCancelBtn" type="button" onclick="cancelMaterialEdit()" style="display:none">إلغاء التعديل</button>
+
+          <div id="materialsList"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast"></div>
+  <div id="invoicePrintArea" style="display:none"></div>
+
+  <script src="js/app.js"></script>
 </body>
 </html>
