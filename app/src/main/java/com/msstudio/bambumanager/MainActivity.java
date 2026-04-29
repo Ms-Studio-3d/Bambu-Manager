@@ -346,6 +346,18 @@ public class MainActivity extends AppCompatActivity {
         targetWebView.setWebViewClient(new WebViewClient() {
 
             @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                Log.i(TAG, "Page loading started: " + url);
+                super.onPageStarted(view, url, favicon);
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                Log.i(TAG, "Page loading finished: " + url);
+                super.onPageFinished(view, url);
+            }
+
+            @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 if (request == null || request.getUrl() == null) return true;
 
@@ -559,21 +571,33 @@ public class MainActivity extends AppCompatActivity {
 
     private void openWhatsAppMessage(String message) {
         runOnUiThread(() -> {
-            try {
-                String safeMessage = message == null ? "" : message;
+            String safeMessage = message == null ? "" : message;
 
+            try {
                 Intent intent = new Intent(Intent.ACTION_SEND);
                 intent.setType("text/plain");
                 intent.putExtra(Intent.EXTRA_TEXT, safeMessage);
                 intent.setPackage("com.whatsapp");
+                startActivity(intent);
+                return;
+            } catch (Exception ignored) {
+            }
 
-                try {
-                    startActivity(intent);
-                } catch (Exception whatsappNotFound) {
-                    Intent chooser = Intent.createChooser(intent, "إرسال الفاتورة");
-                    startActivity(chooser);
-                }
+            try {
+                Intent businessIntent = new Intent(Intent.ACTION_SEND);
+                businessIntent.setType("text/plain");
+                businessIntent.putExtra(Intent.EXTRA_TEXT, safeMessage);
+                businessIntent.setPackage("com.whatsapp.w4b");
+                startActivity(businessIntent);
+                return;
+            } catch (Exception ignored) {
+            }
 
+            try {
+                Intent chooserIntent = new Intent(Intent.ACTION_SEND);
+                chooserIntent.setType("text/plain");
+                chooserIntent.putExtra(Intent.EXTRA_TEXT, safeMessage);
+                startActivity(Intent.createChooser(chooserIntent, "إرسال الفاتورة"));
             } catch (Exception e) {
                 Log.e(TAG, "openWhatsAppMessage failed", e);
                 showToastOnUi("تعذر فتح واتساب");
