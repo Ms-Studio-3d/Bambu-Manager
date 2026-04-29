@@ -65,6 +65,8 @@ function initApp() {
     normalizeState();
     saveState();
 
+    attachSafeButtonHandlers();
+
     loadSettingsIntoUI();
     renderPrinters();
     renderMaterials();
@@ -77,6 +79,28 @@ function initApp() {
 
     calculate();
     loadSales();
+}
+
+function attachSafeButtonHandlers() {
+    const extraSaveBtn = document.getElementById("extraSaveBtn");
+    if (extraSaveBtn) {
+        extraSaveBtn.onclick = saveExtra;
+    }
+
+    const extraCancelBtn = document.getElementById("extraCancelBtn");
+    if (extraCancelBtn) {
+        extraCancelBtn.onclick = cancelExtraEdit;
+    }
+
+    const printerSaveBtn = document.getElementById("printerSaveBtn");
+    if (printerSaveBtn) {
+        printerSaveBtn.onclick = savePrinter;
+    }
+
+    const materialSaveBtn = document.getElementById("materialSaveBtn");
+    if (materialSaveBtn) {
+        materialSaveBtn.onclick = saveMaterial;
+    }
 }
 
 function makeId() {
@@ -170,11 +194,17 @@ function normalizeState() {
     state.sales = state.sales.map((s) => ({
         id: s.id || makeId(),
         date: s.date || new Date().toISOString(),
-        status: s.status || "عرض سعر",
+        status: normalizeStatus(s.status || "عرض سعر"),
         notes: s.notes || "",
         hoursApplied: !!s.hoursApplied,
-        ...s
+        ...s,
+        status: normalizeStatus(s.status || "عرض سعر")
     }));
+}
+
+function normalizeStatus(status) {
+    if (status === "تم البيع") return "تم التسليم";
+    return status || "عرض سعر";
 }
 
 function num(value) {
@@ -821,7 +851,9 @@ function saveExtra() {
             x.cost = cost;
         }
 
-        cancelExtraEdit(false);
+        editingExtraId = null;
+        clearExtraForm();
+        setExtraEditMode(false);
         toast("تم تعديل البند");
     } else {
         state.extras.push({
@@ -848,24 +880,22 @@ function editExtra(id) {
     setValue("extraName", x.name);
     setValue("extraCost", x.cost);
 
+    setExtraEditMode(true);
+    showPage("settings");
+}
+
+function setExtraEditMode(isEditing) {
     const saveBtn = document.getElementById("extraSaveBtn");
     const cancelBtn = document.getElementById("extraCancelBtn");
 
-    if (saveBtn) saveBtn.textContent = "حفظ تعديل البند";
-    if (cancelBtn) cancelBtn.style.display = "inline-block";
-
-    showPage("settings");
+    if (saveBtn) saveBtn.textContent = isEditing ? "حفظ تعديل البند" : "إضافة بند";
+    if (cancelBtn) cancelBtn.style.display = isEditing ? "inline-block" : "none";
 }
 
 function cancelExtraEdit(showToast = true) {
     editingExtraId = null;
     clearExtraForm();
-
-    const saveBtn = document.getElementById("extraSaveBtn");
-    const cancelBtn = document.getElementById("extraCancelBtn");
-
-    if (saveBtn) saveBtn.textContent = "إضافة بند";
-    if (cancelBtn) cancelBtn.style.display = "none";
+    setExtraEditMode(false);
 
     if (showToast) toast("تم إلغاء تعديل البند");
 }
@@ -877,6 +907,10 @@ function clearExtraForm() {
 
 function deleteExtra(id) {
     if (!confirm("حذف البند الثابت؟")) return;
+
+    if (editingExtraId === id) {
+        cancelExtraEdit(false);
+    }
 
     state.extras = state.extras.filter((x) => x.id !== id);
 
@@ -1056,13 +1090,10 @@ function renderPriceBreakdown(calc) {
     `;
 }
 
-function shouldApplyPrinterHours(status) {
-    return status !== "عرض سعر" && status !== "ملغي";
-}
-
 function applyPrinterHoursForSale(sale) {
     if (!sale || sale.hoursApplied) return;
-    if (!shouldApplyPrinterHours(sale.status)) return;
+
+    if (sale.status === "ملغي") return;
 
     const printer = state.printers.find((p) => p.id === sale.printerId);
     if (!printer) return;
@@ -1099,7 +1130,7 @@ function confirmSale() {
     renderPrinters();
     renderMachineSelect();
 
-    toast("تم حفظ الطلب");
+    toast("تم حفظ الطلب وحساب ساعات الماكينة");
     clearOrderAfterSale();
 }
 
@@ -1209,9 +1240,7 @@ function changeSaleStatus(id) {
     const sale = state.sales.find((s) => s.id === id);
     if (!sale) return;
 
-    if (sale.status === "تم البيع") {
-        sale.status = "تم التسليم";
-    }
+    sale.status = normalizeStatus(sale.status);
 
     const statuses = ["عرض سعر", "مؤكد", "قيد الطباعة", "جاهز", "تم التسليم", "ملغي"];
     const currentIndex = statuses.indexOf(sale.status);
@@ -1274,6 +1303,20 @@ function renderStats() {
 
     const topStatus = getTopStatus();
     setText("statTopStatus", topStatus);
+
+    const topStatusEl = document.getElementById("statTopStatus");
+    if (topStatusEl && topStatus !== "-") {
+        topStatusEl.style.cursor = "pointer";
+        topStatusEl.onclick = function () {
+            openOrdersWithStatus(topStatus);
+        };
+    }
+}
+
+function openOrdersWithStatus(status) {
+    setValue("ordersStatusFilter", status);
+    showPage("orders");
+    loadSales();
 }
 
 function getTopStatus() {
@@ -1282,7 +1325,7 @@ function getTopStatus() {
     const counts = {};
 
     state.sales.forEach((s) => {
-        const status = s.status || "عرض سعر";
+        const status = normalizeStatus(s.status || "عرض سعر");
         counts[status] = (counts[status] || 0) + 1;
     });
 
@@ -1319,7 +1362,7 @@ function renderReportsSummary() {
             <span>إجمالي الطلبات</span>
             <strong>${totalOrders.toLocaleString("ar-EG")}</strong>
         </div>
-        <div class="report-row">
+        <div class="report-row" onclick="openOrdersWithStatus('تم التسليم')">
             <span>تم التسليم</span>
             <strong>${delivered.toLocaleString("ar-EG")}</strong>
         </div>
@@ -1327,7 +1370,7 @@ function renderReportsSummary() {
             <span>طلبات تحت التنفيذ</span>
             <strong>${pending.toLocaleString("ar-EG")}</strong>
         </div>
-        <div class="report-row">
+        <div class="report-row" onclick="openOrdersWithStatus('عرض سعر')">
             <span>عروض سعر</span>
             <strong>${quotes.toLocaleString("ar-EG")}</strong>
         </div>
@@ -1391,49 +1434,75 @@ function getSaleForAction(id) {
 }
 
 function buildInvoice(sale) {
-    const materialsText = (sale.orderMaterials || [])
-        .map((m) => `- ${m.materialName}: ${formatNumber(m.weight)} جم = ${money(m.cost)} جنيه`)
-        .join("\n");
-
-    const extrasText = (sale.selectedExtras || [])
-        .map((x) => `- ${x.name}: ${money(x.cost)} جنيه`)
-        .join("\n");
-
-    return [
+    const lines = [
         "Bambu Business Manager",
         "-------------------------",
-        `العميل: ${sale.clientName || "-"}`,
-        `المجسم / الطلب: ${sale.modelName || "-"}`,
-        `الحالة: ${sale.status || "-"}`,
-        `الماكينة: ${sale.printerName || "-"}`,
-        sale.notes ? `ملاحظات: ${sale.notes}` : "",
-        "",
-        "الخامات:",
-        materialsText || "-",
-        "",
-        "بنود إضافية:",
-        extrasText || "-",
-        "",
-        `وقت الطباعة: ${formatNumber(sale.printHours)} ساعة`,
-        `وزن الهالك: ${formatNumber(sale.wasteWeight)} جم`,
-        `الشغل اليدوي: ${formatNumber(sale.manualMinutes)} دقيقة`,
-        "",
-        `تكلفة الخامات: ${money(sale.materialCost)} جنيه`,
-        `تكلفة الهالك: ${money(sale.wasteCost)} جنيه`,
-        `تكلفة الماكينة: ${money(sale.machineCost)} جنيه`,
-        `تكلفة الكهرباء: ${money(sale.electricityCost)} جنيه`,
-        `تكلفة الشغل اليدوي: ${money(sale.manualCost)} جنيه`,
-        `تكلفة التغليف: ${money(sale.packagingCost)} جنيه`,
-        `تكلفة الشحن: ${money(sale.shippingCost)} جنيه`,
-        `بنود إضافية: ${money(sale.extrasCost)} جنيه`,
-        `مخاطرة / فشل: ${money(sale.riskCost)} جنيه`,
-        `ضريبة: ${money(sale.taxCost)} جنيه`,
-        `التكلفة عليك: ${money(sale.totalCost)} جنيه`,
-        `الخصم: ${money(sale.discount)} جنيه`,
-        "-------------------------",
-        `السعر النهائي: ${money(sale.finalPrice)} جنيه`,
-        `صافي الربح: ${money(sale.netProfit)} جنيه`
-    ].filter(Boolean).join("\n");
+        `اسم العميل: ${sale.clientName || "-"}`,
+        `اسم المنتج: ${sale.modelName || "-"}`
+    ];
+
+    if (num(sale.discount) > 0) {
+        lines.push(`الخصم: ${money(sale.discount)} جنيه`);
+    }
+
+    lines.push("-------------------------");
+    lines.push(`السعر النهائي: ${money(sale.finalPrice)} جنيه`);
+
+    return lines.join("\n");
+}
+
+function buildPrintableInvoiceHtml(sale) {
+    return `
+        <!DOCTYPE html>
+        <html lang="ar" dir="rtl">
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    direction: rtl;
+                    padding: 24px;
+                    color: #000;
+                }
+                .invoice {
+                    max-width: 700px;
+                    margin: 0 auto;
+                    border: 1px solid #ddd;
+                    padding: 24px;
+                    border-radius: 12px;
+                }
+                h1 {
+                    margin: 0 0 16px;
+                    text-align: center;
+                    font-size: 22px;
+                }
+                .row {
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 16px;
+                    padding: 10px 0;
+                    border-bottom: 1px solid #eee;
+                    font-size: 17px;
+                }
+                .price {
+                    margin-top: 18px;
+                    text-align: center;
+                    font-size: 30px;
+                    font-weight: bold;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="invoice">
+                <h1>Bambu Business Manager</h1>
+                <div class="row"><strong>اسم العميل</strong><span>${escapeHtml(sale.clientName || "-")}</span></div>
+                <div class="row"><strong>اسم المنتج</strong><span>${escapeHtml(sale.modelName || "-")}</span></div>
+                ${num(sale.discount) > 0 ? `<div class="row"><strong>الخصم</strong><span>${money(sale.discount)} جنيه</span></div>` : ""}
+                <div class="price">السعر النهائي: ${money(sale.finalPrice)} جنيه</div>
+            </div>
+        </body>
+        </html>
+    `;
 }
 
 function copyInvoice(id) {
@@ -1495,20 +1564,41 @@ function printInvoice(id) {
         return;
     }
 
+    const html = buildPrintableInvoiceHtml(sale);
+    const text = buildInvoice(sale);
+
     const area = document.getElementById("invoicePrintArea");
-    if (!area) return;
+    if (area) {
+        area.innerHTML = html;
+    }
 
-    const lines = buildInvoice(sale)
-        .split("\n")
-        .map((line) => `<div>${escapeHtml(line) || "&nbsp;"}</div>`)
-        .join("");
+    try {
+        if (window.Android && typeof window.Android.printHtml === "function") {
+            window.Android.printHtml(html);
+            toast("تم إرسال الفاتورة للطباعة");
+            return;
+        }
 
-    area.innerHTML = `
-        <div style="max-width:700px;margin:0 auto;font-size:16px;line-height:1.8">
-            <h2 style="text-align:center">Bambu Business Manager</h2>
-            ${lines}
-        </div>
-    `;
+        if (window.Android && typeof window.Android.printInvoice === "function") {
+            window.Android.printInvoice(html);
+            toast("تم إرسال الفاتورة للطباعة");
+            return;
+        }
+
+        if (window.Android && typeof window.Android.printPage === "function") {
+            window.Android.printPage(html);
+            toast("تم إرسال الفاتورة للطباعة");
+            return;
+        }
+
+        if (window.Android && typeof window.Android.print === "function") {
+            window.Android.print(text);
+            toast("تم إرسال الفاتورة للطباعة");
+            return;
+        }
+    } catch (e) {
+        console.log(e);
+    }
 
     window.print();
 }
