@@ -79,10 +79,6 @@ function initApp() {
     loadSales();
 }
 
-/* ========================= */
-/* BASIC HELPERS */
-/* ========================= */
-
 function makeId() {
     return "id_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 9);
 }
@@ -98,7 +94,6 @@ function loadState() {
             return mergeDeep(structuredCloneSafe(defaultState), JSON.parse(rawV2));
         }
 
-        // محاولة ترحيل بيانات النسخة القديمة
         const oldRaw = localStorage.getItem("bambu_manager_v1");
         if (oldRaw) {
             const oldState = JSON.parse(oldRaw);
@@ -177,6 +172,7 @@ function normalizeState() {
         date: s.date || new Date().toISOString(),
         status: s.status || "عرض سعر",
         notes: s.notes || "",
+        hoursApplied: !!s.hoursApplied,
         ...s
     }));
 }
@@ -253,10 +249,6 @@ function toast(message) {
     }, 2300);
 }
 
-/* ========================= */
-/* NAVIGATION */
-/* ========================= */
-
 function showPage(page) {
     document.querySelectorAll(".page").forEach((el) => el.classList.remove("active"));
     document.querySelectorAll(".tab-btn").forEach((el) => el.classList.remove("active"));
@@ -275,10 +267,6 @@ function showPage(page) {
         loadSales();
     }
 }
-
-/* ========================= */
-/* SETTINGS */
-/* ========================= */
 
 function loadSettingsIntoUI() {
     const s = state.settings;
@@ -337,10 +325,6 @@ function saveGeneralSettings() {
     calculate();
     toast("تم حفظ إعدادات التسعير");
 }
-
-/* ========================= */
-/* PRINTERS */
-/* ========================= */
 
 function renderMachineSelect() {
     const select = document.getElementById("machineSelect");
@@ -538,10 +522,6 @@ function deletePrinter(id) {
     toast("تم حذف الماكينة");
 }
 
-/* ========================= */
-/* MATERIALS */
-/* ========================= */
-
 function materialLabel(m) {
     return [m.name, m.color, m.brand].filter(Boolean).join(" - ");
 }
@@ -688,10 +668,6 @@ function deleteMaterial(id) {
     toast("تم حذف الخامة");
 }
 
-/* ========================= */
-/* ORDER MATERIAL ROWS */
-/* ========================= */
-
 function addOrderMaterialRow(materialId = "", weight = "") {
     const container = document.getElementById("orderMaterials");
     if (!container) return;
@@ -770,10 +746,6 @@ function getOrderMaterials() {
         };
     }).filter((x) => x.weight > 0);
 }
-
-/* ========================= */
-/* EXTRAS */
-/* ========================= */
 
 function renderExtras() {
     renderExtrasSettings();
@@ -942,10 +914,6 @@ function getSelectedExtras() {
     return selected;
 }
 
-/* ========================= */
-/* CALCULATION */
-/* ========================= */
-
 function calculate() {
     const printer = selectedPrinter();
 
@@ -980,7 +948,6 @@ function calculate() {
     const manualCost = (manualMinutes / 60) * manualRate;
     const extrasCost = selectedExtras.reduce((sum, item) => sum + num(item.cost), 0);
 
-    // نفس منطق الديسكتوب + إضافات الموبايل
     const baseCost =
         materialCost +
         wasteCost +
@@ -1089,9 +1056,20 @@ function renderPriceBreakdown(calc) {
     `;
 }
 
-/* ========================= */
-/* ORDERS / SALES */
-/* ========================= */
+function shouldApplyPrinterHours(status) {
+    return status !== "عرض سعر" && status !== "ملغي";
+}
+
+function applyPrinterHoursForSale(sale) {
+    if (!sale || sale.hoursApplied) return;
+    if (!shouldApplyPrinterHours(sale.status)) return;
+
+    const printer = state.printers.find((p) => p.id === sale.printerId);
+    if (!printer) return;
+
+    printer.currentHours = num(printer.currentHours) + num(sale.printHours);
+    sale.hoursApplied = true;
+}
 
 function confirmSale() {
     const calc = calculate();
@@ -1109,15 +1087,12 @@ function confirmSale() {
     const sale = {
         id: makeId(),
         date: new Date().toISOString(),
+        hoursApplied: false,
         ...calc
     };
 
     state.sales.unshift(sale);
-
-    const printer = selectedPrinter();
-    if (printer && calc.status !== "عرض سعر" && calc.status !== "ملغي") {
-        printer.currentHours = num(printer.currentHours) + num(calc.printHours);
-    }
+    applyPrinterHoursForSale(sale);
 
     saveState();
     loadSales();
@@ -1234,13 +1209,20 @@ function changeSaleStatus(id) {
     const sale = state.sales.find((s) => s.id === id);
     if (!sale) return;
 
+    if (sale.status === "تم البيع") {
+        sale.status = "تم التسليم";
+    }
+
     const statuses = ["عرض سعر", "مؤكد", "قيد الطباعة", "جاهز", "تم التسليم", "ملغي"];
     const currentIndex = statuses.indexOf(sale.status);
     const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % statuses.length : 0;
 
     sale.status = statuses[nextIndex];
+    applyPrinterHoursForSale(sale);
 
     saveState();
+    renderPrinters();
+    renderMachineSelect();
     loadSales();
     toast(`تم تغيير الحالة إلى: ${sale.status}`);
 }
@@ -1269,10 +1251,6 @@ function clearSales() {
     loadSales();
     toast("تم مسح السجل");
 }
-
-/* ========================= */
-/* STATS / REPORTS */
-/* ========================= */
 
 function renderStats() {
     const count = state.sales.length;
@@ -1407,10 +1385,6 @@ function renderMaterialsReport() {
     `).join("");
 }
 
-/* ========================= */
-/* INVOICE / COPY / PRINT */
-/* ========================= */
-
 function getSaleForAction(id) {
     if (id) return state.sales.find((s) => s.id === id) || null;
     return calculate();
@@ -1538,10 +1512,6 @@ function printInvoice(id) {
 
     window.print();
 }
-
-/* ========================= */
-/* CSV EXPORT */
-/* ========================= */
 
 function exportCSV() {
     if (!state.sales.length) {
