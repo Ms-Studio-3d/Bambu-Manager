@@ -245,12 +245,22 @@ public class MainActivity extends AppCompatActivity {
 
         @JavascriptInterface
         public void printPage(String html) {
+            printHtml(html);
+        }
+
+        @JavascriptInterface
+        public void printHtml(String html) {
             if (html == null || html.trim().isEmpty()) {
                 printCurrentWebView();
                 return;
             }
 
             printHtmlInSeparateWebView(html);
+        }
+
+        @JavascriptInterface
+        public void printInvoice(String html) {
+            printHtml(html);
         }
 
         @JavascriptInterface
