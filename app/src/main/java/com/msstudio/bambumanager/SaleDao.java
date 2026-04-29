@@ -1,23 +1,34 @@
 package com.msstudio.bambumanager;
 
-import androidx.room.Dao;
-import androidx.room.Insert;
-import androidx.room.OnConflictStrategy;
-import androidx.room.Query;
-
+import java.util.ArrayList;
 import java.util.List;
 
-@Dao
-public interface SaleDao {
-    @Query("SELECT * FROM sales ORDER BY id DESC")
-    List<SaleEntity> getAllSales();
+public class SaleDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insert(SaleEntity sale);
+    private final List<SaleEntity> sales = new ArrayList<>();
 
-    @Query("DELETE FROM sales WHERE id = :saleId")
-    void deleteById(long saleId);
+    public List<SaleEntity> getAllSales() {
+        return new ArrayList<>(sales);
+    }
 
-    @Query("DELETE FROM sales")
-    void deleteAll();
+    public void insertSale(SaleEntity sale) {
+        if (sale == null) {
+            return;
+        }
+
+        deleteSale(sale.id);
+        sales.add(0, sale);
+    }
+
+    public void deleteSale(String saleId) {
+        if (saleId == null) {
+            return;
+        }
+
+        sales.removeIf(sale -> saleId.equals(sale.id));
+    }
+
+    public void clearSales() {
+        sales.clear();
+    }
 }
