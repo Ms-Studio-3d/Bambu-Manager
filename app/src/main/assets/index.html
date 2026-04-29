@@ -94,7 +94,7 @@
 
                 <div class="field">
                     <label>إهلاك / تشغيل الماكينة لكل ساعة</label>
-                    <input id="machineRate" type="text" inputmode="decimal" placeholder="مثال: 35 جنيه" oninput="calculate()">
+                    <input id="machineRate" type="text" inputmode="decimal" placeholder="مثال: 20 جنيه" oninput="calculate()">
                     <div class="muted">ساعات الطباعة × تكلفة تشغيل/إهلاك الساعة.</div>
                 </div>
             </div>
@@ -140,7 +140,7 @@
 
                 <div class="field">
                     <label>سعر ساعة شغلك اليدوي</label>
-                    <input id="manualRate" type="text" inputmode="decimal" placeholder="مثال: 120 جنيه" oninput="calculate()">
+                    <input id="manualRate" type="text" inputmode="decimal" placeholder="مثال: 60 جنيه" oninput="calculate()">
                 </div>
 
                 <div class="field">
@@ -161,8 +161,8 @@
                     </div>
 
                     <div class="field">
-                        <label>نسبة الفشل / المخاطرة (%)</label>
-                        <input id="failurePercent" type="text" inputmode="decimal" placeholder="مثال: 10" oninput="calculate()">
+                        <label>المخاطر / الفشل (%)</label>
+                        <input id="failurePercent" type="text" inputmode="decimal" placeholder="مثال: 5" oninput="calculate()">
                     </div>
 
                     <div class="field">
@@ -211,7 +211,7 @@
 
             <div class="btn-row">
                 <button onclick="copyInvoice()">نسخ الفاتورة</button>
-                <button onclick="sendWhatsApp()">نسخ للواتساب</button>
+                <button onclick="sendWhatsApp()">واتساب</button>
                 <button onclick="printInvoice()">طباعة / PDF</button>
             </div>
 
@@ -337,7 +337,7 @@
 
                 <div class="field">
                     <label>سعر ساعة الشغل اليدوي</label>
-                    <input id="setManualRate" type="text" inputmode="decimal" placeholder="مثال: 120">
+                    <input id="setManualRate" type="text" inputmode="decimal" placeholder="مثال: 60">
                 </div>
 
                 <div class="field">
@@ -352,7 +352,7 @@
 
                 <div class="field">
                     <label>المخاطر / الفشل (%)</label>
-                    <input id="setFailurePercent" type="text" inputmode="decimal" placeholder="مثال: 10">
+                    <input id="setFailurePercent" type="text" inputmode="decimal" placeholder="مثال: 5">
                 </div>
 
                 <div class="field">
@@ -395,7 +395,7 @@
 
                 <div class="field">
                     <label>سعر ساعة التشغيل / الإهلاك</label>
-                    <input id="printerRate" type="text" inputmode="decimal" placeholder="مثال: 35 جنيه">
+                    <input id="printerRate" type="text" inputmode="decimal" placeholder="مثال: 20 جنيه">
                 </div>
 
                 <div class="field">
@@ -445,7 +445,7 @@
 
                 <div class="field">
                     <label>السعر لكل كجم / 1000 جرام</label>
-                    <input id="matKgPrice" type="text" inputmode="decimal" placeholder="مثال: 1000 جنيه">
+                    <input id="matKgPrice" type="text" inputmode="decimal" placeholder="مثال: 800 جنيه">
                 </div>
             </div>
 
@@ -466,5 +466,6 @@
 <div id="toast" class="toast"></div>
 
 <script src="js/app.js"></script>
+<script src="js/fixes.js"></script>
 </body>
 </html>
