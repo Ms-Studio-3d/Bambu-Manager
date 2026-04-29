@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -44,7 +45,6 @@ import java.nio.charset.StandardCharsets;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "BambuManager";
-
     private static final String APP_URL = "file:///android_asset/index.html";
 
     private static final String PREFS_NAME = "bambu_manager_prefs";
@@ -70,10 +70,7 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void setAppSettings(String settingsJson) {
             try {
-                if (settingsJson == null) {
-                    Log.w(TAG, "setAppSettings ignored null settingsJson");
-                    return;
-                }
+                if (settingsJson == null) return;
 
                 new JSONObject(settingsJson);
 
@@ -101,8 +98,7 @@ public class MainActivity extends AppCompatActivity {
         public void saveSale(String saleJson) {
             try {
                 if (saleJson == null || saleJson.trim().isEmpty()) {
-                    Log.w(TAG, "saveSale ignored empty saleJson");
-                    showToastOnUi("بيانات البيعة غير صالحة");
+                    showToastOnUi("بيانات الطلب غير صالحة");
                     return;
                 }
 
@@ -114,7 +110,6 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     oldSales = new JSONArray(rawSales == null || rawSales.trim().isEmpty() ? "[]" : rawSales);
                 } catch (Exception e) {
-                    Log.e(TAG, "Existing sales JSON is corrupted, resetting sales list", e);
                     oldSales = new JSONArray();
                 }
 
@@ -131,17 +126,14 @@ public class MainActivity extends AppCompatActivity {
 
             } catch (Exception e) {
                 Log.e(TAG, "saveSale failed", e);
-                showToastOnUi("حدث خطأ أثناء حفظ البيعة");
+                showToastOnUi("حدث خطأ أثناء حفظ الطلب");
             }
         }
 
         @JavascriptInterface
         public void deleteSale(String saleId) {
             try {
-                if (saleId == null || saleId.trim().isEmpty()) {
-                    Log.w(TAG, "deleteSale ignored empty saleId");
-                    return;
-                }
+                if (saleId == null || saleId.trim().isEmpty()) return;
 
                 String rawSales = prefs.getString(KEY_SALES, "[]");
                 JSONArray oldSales;
@@ -149,7 +141,6 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     oldSales = new JSONArray(rawSales == null || rawSales.trim().isEmpty() ? "[]" : rawSales);
                 } catch (Exception e) {
-                    Log.e(TAG, "Existing sales JSON is corrupted, resetting sales list", e);
                     oldSales = new JSONArray();
                 }
 
@@ -157,10 +148,7 @@ public class MainActivity extends AppCompatActivity {
 
                 for (int i = 0; i < oldSales.length(); i++) {
                     JSONObject sale = oldSales.optJSONObject(i);
-
-                    if (sale == null) {
-                        continue;
-                    }
+                    if (sale == null) continue;
 
                     String id = String.valueOf(sale.opt("id"));
 
@@ -175,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
 
             } catch (Exception e) {
                 Log.e(TAG, "deleteSale failed", e);
-                showToastOnUi("تعذر حذف البيعة");
+                showToastOnUi("تعذر حذف الطلب");
             }
         }
 
@@ -185,7 +173,6 @@ public class MainActivity extends AppCompatActivity {
                 prefs.edit()
                         .putString(KEY_SALES, "[]")
                         .apply();
-
             } catch (Exception e) {
                 Log.e(TAG, "clearAllSales failed", e);
                 showToastOnUi("تعذر مسح السجل");
@@ -195,12 +182,9 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void setMaintenanceHours(String hours) {
             try {
-                String safeHours = hours == null ? "0" : hours;
-
                 prefs.edit()
-                        .putString(KEY_MAINTENANCE_HOURS, safeHours)
+                        .putString(KEY_MAINTENANCE_HOURS, hours == null ? "0" : hours)
                         .apply();
-
             } catch (Exception e) {
                 Log.e(TAG, "setMaintenanceHours failed", e);
             }
@@ -211,7 +195,6 @@ public class MainActivity extends AppCompatActivity {
             try {
                 return prefs.getString(KEY_MAINTENANCE_HOURS, "0");
             } catch (Exception e) {
-                Log.e(TAG, "getMaintenanceHours failed", e);
                 return "0";
             }
         }
@@ -239,19 +222,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @JavascriptInterface
-        public void printPage() {
-            printCurrentWebView();
-        }
-
-        @JavascriptInterface
-        public void printPage(String html) {
-            printHtml(html);
-        }
-
-        @JavascriptInterface
         public void printHtml(String html) {
             if (html == null || html.trim().isEmpty()) {
-                printCurrentWebView();
+                showToastOnUi("لا توجد فاتورة للطباعة");
                 return;
             }
 
@@ -261,6 +234,16 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void printInvoice(String html) {
             printHtml(html);
+        }
+
+        @JavascriptInterface
+        public void printPage(String html) {
+            printHtml(html);
+        }
+
+        @JavascriptInterface
+        public void openWhatsApp(String message) {
+            openWhatsAppMessage(message);
         }
 
         @JavascriptInterface
@@ -291,7 +274,6 @@ public class MainActivity extends AppCompatActivity {
 
             webView = findViewById(R.id.webView);
             if (webView == null) {
-                Log.e(TAG, "WebView not found in activity_main.xml");
                 showToastOnUi("خطأ في تحميل واجهة التطبيق");
                 finish();
                 return;
@@ -322,15 +304,12 @@ public class MainActivity extends AppCompatActivity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
-
         settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         settings.setLoadsImagesAutomatically(true);
-
         settings.setBlockNetworkImage(true);
 
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
-
         settings.setAllowFileAccessFromFileURLs(false);
         settings.setAllowUniversalAccessFromFileURLs(false);
 
@@ -358,23 +337,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
                 if (consoleMessage != null) {
-                    String message = consoleMessage.message();
-                    int lineNumber = consoleMessage.lineNumber();
-                    String sourceId = consoleMessage.sourceId();
-
-                    switch (consoleMessage.messageLevel()) {
-                        case ERROR:
-                            Log.e(TAG, "JS error: " + message + " at " + sourceId + ":" + lineNumber);
-                            break;
-                        case WARNING:
-                            Log.w(TAG, "JS warning: " + message + " at " + sourceId + ":" + lineNumber);
-                            break;
-                        default:
-                            Log.d(TAG, "JS console: " + message + " at " + sourceId + ":" + lineNumber);
-                            break;
-                    }
+                    Log.d(TAG, "JS: " + consoleMessage.message());
                 }
-
                 return true;
             }
         });
@@ -382,22 +346,8 @@ public class MainActivity extends AppCompatActivity {
         targetWebView.setWebViewClient(new WebViewClient() {
 
             @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                Log.i(TAG, "Page loading started: " + url);
-                super.onPageStarted(view, url, favicon);
-            }
-
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                Log.i(TAG, "Page loading finished: " + url);
-                super.onPageFinished(view, url);
-            }
-
-            @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                if (request == null || request.getUrl() == null) {
-                    return true;
-                }
+                if (request == null || request.getUrl() == null) return true;
 
                 String url = request.getUrl().toString();
 
@@ -405,8 +355,7 @@ public class MainActivity extends AppCompatActivity {
                     return false;
                 }
 
-                Log.w(TAG, "Blocked external navigation: " + url);
-                showToastOnUi("التطبيق يعمل أوفلاين، تم منع فتح رابط خارجي");
+                Log.w(TAG, "Blocked navigation: " + url);
                 return true;
             }
 
@@ -416,8 +365,7 @@ public class MainActivity extends AppCompatActivity {
                     return false;
                 }
 
-                Log.w(TAG, "Blocked external navigation: " + url);
-                showToastOnUi("التطبيق يعمل أوفلاين، تم منع فتح رابط خارجي");
+                Log.w(TAG, "Blocked navigation: " + url);
                 return true;
             }
 
@@ -427,14 +375,11 @@ public class MainActivity extends AppCompatActivity {
                     return super.shouldInterceptRequest(view, request);
                 }
 
-                Uri uri = request.getUrl();
-                String url = uri.toString();
+                String url = request.getUrl().toString();
 
                 if (isAllowedLocalUrl(url)) {
                     return super.shouldInterceptRequest(view, request);
                 }
-
-                Log.w(TAG, "Blocked external resource: " + url);
 
                 return new WebResourceResponse(
                         "text/plain",
@@ -448,8 +393,6 @@ public class MainActivity extends AppCompatActivity {
                 if (isAllowedLocalUrl(url)) {
                     return super.shouldInterceptRequest(view, url);
                 }
-
-                Log.w(TAG, "Blocked external resource: " + url);
 
                 return new WebResourceResponse(
                         "text/plain",
@@ -466,14 +409,6 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                String failingUrl = request.getUrl() == null ? "unknown" : request.getUrl().toString();
-                String description = "unknown";
-
-                if (error != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    description = String.valueOf(error.getDescription());
-                }
-
-                Log.e(TAG, "Main frame load error: " + description + " URL: " + failingUrl);
                 showToastOnUi("حدث خطأ أثناء تحميل واجهة التطبيق");
             }
 
@@ -484,8 +419,6 @@ public class MainActivity extends AppCompatActivity {
                     int threatType,
                     SafeBrowsingResponse callback
             ) {
-                Log.e(TAG, "Safe browsing blocked threat type: " + threatType);
-
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 && callback != null) {
                     callback.backToSafety(true);
                 }
@@ -496,9 +429,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean isAllowedLocalUrl(String url) {
-        if (url == null) {
-            return false;
-        }
+        if (url == null) return false;
 
         return url.startsWith("file:///android_asset/")
                 || url.startsWith("about:blank")
@@ -511,49 +442,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void handleOnBackPressed() {
                 try {
-                    if (webView != null && webView.canGoBack()) {
-                        webView.goBack();
-                    } else {
-                        finish();
+                    if (webView != null) {
+                        webView.evaluateJavascript(
+                                "try { if (typeof saveCurrentDraft === 'function') saveCurrentDraft(); } catch(e) {}",
+                                null
+                        );
                     }
+
+                    finish();
+
                 } catch (Exception e) {
-                    Log.e(TAG, "Back press failed", e);
                     finish();
                 }
-            }
-        });
-    }
-
-    private void printCurrentWebView() {
-        runOnUiThread(() -> {
-            try {
-                if (webView == null) {
-                    showToastOnUi("الطباعة غير متاحة الآن");
-                    Log.e(TAG, "printCurrentWebView failed: webView is null");
-                    return;
-                }
-
-                PrintManager printManager = (PrintManager) getSystemService(PRINT_SERVICE);
-                if (printManager == null) {
-                    showToastOnUi("خدمة الطباعة غير متاحة على الجهاز");
-                    Log.e(TAG, "printCurrentWebView failed: PrintManager is null");
-                    return;
-                }
-
-                String jobName = getString(R.string.app_name) + " Invoice";
-                PrintDocumentAdapter printAdapter = webView.createPrintDocumentAdapter(jobName);
-
-                PrintAttributes printAttributes = new PrintAttributes.Builder()
-                        .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
-                        .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
-                        .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
-                        .build();
-
-                printManager.print(jobName, printAdapter, printAttributes);
-
-            } catch (Exception e) {
-                Log.e(TAG, "printCurrentWebView failed", e);
-                showToastOnUi("حدث خطأ أثناء الطباعة");
             }
         });
     }
@@ -572,17 +472,14 @@ public class MainActivity extends AppCompatActivity {
                     public void onPageFinished(WebView view, String url) {
                         super.onPageFinished(view, url);
 
-                        if (printed) {
-                            return;
-                        }
-
+                        if (printed) return;
                         printed = true;
 
                         view.postDelayed(() -> {
                             try {
                                 PrintManager printManager = (PrintManager) getSystemService(PRINT_SERVICE);
                                 if (printManager == null) {
-                                    showToastOnUi("خدمة الطباعة غير متاحة على الجهاز");
+                                    showToastOnUi("خدمة الطباعة غير متاحة");
                                     destroyPrintWebView(view);
                                     return;
                                 }
@@ -598,14 +495,14 @@ public class MainActivity extends AppCompatActivity {
 
                                 printManager.print(jobName, printAdapter, printAttributes);
 
-                                view.postDelayed(() -> destroyPrintWebView(view), 3000);
+                                view.postDelayed(() -> destroyPrintWebView(view), 4000);
 
                             } catch (Exception e) {
-                                Log.e(TAG, "printHtmlInSeparateWebView print failed", e);
+                                Log.e(TAG, "print failed", e);
                                 showToastOnUi("حدث خطأ أثناء الطباعة");
                                 destroyPrintWebView(view);
                             }
-                        }, 350);
+                        }, 500);
                     }
                 });
 
@@ -619,7 +516,7 @@ public class MainActivity extends AppCompatActivity {
 
             } catch (Exception e) {
                 Log.e(TAG, "printHtmlInSeparateWebView failed", e);
-                showToastOnUi("حدث خطأ أثناء تجهيز الفاتورة للطباعة");
+                showToastOnUi("حدث خطأ أثناء تجهيز الفاتورة");
             }
         });
     }
@@ -633,7 +530,6 @@ public class MainActivity extends AppCompatActivity {
         settings.setDatabaseEnabled(false);
         settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         settings.setLoadsImagesAutomatically(true);
-
         settings.setBlockNetworkImage(true);
 
         settings.setAllowFileAccess(true);
@@ -647,10 +543,6 @@ public class MainActivity extends AppCompatActivity {
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
         settings.setSupportZoom(false);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        }
     }
 
     private void destroyPrintWebView(WebView view) {
@@ -663,6 +555,30 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e(TAG, "destroyPrintWebView failed", e);
         }
+    }
+
+    private void openWhatsAppMessage(String message) {
+        runOnUiThread(() -> {
+            try {
+                String safeMessage = message == null ? "" : message;
+
+                Intent intent = new Intent(Intent.ACTION_SEND);
+                intent.setType("text/plain");
+                intent.putExtra(Intent.EXTRA_TEXT, safeMessage);
+                intent.setPackage("com.whatsapp");
+
+                try {
+                    startActivity(intent);
+                } catch (Exception whatsappNotFound) {
+                    Intent chooser = Intent.createChooser(intent, "إرسال الفاتورة");
+                    startActivity(chooser);
+                }
+
+            } catch (Exception e) {
+                Log.e(TAG, "openWhatsAppMessage failed", e);
+                showToastOnUi("تعذر فتح واتساب");
+            }
+        });
     }
 
     private String makeSafeCsvFileName(String fileName) {
@@ -718,7 +634,6 @@ public class MainActivity extends AppCompatActivity {
         resolver.update(uri, values, null, null);
 
         showToastOnUi("تم حفظ CSV في Downloads / Bambu Manager");
-        Log.i(TAG, "CSV saved to Downloads: " + fileName);
     }
 
     private void saveCsvToAppDocuments(String csvContent, String fileName) throws Exception {
@@ -742,7 +657,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         showToastOnUi("تم حفظ CSV داخل ملفات التطبيق");
-        Log.i(TAG, "CSV saved to: " + file.getAbsolutePath());
     }
 
     private void showToastOnUi(String message) {
