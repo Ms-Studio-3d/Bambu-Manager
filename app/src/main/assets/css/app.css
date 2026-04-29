@@ -1,31 +1,32 @@
 :root {
-    --bg: #030605;
-    --bg-2: #07100c;
+    --bg: #050607;
+    --bg-2: #080b0a;
 
-    --card: #0b1410;
-    --card-soft: #101d17;
+    --card: #101312;
+    --card-2: #141917;
+    --card-soft: #111a15;
 
-    --border: #183528;
-    --border-2: #214433;
+    --border: #25352d;
+    --border-2: #31483b;
     --border-strong: #00a63e;
 
     --green: #00a63e;
-    --green-2: #2ee879;
-    --green-3: #7dffad;
+    --green-2: #22d66f;
+    --green-3: #70f7a4;
     --green-dark: #087335;
-    --green-soft: rgba(0, 166, 62, 0.14);
-    --green-glow: rgba(46, 232, 121, 0.20);
+    --green-soft: rgba(0, 166, 62, 0.10);
+    --green-glow: rgba(34, 214, 111, 0.18);
 
-    --text: #f3fff7;
-    --text-soft: #d8f5e2;
-    --muted: #9cb4a6;
+    --text: #f4fff7;
+    --text-soft: #d9f2e1;
+    --muted: #a5b8ad;
 
     --danger: #ff5b5b;
     --danger-bg: #2a1010;
 
     --warning: #ffd166;
 
-    --shadow: 0 18px 46px rgba(0, 0, 0, 0.42);
+    --shadow: 0 16px 34px rgba(0, 0, 0, 0.34);
     --radius: 18px;
 }
 
@@ -44,9 +45,9 @@ body {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial, sans-serif;
     color: var(--text);
     background:
-        radial-gradient(circle at top right, rgba(0, 166, 62, 0.16), transparent 34%),
-        radial-gradient(circle at bottom left, rgba(46, 232, 121, 0.08), transparent 32%),
-        linear-gradient(180deg, #030605 0%, #050b08 50%, #030605 100%);
+        radial-gradient(circle at top right, rgba(0, 166, 62, 0.08), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(34, 214, 111, 0.05), transparent 30%),
+        linear-gradient(180deg, #050607 0%, #070908 60%, #050607 100%);
 }
 
 .app {
@@ -81,15 +82,14 @@ body {
 }
 
 .brand-pill {
-    border: 1px solid rgba(0, 166, 62, 0.45);
-    background: linear-gradient(135deg, rgba(0, 166, 62, 0.16), rgba(46, 232, 121, 0.06));
+    border: 1px solid rgba(0, 166, 62, 0.40);
+    background: rgba(0, 166, 62, 0.08);
     color: var(--green-2);
     border-radius: 999px;
     padding: 9px 12px;
     font-size: 12px;
     font-weight: 1000;
     white-space: nowrap;
-    box-shadow: 0 0 22px rgba(0, 166, 62, 0.12);
 }
 
 h1 {
@@ -119,13 +119,13 @@ h3 {
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
     padding: 10px 0 12px;
-    background: linear-gradient(to bottom, rgba(3, 6, 5, 0.98), rgba(3, 6, 5, 0.78));
+    background: linear-gradient(to bottom, rgba(5, 6, 7, 0.98), rgba(5, 6, 7, 0.82));
     backdrop-filter: blur(12px);
 }
 
 .tab-btn {
     border: 1px solid var(--border);
-    background: rgba(11, 20, 16, 0.94);
+    background: #101312;
     color: var(--muted);
     border-radius: 999px;
     padding: 12px 10px;
@@ -140,8 +140,8 @@ h3 {
     color: white;
     border-color: var(--green-2);
     box-shadow:
-        0 0 0 4px var(--green-soft),
-        0 10px 24px rgba(0, 166, 62, 0.18);
+        0 0 0 3px rgba(0, 166, 62, 0.12),
+        0 10px 22px rgba(0, 166, 62, 0.14);
 }
 
 .page {
@@ -156,8 +156,7 @@ h3 {
 .result-card,
 .stat {
     border: 1px solid var(--border);
-    background:
-        linear-gradient(180deg, rgba(16, 29, 23, 0.98), rgba(8, 16, 12, 0.98));
+    background: linear-gradient(180deg, #141917, #0d100f);
     border-radius: var(--radius);
     padding: 16px;
     margin-bottom: 14px;
@@ -166,9 +165,9 @@ h3 {
 
 .card.soft {
     background:
-        radial-gradient(circle at top right, rgba(0, 166, 62, 0.17), transparent 42%),
-        linear-gradient(180deg, rgba(16, 29, 23, 0.98), rgba(8, 16, 12, 0.98));
-    border-color: rgba(0, 166, 62, 0.34);
+        linear-gradient(135deg, rgba(0, 166, 62, 0.08), transparent 44%),
+        linear-gradient(180deg, #141917, #0d100f);
+    border-color: rgba(0, 166, 62, 0.28);
 }
 
 .grid,
@@ -190,8 +189,8 @@ input,
 select,
 textarea {
     width: 100%;
-    border: 1px solid #203f30;
-    background: #060c09;
+    border: 1px solid #2a3e33;
+    background: #080b0a;
     color: var(--text);
     border-radius: 14px;
     padding: 13px 12px;
@@ -201,14 +200,14 @@ textarea {
 
 input::placeholder,
 textarea::placeholder {
-    color: #60786a;
+    color: #66786d;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
     border-color: var(--green);
-    box-shadow: 0 0 0 4px var(--green-soft);
+    box-shadow: 0 0 0 4px rgba(0, 166, 62, 0.12);
 }
 
 select {
@@ -224,7 +223,7 @@ button {
     font-size: 15px;
     font-weight: 950;
     cursor: pointer;
-    box-shadow: 0 10px 24px rgba(0, 166, 62, 0.17);
+    box-shadow: 0 10px 22px rgba(0, 166, 62, 0.14);
 }
 
 button:active {
@@ -232,9 +231,9 @@ button:active {
 }
 
 button.secondary {
-    background: #112119;
+    background: #151c18;
     color: var(--green-2);
-    border: 1px solid #26553d;
+    border: 1px solid #315842;
     box-shadow: none;
 }
 
@@ -270,8 +269,8 @@ button.danger {
 }
 
 .hint-box {
-    border: 1px solid rgba(0, 166, 62, 0.42);
-    background: rgba(0, 166, 62, 0.10);
+    border: 1px solid rgba(0, 166, 62, 0.34);
+    background: rgba(0, 166, 62, 0.08);
     color: #d9ffe7;
     border-radius: 14px;
     padding: 12px;
@@ -300,7 +299,7 @@ button.danger {
 .progress {
     height: 12px;
     border-radius: 999px;
-    background: #050a08;
+    background: #090d0b;
     overflow: hidden;
     border: 1px solid var(--border);
 }
@@ -312,14 +311,14 @@ button.danger {
     background: linear-gradient(90deg, var(--green), var(--green-2));
     border-radius: 999px;
     transition: width 0.2s ease;
-    box-shadow: 0 0 18px var(--green-glow);
+    box-shadow: 0 0 14px var(--green-glow);
 }
 
 .result-card {
-    border-color: rgba(0, 166, 62, 0.50);
+    border-color: rgba(0, 166, 62, 0.38);
     background:
-        radial-gradient(circle at top, rgba(0, 166, 62, 0.18), transparent 42%),
-        linear-gradient(180deg, #08120d, #050b08);
+        radial-gradient(circle at top, rgba(0, 166, 62, 0.10), transparent 40%),
+        linear-gradient(180deg, #141917, #0c0f0e);
 }
 
 .result-title {
@@ -330,12 +329,12 @@ button.danger {
 
 .final-price {
     text-align: center;
-    font-size: 42px;
+    font-size: 44px;
     line-height: 1.1;
     font-weight: 1000;
     margin: 10px 0 16px;
     color: var(--green-2);
-    text-shadow: 0 0 28px rgba(46, 232, 121, 0.22);
+    text-shadow: 0 0 20px rgba(34, 214, 111, 0.18);
 }
 
 .result-mini {
@@ -347,7 +346,7 @@ button.danger {
 
 .result-mini div {
     border: 1px solid var(--border);
-    background: rgba(0, 0, 0, 0.24);
+    background: #101312;
     border-radius: 16px;
     padding: 12px;
 }
@@ -372,7 +371,7 @@ button.danger {
 
 .breakdown div {
     border: 1px solid var(--border);
-    background: rgba(0, 0, 0, 0.22);
+    background: #101312;
     border-radius: 14px;
     padding: 10px;
 }
@@ -424,12 +423,12 @@ button.danger {
     padding: 18px;
     border: 1px dashed var(--border);
     border-radius: 16px;
-    background: rgba(0, 0, 0, 0.12);
+    background: #101312;
 }
 
 .item-card {
     border: 1px solid var(--border);
-    background: #06100b;
+    background: #101312;
     border-radius: 16px;
     padding: 13px;
 }
@@ -475,7 +474,7 @@ button.danger {
 
 .material-row {
     border: 1px solid var(--border);
-    background: #06100b;
+    background: #101312;
     border-radius: 16px;
     padding: 12px;
     margin-bottom: 10px;
@@ -486,7 +485,7 @@ button.danger {
 
 .advanced-box {
     border: 1px solid var(--border);
-    background: rgba(0, 0, 0, 0.18);
+    background: #101312;
     border-radius: 16px;
     padding: 12px;
 }
@@ -497,46 +496,13 @@ button.danger {
     font-weight: 1000;
 }
 
-.extra-check {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border: 1px solid var(--border);
-    background: #06100b;
-    border-radius: 16px;
-    padding: 12px;
-    cursor: pointer;
-}
-
-.extra-check input {
-    width: auto;
-    transform: scale(1.25);
-    accent-color: var(--green);
-}
-
-.extra-check span {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.extra-check strong {
-    color: var(--text);
-    font-size: 14px;
-}
-
-.extra-check small {
-    color: var(--green-2);
-    font-weight: 900;
-}
-
 .report-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     border: 1px solid var(--border);
-    background: #06100b;
+    background: #101312;
     border-radius: 16px;
     padding: 13px;
 }
@@ -557,7 +523,7 @@ button.danger {
     left: 14px;
     bottom: 18px;
     z-index: 100;
-    background: #0d1c15;
+    background: #111814;
     border: 1px solid var(--green);
     color: var(--text);
     border-radius: 16px;
@@ -623,7 +589,7 @@ button.danger {
     }
 
     .final-price {
-        font-size: 38px;
+        font-size: 40px;
     }
 
     .status-line {
