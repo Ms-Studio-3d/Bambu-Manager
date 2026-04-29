@@ -1,6 +1,7 @@
 package com.msstudio.bambumanager;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class SaleDao {
@@ -25,7 +26,15 @@ public class SaleDao {
             return;
         }
 
-        sales.removeIf(sale -> saleId.equals(sale.id));
+        Iterator<SaleEntity> iterator = sales.iterator();
+
+        while (iterator.hasNext()) {
+            SaleEntity sale = iterator.next();
+
+            if (saleId.equals(sale.id)) {
+                iterator.remove();
+            }
+        }
     }
 
     public void clearSales() {
