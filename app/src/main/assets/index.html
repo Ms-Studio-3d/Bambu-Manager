@@ -110,40 +110,15 @@
 
             <div class="grid">
                 <div class="field">
-                    <label>وزن الهالك الإجمالي بالجرام</label>
+                    <label>وزن الهالك بالجرام</label>
                     <input id="wasteWeight" type="text" inputmode="decimal" placeholder="مثال: 10" oninput="calculate()">
+                    <div class="muted">الهالك متغير لكل طلب وداخل في حساب الخامة.</div>
                 </div>
 
                 <div class="field">
                     <label>دقائق الشغل اليدوي</label>
                     <input id="manualMinutes" type="text" inputmode="decimal" placeholder="مثال: 30 دقيقة" oninput="calculate()">
                     <div class="muted">التجهيز، إزالة الدعامات، صنفرة، تركيب، تنظيف، أو أي شغل بإيدك.</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>🧾 بنود ثابتة / إضافية للطلب</h2>
-
-            <div class="muted" style="margin-bottom:10px">
-                اختار أي بند إضافي يدخل في تكلفة الطلب. تقدر تعدل البنود من صفحة الإعدادات.
-            </div>
-
-            <div id="quickExtrasList" class="extras-list">
-                <div class="empty-note">لا توجد بنود ثابتة. أضفها من الإعدادات.</div>
-            </div>
-
-            <div style="height:12px"></div>
-
-            <div class="grid">
-                <div class="field">
-                    <label>بند إضافي يدوي</label>
-                    <input id="manualExtraName" type="text" placeholder="مثال: تعديل ملف خاص" oninput="calculate()">
-                </div>
-
-                <div class="field">
-                    <label>تكلفة البند اليدوي</label>
-                    <input id="manualExtraCost" type="text" inputmode="decimal" placeholder="مثال: 30" oninput="calculate()">
                 </div>
             </div>
         </div>
@@ -160,6 +135,7 @@
                 <div class="field">
                     <label>خصم بالجنيه</label>
                     <input id="discount" type="text" inputmode="decimal" placeholder="مثال: 20 جنيه" oninput="calculate()">
+                    <div class="muted">الخصم لا يمكن أن يزيد عن السعر قبل الخصم.</div>
                 </div>
 
                 <div class="field">
@@ -206,7 +182,7 @@
 
                     <div class="field">
                         <label>تقريب السعر لأقرب</label>
-                        <input id="roundingStep" type="text" inputmode="decimal" placeholder="مثال: 5 أو 10" oninput="calculate()">
+                        <input id="roundingStep" type="text" inputmode="decimal" placeholder="5" oninput="calculate()">
                     </div>
                 </div>
             </details>
@@ -396,43 +372,12 @@
 
                 <div class="field">
                     <label>تقريب السعر لأقرب</label>
-                    <input id="setRoundingStep" type="text" inputmode="decimal" placeholder="مثال: 5 أو 10">
+                    <input id="setRoundingStep" type="text" inputmode="decimal" placeholder="5">
                 </div>
             </div>
 
             <div style="height:12px"></div>
             <button onclick="saveGeneralSettings()">حفظ إعدادات التسعير</button>
-        </div>
-
-        <div class="card">
-            <h2>بنود ثابتة قابلة للاختيار</h2>
-
-            <div class="hint-box">
-                أمثلة: إزالة دعامات، صنفرة، تركيب، مغناطيس، تعديل ملف، تغليف خاص.
-                هذه البنود تظهر في صفحة التسعير وتقدر تختار منها حسب الطلب.
-            </div>
-
-            <div class="grid">
-                <div class="field">
-                    <label>اسم البند</label>
-                    <input id="extraName" type="text" placeholder="مثال: إزالة دعامات">
-                </div>
-
-                <div class="field">
-                    <label>تكلفة البند</label>
-                    <input id="extraCost" type="text" inputmode="decimal" placeholder="مثال: 20">
-                </div>
-            </div>
-
-            <div style="height:12px"></div>
-
-            <div class="btn-row">
-                <button id="extraSaveBtn" onclick="saveExtra()">إضافة بند</button>
-                <button id="extraCancelBtn" class="secondary" onclick="cancelExtraEdit()" style="display:none">إلغاء التعديل</button>
-            </div>
-
-            <div style="height:12px"></div>
-            <div id="extrasSettingsList"></div>
         </div>
 
         <div class="card">
