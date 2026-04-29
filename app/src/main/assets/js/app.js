@@ -204,16 +204,16 @@ function num(value) {
 }
 
 function money(value) {
-    return Math.round(num(value)).toLocaleString("ar-EG");
+    return Math.round(num(value)).toLocaleString("en-US");
 }
 
 function formatNumber(value) {
     const rounded = Math.round(num(value) * 100) / 100;
-    return rounded.toLocaleString("ar-EG");
+    return rounded.toLocaleString("en-US");
 }
 
 function oneDecimal(value) {
-    return (Math.round(num(value) * 10) / 10).toLocaleString("ar-EG");
+    return (Math.round(num(value) * 10) / 10).toLocaleString("en-US");
 }
 
 function setText(id, value) {
@@ -1135,7 +1135,7 @@ function renderSales() {
         const date = new Date(sale.date);
         const dateText = Number.isNaN(date.getTime())
             ? ""
-            : date.toLocaleString("ar-EG");
+            : date.toLocaleString("en-GB", { hour12: false });
 
         return `
             <div class="item-card">
@@ -1233,7 +1233,7 @@ function renderStats() {
     const avgProfit = activeSales.length ? profitTotal / activeSales.length : 0;
     const profitPerHour = hoursTotal > 0 ? profitTotal / hoursTotal : 0;
 
-    setText("statOrdersCount", count.toLocaleString("ar-EG"));
+    setText("statOrdersCount", count.toLocaleString("en-US"));
     setText("statSales", `${money(salesTotal)} جنيه`);
     setText("statProfit", `${money(profitTotal)} جنيه`);
     setText("statHours", `${oneDecimal(hoursTotal)} س`);
@@ -1300,19 +1300,19 @@ function renderReportsSummary() {
     box.innerHTML = `
         <div class="report-row">
             <span>إجمالي الطلبات</span>
-            <strong>${totalOrders.toLocaleString("ar-EG")}</strong>
+            <strong>${totalOrders.toLocaleString("en-US")}</strong>
         </div>
         <div class="report-row" onclick="openOrdersWithStatus('تم التسليم')">
             <span>تم التسليم</span>
-            <strong>${delivered.toLocaleString("ar-EG")}</strong>
+            <strong>${delivered.toLocaleString("en-US")}</strong>
         </div>
         <div class="report-row">
             <span>طلبات تحت التنفيذ</span>
-            <strong>${pending.toLocaleString("ar-EG")}</strong>
+            <strong>${pending.toLocaleString("en-US")}</strong>
         </div>
         <div class="report-row" onclick="openOrdersWithStatus('عرض سعر')">
             <span>عروض سعر</span>
-            <strong>${quotes.toLocaleString("ar-EG")}</strong>
+            <strong>${quotes.toLocaleString("en-US")}</strong>
         </div>
         <div class="report-row">
             <span>إجمالي التكلفة</span>
