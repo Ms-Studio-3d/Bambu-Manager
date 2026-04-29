@@ -4,33 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bambu Business Manager</title>
-
     <link rel="stylesheet" href="css/app.css">
 </head>
 
 <body>
 <div class="app">
+
+    <div class="brand-bar">
+        <div>
+            <div class="brand-kicker">MS Studio 3D</div>
+            <h1>Bambu Business Manager</h1>
+        </div>
+        <div class="brand-pill">A1 Black Mode</div>
+    </div>
+
     <div class="top-tabs">
-        <button class="tab-btn active" onclick="showPage('calc')">الحاسبة السريعة</button>
-        <button class="tab-btn" onclick="showPage('log')">السجل والأرباح</button>
+        <button class="tab-btn active" onclick="showPage('calc')">التسعير</button>
+        <button class="tab-btn" onclick="showPage('orders')">الطلبات</button>
+        <button class="tab-btn" onclick="showPage('reports')">التقارير</button>
         <button class="tab-btn" onclick="showPage('settings')">الإعدادات</button>
     </div>
 
+    <!-- ========================= -->
+    <!-- PAGE: CALCULATOR -->
+    <!-- ========================= -->
     <section id="page-calc" class="page active">
-        <h1>Bambu Business Manager</h1>
 
         <div class="card soft">
             <h2>⚙️ حالة الماكينة</h2>
+
             <div class="machine-status">
                 <div class="field">
                     <label>اختيار ماكينة للحساب</label>
                     <select id="machineSelect" onchange="onMachineChanged()"></select>
                 </div>
+
                 <div class="status-line">
                     <strong id="machineHoursText">الساعات المسجلة: 0 / 200 س</strong>
                     <button class="secondary" onclick="resetSelectedMachineHours()">تصفير الصيانة</button>
                 </div>
+
                 <div class="progress"><span id="maintenanceProgress"></span></div>
+
                 <div class="status-line">
                     <span>بعد الطلب الحالي:</span>
                     <strong id="afterOrderHours">0.0 س</strong>
@@ -40,29 +55,50 @@
 
         <div class="card">
             <h2>👤 العميل والطلب</h2>
+
             <div class="grid">
                 <div class="field">
                     <label>اسم العميل</label>
-                    <input id="clientName" type="text" placeholder="مثال: أحمد محمد">
+                    <input id="clientName" type="text" placeholder="مثال: أحمد محمد" oninput="calculate()">
                 </div>
+
                 <div class="field">
-                    <label>اسم المجسم</label>
-                    <input id="modelName" type="text" placeholder="مثال: حامل موبايل">
+                    <label>اسم المجسم / الطلب</label>
+                    <input id="modelName" type="text" placeholder="مثال: حامل موبايل" oninput="calculate()">
+                </div>
+
+                <div class="field">
+                    <label>حالة الطلب</label>
+                    <select id="orderStatus" onchange="calculate()">
+                        <option value="عرض سعر">عرض سعر</option>
+                        <option value="مؤكد">مؤكد</option>
+                        <option value="قيد الطباعة">قيد الطباعة</option>
+                        <option value="جاهز">جاهز</option>
+                        <option value="تم التسليم">تم التسليم</option>
+                        <option value="ملغي">ملغي</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>ملاحظات</label>
+                    <input id="orderNotes" type="text" placeholder="مقاس، لون، تفاصيل خاصة..." oninput="calculate()">
                 </div>
             </div>
         </div>
 
         <div class="card">
-            <h2>⚙️ التشغيل والخامات</h2>
+            <h2>🖨️ التشغيل والخامات</h2>
 
             <div class="grid">
                 <div class="field">
                     <label>وقت الطباعة بالساعات</label>
                     <input id="printHours" type="text" inputmode="decimal" placeholder="مثال: 4.5" oninput="calculate()">
                 </div>
+
                 <div class="field">
-                    <label>سعر ساعة تشغيل الماكينة</label>
+                    <label>إهلاك / تشغيل الماكينة لكل ساعة</label>
                     <input id="machineRate" type="text" inputmode="decimal" placeholder="مثال: 35 جنيه" oninput="calculate()">
+                    <div class="muted">ده نفس منطق الديسكتوب: ساعات الطباعة × تكلفة تشغيل/إهلاك الساعة.</div>
                 </div>
             </div>
 
@@ -70,6 +106,7 @@
 
             <h3>الخامات المستخدمة في الطلب</h3>
             <div id="orderMaterials"></div>
+
             <button id="addOrderMaterialBtn" class="secondary" onclick="addOrderMaterialRow()">➕ إضافة خامة للطلب</button>
 
             <div style="height:12px"></div>
@@ -79,38 +116,106 @@
                     <label>وزن الهالك الإجمالي بالجرام</label>
                     <input id="wasteWeight" type="text" inputmode="decimal" placeholder="مثال: 10" oninput="calculate()">
                 </div>
+
                 <div class="field">
-                    <label>دقائق شغلك اليدوي في الطلب</label>
+                    <label>دقائق الشغل اليدوي</label>
                     <input id="manualMinutes" type="text" inputmode="decimal" placeholder="مثال: 30 دقيقة" oninput="calculate()">
-                    <div class="muted">دي مدة التجهيز، التنضيف، الصنفرة، التجميع أو أي شغل بإيدك على الطلب.</div>
+                    <div class="muted">التجهيز، إزالة الدعامات، صنفرة، تركيب، تنظيف، أو أي شغل بإيدك.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🧾 بنود ثابتة / إضافية للطلب</h2>
+
+            <div class="muted" style="margin-bottom:10px">
+                اختار أي بند إضافي يدخل في تكلفة الطلب. تقدر تعدل البنود من صفحة الإعدادات.
+            </div>
+
+            <div id="quickExtrasList" class="extras-list">
+                <div class="empty-note">لا توجد بنود ثابتة. أضفها من الإعدادات.</div>
+            </div>
+
+            <div style="height:12px"></div>
+
+            <div class="grid">
+                <div class="field">
+                    <label>بند إضافي يدوي</label>
+                    <input id="manualExtraName" type="text" placeholder="مثال: تعديل ملف خاص" oninput="calculate()">
+                </div>
+
+                <div class="field">
+                    <label>تكلفة البند اليدوي</label>
+                    <input id="manualExtraCost" type="text" inputmode="decimal" placeholder="مثال: 30" oninput="calculate()">
                 </div>
             </div>
         </div>
 
         <div class="card">
             <h2>💰 الربح والخصم</h2>
+
             <div class="grid">
                 <div class="field">
                     <label>نسبة الربح على التكلفة (%)</label>
                     <input id="profitPercent" type="text" inputmode="decimal" placeholder="مثال: 100" oninput="calculate()">
                 </div>
+
                 <div class="field">
                     <label>خصم بالجنيه</label>
                     <input id="discount" type="text" inputmode="decimal" placeholder="مثال: 20 جنيه" oninput="calculate()">
                 </div>
+
                 <div class="field">
                     <label>سعر ساعة شغلك اليدوي</label>
                     <input id="manualRate" type="text" inputmode="decimal" placeholder="مثال: 120 جنيه" oninput="calculate()">
-                    <div class="muted">مثال: لو اشتغلت 30 دقيقة وسعر ساعتك 120 جنيه، تكلفة الشغل اليدوي = 60 جنيه.</div>
                 </div>
+
                 <div class="field">
-                    <label>تكلفة التغليف بالجنيه</label>
+                    <label>تكلفة التغليف</label>
                     <input id="packagingCost" type="text" inputmode="decimal" placeholder="مثال: 10 جنيه" oninput="calculate()">
                 </div>
             </div>
 
             <div style="height:12px"></div>
-            <button class="secondary" onclick="saveGeneralFromCalculator()">حفظ الإعدادات كأساسي</button>
+
+            <details class="advanced-box">
+                <summary>إعدادات متقدمة لهذا التسعير</summary>
+
+                <div class="grid" style="margin-top:12px">
+                    <div class="field">
+                        <label>تكلفة الكهرباء لكل ساعة</label>
+                        <input id="electricityCostPerHour" type="text" inputmode="decimal" placeholder="مثال: 3" oninput="calculate()">
+                    </div>
+
+                    <div class="field">
+                        <label>نسبة الفشل / المخاطرة (%)</label>
+                        <input id="failurePercent" type="text" inputmode="decimal" placeholder="مثال: 10" oninput="calculate()">
+                    </div>
+
+                    <div class="field">
+                        <label>تكلفة الشحن</label>
+                        <input id="shippingCost" type="text" inputmode="decimal" placeholder="مثال: 0" oninput="calculate()">
+                    </div>
+
+                    <div class="field">
+                        <label>الضريبة (%)</label>
+                        <input id="taxPercent" type="text" inputmode="decimal" placeholder="مثال: 0" oninput="calculate()">
+                    </div>
+
+                    <div class="field">
+                        <label>الحد الأدنى للطلب</label>
+                        <input id="minimumOrderPrice" type="text" inputmode="decimal" placeholder="مثال: 50" oninput="calculate()">
+                    </div>
+
+                    <div class="field">
+                        <label>تقريب السعر لأقرب</label>
+                        <input id="roundingStep" type="text" inputmode="decimal" placeholder="مثال: 5 أو 10" oninput="calculate()">
+                    </div>
+                </div>
+            </details>
+
+            <div style="height:12px"></div>
+            <button class="secondary" onclick="saveGeneralFromCalculator()">حفظ القيم الحالية كأساسي</button>
         </div>
 
         <div class="result-card">
@@ -122,11 +227,14 @@
                     <span>التكلفة عليك</span>
                     <strong><span id="totalCost">0</span> جنيه</strong>
                 </div>
+
                 <div>
                     <span>صافي ربحك</span>
                     <strong><span id="netProfit">0</span> جنيه</strong>
                 </div>
             </div>
+
+            <div class="breakdown" id="priceBreakdown"></div>
 
             <div class="btn-row">
                 <button onclick="copyInvoice()">نسخ الفاتورة</button>
@@ -134,71 +242,209 @@
                 <button onclick="printInvoice()">طباعة / PDF</button>
             </div>
 
-            <button class="confirm-btn" onclick="confirmSale()">✅ تأكيد البيعة وتسجيلها في الدفتر</button>
+            <button class="confirm-btn" onclick="confirmSale()">✅ حفظ كطلب</button>
         </div>
     </section>
 
-    <section id="page-log" class="page">
-        <h1>السجل والأرباح</h1>
+    <!-- ========================= -->
+    <!-- PAGE: ORDERS -->
+    <!-- ========================= -->
+    <section id="page-orders" class="page">
+        <h1>الطلبات</h1>
 
         <div class="stats">
+            <div class="stat">
+                <small>إجمالي الطلبات</small>
+                <strong id="statOrdersCount">0</strong>
+            </div>
+
             <div class="stat">
                 <small>إجمالي المبيعات</small>
                 <strong id="statSales">0 جنيه</strong>
             </div>
+
             <div class="stat">
                 <small>إجمالي الأرباح</small>
                 <strong id="statProfit">0 جنيه</strong>
             </div>
+
             <div class="stat">
                 <small>ساعات العمل</small>
                 <strong id="statHours">0 س</strong>
             </div>
-            <div class="stat">
-                <small>استهلاك الخامات</small>
-                <strong id="statWeight">0 كجم</strong>
-            </div>
         </div>
 
         <div class="card" style="margin-top:14px">
-            <h2>سجل المبيعات</h2>
+            <h2>فلترة الطلبات</h2>
+
+            <div class="grid">
+                <div class="field">
+                    <label>بحث</label>
+                    <input id="ordersSearch" type="text" placeholder="اسم عميل أو مجسم..." oninput="loadSales()">
+                </div>
+
+                <div class="field">
+                    <label>الحالة</label>
+                    <select id="ordersStatusFilter" onchange="loadSales()">
+                        <option value="">كل الحالات</option>
+                        <option value="عرض سعر">عرض سعر</option>
+                        <option value="مؤكد">مؤكد</option>
+                        <option value="قيد الطباعة">قيد الطباعة</option>
+                        <option value="جاهز">جاهز</option>
+                        <option value="تم التسليم">تم التسليم</option>
+                        <option value="ملغي">ملغي</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>سجل الطلبات</h2>
 
             <div class="btn-row" style="margin-bottom:12px">
-                <button class="secondary" onclick="loadSales()">تحديث السجل</button>
+                <button class="secondary" onclick="loadSales()">تحديث</button>
                 <button class="secondary" onclick="exportCSV()">تصدير CSV / Excel</button>
-                <button class="danger" onclick="clearSales()">مسح كل السجل</button>
+                <button class="danger" onclick="clearSales()">مسح كل الطلبات</button>
             </div>
 
             <div id="salesList" class="sales-list">
-                <div class="empty-note">لا توجد مبيعات مسجلة.</div>
+                <div class="empty-note">لا توجد طلبات مسجلة.</div>
             </div>
         </div>
     </section>
 
+    <!-- ========================= -->
+    <!-- PAGE: REPORTS -->
+    <!-- ========================= -->
+    <section id="page-reports" class="page">
+        <h1>التقارير</h1>
+
+        <div class="stats">
+            <div class="stat">
+                <small>استهلاك الخامات</small>
+                <strong id="statWeight">0 كجم</strong>
+            </div>
+
+            <div class="stat">
+                <small>متوسط ربح / طلب</small>
+                <strong id="statAvgProfit">0 جنيه</strong>
+            </div>
+
+            <div class="stat">
+                <small>متوسط ربح / ساعة</small>
+                <strong id="statProfitPerHour">0 جنيه</strong>
+            </div>
+
+            <div class="stat">
+                <small>أفضل حالة</small>
+                <strong id="statTopStatus">-</strong>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+            <h2>ملخص سريع</h2>
+            <div id="reportsSummary" class="report-list">
+                <div class="empty-note">لا توجد بيانات كافية للتقارير.</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>استهلاك الخامات</h2>
+            <div id="materialsReport" class="report-list">
+                <div class="empty-note">لا توجد بيانات.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================= -->
+    <!-- PAGE: SETTINGS -->
+    <!-- ========================= -->
     <section id="page-settings" class="page">
         <h1>الإعدادات</h1>
 
         <div class="card">
-            <h2>الإعدادات العامة</h2>
+            <h2>إعدادات التسعير الأساسية</h2>
 
             <div class="grid-3">
                 <div class="field">
                     <label>نسبة الربح الافتراضية (%)</label>
                     <input id="setProfitPercent" type="text" inputmode="decimal" placeholder="مثال: 100">
                 </div>
+
                 <div class="field">
-                    <label>سعر ساعة شغلك اليدوي الافتراضي</label>
-                    <input id="setManualRate" type="text" inputmode="decimal" placeholder="مثال: 120 جنيه">
-                    <div class="muted">دي قيمة ساعة شغلك، أما دقائق الشغل اليدوي في الحاسبة فهي مدة شغلك في الطلب نفسه.</div>
+                    <label>سعر ساعة الشغل اليدوي</label>
+                    <input id="setManualRate" type="text" inputmode="decimal" placeholder="مثال: 120">
                 </div>
+
                 <div class="field">
-                    <label>تكلفة التغليف الافتراضية</label>
-                    <input id="setPackagingCost" type="text" inputmode="decimal" placeholder="مثال: 10 جنيه">
+                    <label>تكلفة التغليف</label>
+                    <input id="setPackagingCost" type="text" inputmode="decimal" placeholder="مثال: 10">
+                </div>
+
+                <div class="field">
+                    <label>تكلفة الكهرباء لكل ساعة</label>
+                    <input id="setElectricityCostPerHour" type="text" inputmode="decimal" placeholder="مثال: 3">
+                </div>
+
+                <div class="field">
+                    <label>نسبة الفشل / المخاطرة (%)</label>
+                    <input id="setFailurePercent" type="text" inputmode="decimal" placeholder="مثال: 10">
+                </div>
+
+                <div class="field">
+                    <label>تكلفة الشحن الافتراضية</label>
+                    <input id="setShippingCost" type="text" inputmode="decimal" placeholder="مثال: 0">
+                </div>
+
+                <div class="field">
+                    <label>الضريبة (%)</label>
+                    <input id="setTaxPercent" type="text" inputmode="decimal" placeholder="مثال: 0">
+                </div>
+
+                <div class="field">
+                    <label>الحد الأدنى للطلب</label>
+                    <input id="setMinimumOrderPrice" type="text" inputmode="decimal" placeholder="مثال: 50">
+                </div>
+
+                <div class="field">
+                    <label>تقريب السعر لأقرب</label>
+                    <input id="setRoundingStep" type="text" inputmode="decimal" placeholder="مثال: 5 أو 10">
                 </div>
             </div>
 
             <div style="height:12px"></div>
-            <button onclick="saveGeneralSettings()">حفظ الإعدادات العامة</button>
+            <button onclick="saveGeneralSettings()">حفظ إعدادات التسعير</button>
+        </div>
+
+        <div class="card">
+            <h2>بنود ثابتة قابلة للاختيار</h2>
+
+            <div class="hint-box">
+                أمثلة: إزالة دعامات، صنفرة، تركيب، مغناطيس، تعديل ملف، تغليف خاص.  
+                هذه البنود تظهر في صفحة التسعير وتقدر تختار منها حسب الطلب.
+            </div>
+
+            <div class="grid">
+                <div class="field">
+                    <label>اسم البند</label>
+                    <input id="extraName" type="text" placeholder="مثال: إزالة دعامات">
+                </div>
+
+                <div class="field">
+                    <label>تكلفة البند</label>
+                    <input id="extraCost" type="text" inputmode="decimal" placeholder="مثال: 20">
+                </div>
+            </div>
+
+            <div style="height:12px"></div>
+
+            <div class="btn-row">
+                <button id="extraSaveBtn" onclick="saveExtra()">إضافة بند</button>
+                <button id="extraCancelBtn" class="secondary" onclick="cancelExtraEdit()" style="display:none">إلغاء التعديل</button>
+            </div>
+
+            <div style="height:12px"></div>
+            <div id="extrasSettingsList"></div>
         </div>
 
         <div class="card">
@@ -213,14 +459,17 @@
                     <label>اسم الماكينة</label>
                     <input id="printerName" type="text" placeholder="مثال: BAMBU LAB A1">
                 </div>
+
                 <div class="field">
-                    <label>سعر ساعة التشغيل بالجنيه</label>
+                    <label>سعر ساعة التشغيل / الإهلاك</label>
                     <input id="printerRate" type="text" inputmode="decimal" placeholder="مثال: 35 جنيه">
                 </div>
+
                 <div class="field">
                     <label>حد الصيانة بالساعات</label>
                     <input id="printerMaintenanceLimit" type="text" inputmode="decimal" placeholder="مثال: 200">
                 </div>
+
                 <div class="field">
                     <label>الساعات الحالية</label>
                     <input id="printerCurrentHours" type="text" inputmode="decimal" placeholder="0">
@@ -250,14 +499,17 @@
                     <label>اسم / نوع الخامة</label>
                     <input id="matName" type="text" placeholder="مثال: PLA">
                 </div>
+
                 <div class="field">
                     <label>اللون</label>
                     <input id="matColor" type="text" placeholder="مثال: أسود">
                 </div>
+
                 <div class="field">
                     <label>الشركة</label>
                     <input id="matBrand" type="text" placeholder="مثال: Bambu Lab">
                 </div>
+
                 <div class="field">
                     <label>السعر لكل كجم / 1000 جرام</label>
                     <input id="matKgPrice" type="text" inputmode="decimal" placeholder="مثال: 1000 جنيه">
@@ -281,6 +533,5 @@
 <div id="toast" class="toast"></div>
 
 <script src="js/app.js"></script>
-
 </body>
 </html>
