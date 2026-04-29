@@ -1,6 +1,6 @@
 "use strict";
 
-const STORAGE_KEY = "bambu_manager_v2";
+const STORAGE_KEY = "bambu_manager_v3";
 
 const defaultState = {
     settings: {
@@ -12,7 +12,7 @@ const defaultState = {
         shippingCost: 0,
         taxPercent: 0,
         minimumOrderPrice: 0,
-        roundingStep: 1
+        roundingStep: 5
     },
     printers: [
         {
@@ -32,23 +32,6 @@ const defaultState = {
             kgPrice: 1000
         }
     ],
-    extras: [
-        {
-            id: makeId(),
-            name: "إزالة دعامات",
-            cost: 20
-        },
-        {
-            id: makeId(),
-            name: "تجميع / تركيب",
-            cost: 25
-        },
-        {
-            id: makeId(),
-            name: "تعديل ملف",
-            cost: 30
-        }
-    ],
     sales: []
 };
 
@@ -56,7 +39,6 @@ let state = loadState();
 
 let editingPrinterId = null;
 let editingMaterialId = null;
-let editingExtraId = null;
 let lastCalc = null;
 
 document.addEventListener("DOMContentLoaded", initApp);
@@ -70,7 +52,6 @@ function initApp() {
     loadSettingsIntoUI();
     renderPrinters();
     renderMaterials();
-    renderExtras();
     renderMachineSelect();
 
     if (!document.querySelector(".order-material-row")) {
@@ -82,25 +63,11 @@ function initApp() {
 }
 
 function attachSafeButtonHandlers() {
-    const extraSaveBtn = document.getElementById("extraSaveBtn");
-    if (extraSaveBtn) {
-        extraSaveBtn.onclick = saveExtra;
-    }
-
-    const extraCancelBtn = document.getElementById("extraCancelBtn");
-    if (extraCancelBtn) {
-        extraCancelBtn.onclick = cancelExtraEdit;
-    }
-
     const printerSaveBtn = document.getElementById("printerSaveBtn");
-    if (printerSaveBtn) {
-        printerSaveBtn.onclick = savePrinter;
-    }
+    if (printerSaveBtn) printerSaveBtn.onclick = savePrinter;
 
     const materialSaveBtn = document.getElementById("materialSaveBtn");
-    if (materialSaveBtn) {
-        materialSaveBtn.onclick = saveMaterial;
-    }
+    if (materialSaveBtn) materialSaveBtn.onclick = saveMaterial;
 }
 
 function makeId() {
@@ -113,15 +80,27 @@ function structuredCloneSafe(obj) {
 
 function loadState() {
     try {
-        const rawV2 = localStorage.getItem(STORAGE_KEY);
-        if (rawV2) {
-            return mergeDeep(structuredCloneSafe(defaultState), JSON.parse(rawV2));
+        const rawV3 = localStorage.getItem(STORAGE_KEY);
+        if (rawV3) {
+            return mergeDeep(structuredCloneSafe(defaultState), JSON.parse(rawV3));
         }
 
-        const oldRaw = localStorage.getItem("bambu_manager_v1");
-        if (oldRaw) {
-            const oldState = JSON.parse(oldRaw);
-            return mergeDeep(structuredCloneSafe(defaultState), oldState);
+        const rawV2 = localStorage.getItem("bambu_manager_v2");
+        if (rawV2) {
+            const oldState = JSON.parse(rawV2);
+            const migrated = mergeDeep(structuredCloneSafe(defaultState), oldState);
+            delete migrated.extras;
+            migrated.settings.roundingStep = num(migrated.settings.roundingStep) || 5;
+            return migrated;
+        }
+
+        const rawV1 = localStorage.getItem("bambu_manager_v1");
+        if (rawV1) {
+            const oldState = JSON.parse(rawV1);
+            const migrated = mergeDeep(structuredCloneSafe(defaultState), oldState);
+            delete migrated.extras;
+            migrated.settings.roundingStep = num(migrated.settings.roundingStep) || 5;
+            return migrated;
         }
 
         return structuredCloneSafe(defaultState);
@@ -156,9 +135,10 @@ function normalizeState() {
     if (!state.settings) state.settings = {};
     state.settings = mergeDeep(structuredCloneSafe(defaultState.settings), state.settings);
 
+    state.settings.roundingStep = num(state.settings.roundingStep) || 5;
+
     if (!Array.isArray(state.printers)) state.printers = [];
     if (!Array.isArray(state.materials)) state.materials = [];
-    if (!Array.isArray(state.extras)) state.extras = [];
     if (!Array.isArray(state.sales)) state.sales = [];
 
     if (state.printers.length === 0) {
@@ -183,12 +163,6 @@ function normalizeState() {
         color: m.color || "",
         brand: m.brand || "",
         kgPrice: num(m.kgPrice)
-    }));
-
-    state.extras = state.extras.map((x) => ({
-        id: x.id || makeId(),
-        name: x.name || "بند إضافي",
-        cost: num(x.cost)
     }));
 
     state.sales = state.sales.map((s) => ({
@@ -309,7 +283,7 @@ function loadSettingsIntoUI() {
     setValue("shippingCost", s.shippingCost);
     setValue("taxPercent", s.taxPercent);
     setValue("minimumOrderPrice", s.minimumOrderPrice);
-    setValue("roundingStep", s.roundingStep);
+    setValue("roundingStep", s.roundingStep || 5);
 
     setValue("setProfitPercent", s.profitPercent);
     setValue("setManualRate", s.manualRate);
@@ -319,7 +293,7 @@ function loadSettingsIntoUI() {
     setValue("setShippingCost", s.shippingCost);
     setValue("setTaxPercent", s.taxPercent);
     setValue("setMinimumOrderPrice", s.minimumOrderPrice);
-    setValue("setRoundingStep", s.roundingStep);
+    setValue("setRoundingStep", s.roundingStep || 5);
 }
 
 function saveGeneralFromCalculator() {
@@ -331,7 +305,7 @@ function saveGeneralFromCalculator() {
     state.settings.shippingCost = num(getValue("shippingCost"));
     state.settings.taxPercent = num(getValue("taxPercent"));
     state.settings.minimumOrderPrice = num(getValue("minimumOrderPrice"));
-    state.settings.roundingStep = num(getValue("roundingStep")) || 1;
+    state.settings.roundingStep = num(getValue("roundingStep")) || 5;
 
     saveState();
     loadSettingsIntoUI();
@@ -348,7 +322,7 @@ function saveGeneralSettings() {
     state.settings.shippingCost = num(getValue("setShippingCost"));
     state.settings.taxPercent = num(getValue("setTaxPercent"));
     state.settings.minimumOrderPrice = num(getValue("setMinimumOrderPrice"));
-    state.settings.roundingStep = num(getValue("setRoundingStep")) || 1;
+    state.settings.roundingStep = num(getValue("setRoundingStep")) || 5;
 
     saveState();
     loadSettingsIntoUI();
@@ -777,177 +751,6 @@ function getOrderMaterials() {
     }).filter((x) => x.weight > 0);
 }
 
-function renderExtras() {
-    renderExtrasSettings();
-    renderQuickExtras();
-}
-
-function renderExtrasSettings() {
-    const list = document.getElementById("extrasSettingsList");
-    if (!list) return;
-
-    if (!state.extras.length) {
-        list.innerHTML = `<div class="empty-note">لا توجد بنود ثابتة.</div>`;
-        return;
-    }
-
-    list.innerHTML = state.extras.map((x) => `
-        <div class="item-card">
-            <div class="item-head">
-                <div>
-                    <div class="item-title">${escapeHtml(x.name)}</div>
-                    <div class="item-sub">تكلفة ثابتة قابلة للاختيار وقت التسعير</div>
-                </div>
-                <div class="item-price">${money(x.cost)} ج</div>
-            </div>
-
-            <div class="item-actions">
-                <button class="secondary" onclick="editExtra('${x.id}')">تعديل</button>
-                <button class="danger" onclick="deleteExtra('${x.id}')">حذف</button>
-            </div>
-        </div>
-    `).join("");
-}
-
-function renderQuickExtras() {
-    const list = document.getElementById("quickExtrasList");
-    if (!list) return;
-
-    if (!state.extras.length) {
-        list.innerHTML = `<div class="empty-note">لا توجد بنود ثابتة. أضفها من الإعدادات.</div>`;
-        return;
-    }
-
-    list.innerHTML = state.extras.map((x) => `
-        <label class="extra-check">
-            <input type="checkbox" class="quick-extra-check" value="${escapeHtml(x.id)}" onchange="calculate()">
-            <span>
-                <strong>${escapeHtml(x.name)}</strong>
-                <small>${money(x.cost)} جنيه</small>
-            </span>
-        </label>
-    `).join("");
-}
-
-function saveExtra() {
-    const name = getValue("extraName").trim();
-    const cost = num(getValue("extraCost"));
-
-    if (!name) {
-        toast("اكتب اسم البند");
-        return;
-    }
-
-    if (cost <= 0) {
-        toast("اكتب تكلفة البند");
-        return;
-    }
-
-    if (editingExtraId) {
-        const x = state.extras.find((item) => item.id === editingExtraId);
-
-        if (x) {
-            x.name = name;
-            x.cost = cost;
-        }
-
-        editingExtraId = null;
-        clearExtraForm();
-        setExtraEditMode(false);
-        toast("تم تعديل البند");
-    } else {
-        state.extras.push({
-            id: makeId(),
-            name,
-            cost
-        });
-
-        clearExtraForm();
-        toast("تمت إضافة البند");
-    }
-
-    saveState();
-    renderExtras();
-    calculate();
-}
-
-function editExtra(id) {
-    const x = state.extras.find((item) => item.id === id);
-    if (!x) return;
-
-    editingExtraId = id;
-
-    setValue("extraName", x.name);
-    setValue("extraCost", x.cost);
-
-    setExtraEditMode(true);
-    showPage("settings");
-}
-
-function setExtraEditMode(isEditing) {
-    const saveBtn = document.getElementById("extraSaveBtn");
-    const cancelBtn = document.getElementById("extraCancelBtn");
-
-    if (saveBtn) saveBtn.textContent = isEditing ? "حفظ تعديل البند" : "إضافة بند";
-    if (cancelBtn) cancelBtn.style.display = isEditing ? "inline-block" : "none";
-}
-
-function cancelExtraEdit(showToast = true) {
-    editingExtraId = null;
-    clearExtraForm();
-    setExtraEditMode(false);
-
-    if (showToast) toast("تم إلغاء تعديل البند");
-}
-
-function clearExtraForm() {
-    setValue("extraName", "");
-    setValue("extraCost", "");
-}
-
-function deleteExtra(id) {
-    if (!confirm("حذف البند الثابت؟")) return;
-
-    if (editingExtraId === id) {
-        cancelExtraEdit(false);
-    }
-
-    state.extras = state.extras.filter((x) => x.id !== id);
-
-    saveState();
-    renderExtras();
-    calculate();
-    toast("تم حذف البند");
-}
-
-function getSelectedExtras() {
-    const checks = Array.from(document.querySelectorAll(".quick-extra-check:checked"));
-
-    const selected = checks.map((check) => {
-        const extra = state.extras.find((x) => x.id === check.value);
-        if (!extra) return null;
-
-        return {
-            id: extra.id,
-            name: extra.name,
-            cost: num(extra.cost)
-        };
-    }).filter(Boolean);
-
-    const manualName = getValue("manualExtraName").trim();
-    const manualCost = num(getValue("manualExtraCost"));
-
-    if (manualName && manualCost > 0) {
-        selected.push({
-            id: "manual",
-            name: manualName,
-            cost: manualCost
-        });
-    }
-
-    return selected;
-}
-
 function calculate() {
     const printer = selectedPrinter();
 
@@ -957,7 +760,7 @@ function calculate() {
     const manualMinutes = num(getValue("manualMinutes"));
 
     const profitPercent = num(getValue("profitPercent"));
-    const discount = num(getValue("discount"));
+    const discountInput = num(getValue("discount"));
     const manualRate = num(getValue("manualRate"));
     const packagingCost = num(getValue("packagingCost"));
 
@@ -966,10 +769,9 @@ function calculate() {
     const shippingCost = num(getValue("shippingCost"));
     const taxPercent = num(getValue("taxPercent"));
     const minimumOrderPrice = num(getValue("minimumOrderPrice"));
-    const roundingStep = num(getValue("roundingStep")) || 1;
+    const roundingStep = num(getValue("roundingStep")) || 5;
 
     const orderMaterials = getOrderMaterials();
-    const selectedExtras = getSelectedExtras();
 
     const materialWeight = orderMaterials.reduce((sum, item) => sum + num(item.weight), 0);
     const materialCost = orderMaterials.reduce((sum, item) => sum + num(item.cost), 0);
@@ -980,7 +782,6 @@ function calculate() {
     const machineCost = printHours * machineRate;
     const electricityCost = printHours * electricityCostPerHour;
     const manualCost = (manualMinutes / 60) * manualRate;
-    const extrasCost = selectedExtras.reduce((sum, item) => sum + num(item.cost), 0);
 
     const baseCost =
         materialCost +
@@ -989,16 +790,17 @@ function calculate() {
         electricityCost +
         manualCost +
         packagingCost +
-        shippingCost +
-        extrasCost;
+        shippingCost;
 
     const riskCost = baseCost * (failurePercent / 100);
     const costBeforeTax = baseCost + riskCost;
     const taxCost = costBeforeTax * (taxPercent / 100);
     const totalCost = costBeforeTax + taxCost;
 
-    let finalPrice = totalCost * (1 + profitPercent / 100);
-    finalPrice = finalPrice - discount;
+    const priceBeforeDiscount = totalCost * (1 + profitPercent / 100);
+    const discount = Math.min(Math.max(discountInput, 0), priceBeforeDiscount);
+
+    let finalPrice = priceBeforeDiscount - discount;
 
     if (minimumOrderPrice > 0) {
         finalPrice = Math.max(finalPrice, minimumOrderPrice);
@@ -1046,9 +848,6 @@ function calculate() {
         profitPercent,
         discount,
 
-        extrasCost,
-        selectedExtras,
-
         totalCost,
         finalPrice,
         netProfit,
@@ -1083,7 +882,6 @@ function renderPriceBreakdown(calc) {
         <div><span>الشغل اليدوي</span><strong>${money(calc.manualCost)} ج</strong></div>
         <div><span>التغليف</span><strong>${money(calc.packagingCost)} ج</strong></div>
         <div><span>الشحن</span><strong>${money(calc.shippingCost)} ج</strong></div>
-        <div><span>بنود إضافية</span><strong>${money(calc.extrasCost)} ج</strong></div>
         <div><span>مخاطرة / فشل</span><strong>${money(calc.riskCost)} ج</strong></div>
         <div><span>ضريبة</span><strong>${money(calc.taxCost)} ج</strong></div>
         <div><span>الخصم</span><strong>${money(calc.discount)} ج</strong></div>
@@ -1092,7 +890,6 @@ function renderPriceBreakdown(calc) {
 
 function applyPrinterHoursForSale(sale) {
     if (!sale || sale.hoursApplied) return;
-
     if (sale.status === "ملغي") return;
 
     const printer = state.printers.find((p) => p.id === sale.printerId);
@@ -1142,12 +939,6 @@ function clearOrderAfterSale() {
     setValue("wasteWeight", "");
     setValue("manualMinutes", "");
     setValue("discount", "");
-    setValue("manualExtraName", "");
-    setValue("manualExtraCost", "");
-
-    document.querySelectorAll(".quick-extra-check").forEach((check) => {
-        check.checked = false;
-    });
 
     const container = document.getElementById("orderMaterials");
     if (container) {
@@ -1619,12 +1410,12 @@ function exportCSV() {
         "material_weight_g",
         "waste_weight_g",
         "material_cost",
+        "waste_cost",
         "machine_cost",
         "electricity_cost",
         "manual_cost",
         "packaging_cost",
         "shipping_cost",
-        "extras_cost",
         "risk_cost",
         "tax_cost",
         "discount",
@@ -1644,12 +1435,12 @@ function exportCSV() {
         s.materialWeight,
         s.wasteWeight,
         round2(s.materialCost),
+        round2(s.wasteCost),
         round2(s.machineCost),
         round2(s.electricityCost),
         round2(s.manualCost),
         round2(s.packagingCost),
         round2(s.shippingCost),
-        round2(s.extrasCost),
         round2(s.riskCost),
         round2(s.taxCost),
         round2(s.discount),
