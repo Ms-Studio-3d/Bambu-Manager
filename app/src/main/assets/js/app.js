@@ -18,7 +18,7 @@ const defaultState = {
         {
             id: makeId(),
             name: "BAMBU LAB A1",
-            rate: 35,
+            rate: 20,
             maintenanceLimit: 200,
             currentHours: 0
         }
@@ -29,7 +29,7 @@ const defaultState = {
             name: "PLA",
             color: "Black",
             brand: "Bambu Lab",
-            kgPrice: 1000
+            kgPrice: 800
         }
     ],
     sales: []
@@ -1226,8 +1226,8 @@ function getSaleForAction(id) {
 
 function buildInvoice(sale) {
     const lines = [
-        "Bambu Business Manager",
-        "-------------------------",
+        "أهلاً بيك في MS Studio 3D 👋",
+        "",
         `اسم العميل: ${sale.clientName || "-"}`,
         `اسم المنتج: ${sale.modelName || "-"}`
     ];
@@ -1236,7 +1236,7 @@ function buildInvoice(sale) {
         lines.push(`الخصم: ${money(sale.discount)} جنيه`);
     }
 
-    lines.push("-------------------------");
+    lines.push("");
     lines.push(`السعر النهائي: ${money(sale.finalPrice)} جنيه`);
 
     return lines.join("\n");
@@ -1253,42 +1253,70 @@ function buildPrintableInvoiceHtml(sale) {
                     font-family: Arial, sans-serif;
                     direction: rtl;
                     padding: 24px;
-                    color: #000;
+                    color: #111;
+                    background: #fff;
                 }
+
                 .invoice {
                     max-width: 700px;
                     margin: 0 auto;
                     border: 1px solid #ddd;
-                    padding: 24px;
-                    border-radius: 12px;
+                    padding: 28px;
+                    border-radius: 14px;
                 }
-                h1 {
-                    margin: 0 0 16px;
+
+                .welcome {
                     text-align: center;
-                    font-size: 22px;
+                    font-size: 24px;
+                    font-weight: bold;
+                    margin-bottom: 24px;
                 }
+
                 .row {
                     display: flex;
                     justify-content: space-between;
                     gap: 16px;
-                    padding: 10px 0;
+                    padding: 12px 0;
                     border-bottom: 1px solid #eee;
                     font-size: 17px;
                 }
+
+                .row strong {
+                    min-width: 120px;
+                }
+
                 .price {
-                    margin-top: 18px;
+                    margin-top: 24px;
                     text-align: center;
-                    font-size: 30px;
+                    font-size: 32px;
                     font-weight: bold;
                 }
             </style>
         </head>
+
         <body>
             <div class="invoice">
-                <h1>Bambu Business Manager</h1>
-                <div class="row"><strong>اسم العميل</strong><span>${escapeHtml(sale.clientName || "-")}</span></div>
-                <div class="row"><strong>اسم المنتج</strong><span>${escapeHtml(sale.modelName || "-")}</span></div>
-                ${num(sale.discount) > 0 ? `<div class="row"><strong>الخصم</strong><span>${money(sale.discount)} جنيه</span></div>` : ""}
+                <div class="welcome">أهلاً بيك في MS Studio 3D 👋</div>
+
+                <div class="row">
+                    <strong>اسم العميل</strong>
+                    <span>${escapeHtml(sale.clientName || "-")}</span>
+                </div>
+
+                <div class="row">
+                    <strong>اسم المنتج</strong>
+                    <span>${escapeHtml(sale.modelName || "-")}</span>
+                </div>
+
+                ${
+                    num(sale.discount) > 0
+                        ? `<div class="row">
+                            <strong>الخصم</strong>
+                            <span>${money(sale.discount)} جنيه</span>
+                           </div>`
+                        : ""
+                }
+
                 <div class="price">السعر النهائي: ${money(sale.finalPrice)} جنيه</div>
             </div>
         </body>
