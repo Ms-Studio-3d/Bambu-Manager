@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bambu Business Manager</title>
     <link rel="stylesheet" href="css/app.css">
+
+    <style>
+        .top-tabs {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .system-hidden {
+            display: none !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -20,71 +30,38 @@
 
     <div class="top-tabs">
         <button class="tab-btn active" onclick="showPage('calc')">التسعير</button>
-        <button class="tab-btn" onclick="showPage('orders')">الطلبات</button>
-        <button class="tab-btn" onclick="showPage('reports')">التقارير</button>
         <button class="tab-btn" onclick="showPage('settings')">الإعدادات</button>
     </div>
 
     <section id="page-calc" class="page active">
 
-        <div class="card soft">
-            <h2>⚙️ حالة الماكينة</h2>
+        <div class="system-hidden">
+            <select id="machineSelect" onchange="onMachineChanged()"></select>
+            <strong id="machineHoursText">الساعات المسجلة: 0 / 200 س</strong>
+            <span id="maintenanceProgress"></span>
+            <strong id="afterOrderHours">0.0 س</strong>
 
-            <div class="machine-status">
-                <div class="field">
-                    <label>اختيار ماكينة للحساب</label>
-                    <select id="machineSelect" onchange="onMachineChanged()"></select>
-                </div>
-
-                <div class="status-line">
-                    <strong id="machineHoursText">الساعات المسجلة: 0 / 200 س</strong>
-                    <button class="secondary" onclick="resetSelectedMachineHours()">تصفير الصيانة</button>
-                </div>
-
-                <div class="progress"><span id="maintenanceProgress"></span></div>
-
-                <div class="status-line">
-                    <span>بعد الطلب الحالي:</span>
-                    <strong id="afterOrderHours">0.0 س</strong>
-                </div>
-            </div>
+            <input id="clientName" type="text" value="">
+            <input id="modelName" type="text" value="طلب سريع">
+            <select id="orderStatus">
+                <option value="تم التسليم" selected>تم التسليم</option>
+                <option value="عرض سعر">عرض سعر</option>
+                <option value="مؤكد">مؤكد</option>
+                <option value="قيد الطباعة">قيد الطباعة</option>
+                <option value="جاهز">جاهز</option>
+                <option value="ملغي">ملغي</option>
+            </select>
+            <input id="orderNotes" type="text" value="">
         </div>
 
         <div class="card">
-            <h2>👤 العميل والطلب</h2>
+            <h2>📦 عدد القطع</h2>
 
             <div class="grid">
                 <div class="field">
-                    <label>اسم العميل</label>
-                    <input id="clientName" type="text" placeholder="مثال: أحمد محمد" oninput="calculate()">
-                </div>
-
-                <div class="field">
-                    <label>اسم المجسم / الطلب</label>
-                    <input id="modelName" type="text" placeholder="مثال: حامل موبايل" oninput="calculate()">
-                </div>
-
-                <div class="field">
-                    <label>حالة الطلب</label>
-                    <select id="orderStatus" onchange="calculate()">
-                        <option value="عرض سعر">عرض سعر</option>
-                        <option value="مؤكد">مؤكد</option>
-                        <option value="قيد الطباعة">قيد الطباعة</option>
-                        <option value="جاهز">جاهز</option>
-                        <option value="تم التسليم">تم التسليم</option>
-                        <option value="ملغي">ملغي</option>
-                    </select>
-                </div>
-
-                <div class="field">
                     <label>عدد القطع</label>
                     <input id="pieceQuantity" type="text" inputmode="numeric" value="1" placeholder="مثال: 1" oninput="calculate()">
-                    <div class="muted">زي الديسك توب: الوزن والوقت والشغل إجمالي الأوردر، والإكسسوارات فقط للقطعة.</div>
-                </div>
-
-                <div class="field">
-                    <label>ملاحظات</label>
-                    <input id="orderNotes" type="text" placeholder="مقاس، لون، تفاصيل خاصة..." oninput="calculate()">
+                    <div class="muted">الوزن والوقت والشغل إجمالي الأوردر، والإكسسوارات فقط للقطعة.</div>
                 </div>
             </div>
         </div>
@@ -157,7 +134,7 @@
                 <div class="field">
                     <label>إكسسوارات / إضافة للقطعة</label>
                     <input id="accessoriesCost" type="text" inputmode="decimal" placeholder="مثال: 20 جنيه" oninput="calculate()">
-                    <div class="muted">تضرب في عدد القطع مثل برنامج الديسك توب.</div>
+                    <div class="muted">تضرب في عدد القطع.</div>
                 </div>
             </div>
 
@@ -232,111 +209,7 @@
                 <button onclick="printInvoice()">طباعة / PDF</button>
             </div>
 
-            <button class="confirm-btn" onclick="confirmSale()">✅ حفظ كطلب</button>
-        </div>
-    </section>
-
-    <section id="page-orders" class="page">
-        <h1>الطلبات</h1>
-
-        <div class="stats">
-            <div class="stat">
-                <small>إجمالي الطلبات</small>
-                <strong id="statOrdersCount">0</strong>
-            </div>
-
-            <div class="stat">
-                <small>إجمالي المبيعات</small>
-                <strong id="statSales">0 جنيه</strong>
-            </div>
-
-            <div class="stat">
-                <small>إجمالي الأرباح</small>
-                <strong id="statProfit">0 جنيه</strong>
-            </div>
-
-            <div class="stat">
-                <small>ساعات العمل</small>
-                <strong id="statHours">0 س</strong>
-            </div>
-        </div>
-
-        <div class="card" style="margin-top:14px">
-            <h2>فلترة الطلبات</h2>
-
-            <div class="grid">
-                <div class="field">
-                    <label>بحث</label>
-                    <input id="ordersSearch" type="text" placeholder="اسم عميل أو مجسم..." oninput="loadSales()">
-                </div>
-
-                <div class="field">
-                    <label>الحالة</label>
-                    <select id="ordersStatusFilter" onchange="loadSales()">
-                        <option value="">كل الحالات</option>
-                        <option value="عرض سعر">عرض سعر</option>
-                        <option value="مؤكد">مؤكد</option>
-                        <option value="قيد الطباعة">قيد الطباعة</option>
-                        <option value="جاهز">جاهز</option>
-                        <option value="تم التسليم">تم التسليم</option>
-                        <option value="ملغي">ملغي</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>سجل الطلبات</h2>
-
-            <div class="btn-row" style="margin-bottom:12px">
-                <button class="secondary" onclick="loadSales()">تحديث</button>
-                <button class="secondary" onclick="exportCSV()">تصدير CSV / Excel</button>
-                <button class="danger" onclick="clearSales()">مسح كل الطلبات</button>
-            </div>
-
-            <div id="salesList" class="sales-list">
-                <div class="empty-note">لا توجد طلبات مسجلة.</div>
-            </div>
-        </div>
-    </section>
-
-    <section id="page-reports" class="page">
-        <h1>التقارير</h1>
-
-        <div class="stats">
-            <div class="stat">
-                <small>استهلاك الخامات</small>
-                <strong id="statWeight">0 كجم</strong>
-            </div>
-
-            <div class="stat">
-                <small>متوسط ربح / طلب</small>
-                <strong id="statAvgProfit">0 جنيه</strong>
-            </div>
-
-            <div class="stat">
-                <small>متوسط ربح / ساعة</small>
-                <strong id="statProfitPerHour">0 جنيه</strong>
-            </div>
-
-            <div class="stat">
-                <small>أفضل حالة</small>
-                <strong id="statTopStatus">-</strong>
-            </div>
-        </div>
-
-        <div class="card" style="margin-top:14px">
-            <h2>ملخص سريع</h2>
-            <div id="reportsSummary" class="report-list">
-                <div class="empty-note">لا توجد بيانات كافية للتقارير.</div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>استهلاك الخامات</h2>
-            <div id="materialsReport" class="report-list">
-                <div class="empty-note">لا توجد بيانات.</div>
-            </div>
+            <button class="confirm-btn" onclick="confirmSale()">✅ حفظ</button>
         </div>
     </section>
 
@@ -488,5 +361,63 @@
 <div id="toast" class="toast"></div>
 
 <script src="js/app.js"></script>
+
+<script>
+(function () {
+    function ensureHiddenDefaults() {
+        var modelName = document.getElementById("modelName");
+        var orderStatus = document.getElementById("orderStatus");
+        var clientName = document.getElementById("clientName");
+        var orderNotes = document.getElementById("orderNotes");
+
+        if (modelName && !String(modelName.value || "").trim()) {
+            modelName.value = "طلب سريع";
+        }
+
+        if (orderStatus && !String(orderStatus.value || "").trim()) {
+            orderStatus.value = "تم التسليم";
+        }
+
+        if (clientName && clientName.value === undefined) {
+            clientName.value = "";
+        }
+
+        if (orderNotes && orderNotes.value === undefined) {
+            orderNotes.value = "";
+        }
+    }
+
+    window.addEventListener("DOMContentLoaded", function () {
+        ensureHiddenDefaults();
+
+        var oldCalculate = window.calculate;
+        if (typeof oldCalculate === "function") {
+            window.calculate = function () {
+                ensureHiddenDefaults();
+                return oldCalculate.apply(this, arguments);
+            };
+        }
+
+        var oldConfirmSale = window.confirmSale;
+        if (typeof oldConfirmSale === "function") {
+            window.confirmSale = function () {
+                ensureHiddenDefaults();
+                return oldConfirmSale.apply(this, arguments);
+            };
+        }
+
+        var oldClearOrderAfterSale = window.clearOrderAfterSale;
+        if (typeof oldClearOrderAfterSale === "function") {
+            window.clearOrderAfterSale = function () {
+                var result = oldClearOrderAfterSale.apply(this, arguments);
+                ensureHiddenDefaults();
+                return result;
+            };
+        }
+
+        ensureHiddenDefaults();
+    });
+})();
+</script>
 </body>
 </html>
