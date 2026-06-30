@@ -6,10 +6,11 @@ const DRAFT_KEY = "bambu_manager_current_draft_v1";
 const defaultState = {
     settings: {
         profitPercent: 100,
-        manualRate: 60,
+        manualRate: 50,
         packagingCost: 10,
-        electricityCostPerHour: 0,
-        failurePercent: 5,
+        electricityCostPerHour: 3,
+        failurePercent: 10,
+        accessoriesCost: 0,
         shippingCost: 0,
         taxPercent: 0,
         minimumOrderPrice: 0,
@@ -276,6 +277,7 @@ function collectCurrentDraft() {
         modelName: getValue("modelName"),
         orderStatus: getValue("orderStatus"),
         orderNotes: getValue("orderNotes"),
+        pieceQuantity: getValue("pieceQuantity"),
         printHours: getValue("printHours"),
         machineRate: getValue("machineRate"),
         wasteWeight: getValue("wasteWeight"),
@@ -284,6 +286,7 @@ function collectCurrentDraft() {
         discount: getValue("discount"),
         manualRate: getValue("manualRate"),
         packagingCost: getValue("packagingCost"),
+        accessoriesCost: getValue("accessoriesCost"),
         electricityCostPerHour: getValue("electricityCostPerHour"),
         failurePercent: getValue("failurePercent"),
         shippingCost: getValue("shippingCost"),
@@ -314,6 +317,7 @@ function restoreCurrentDraft() {
         setValue("modelName", draft.modelName || "");
         setValue("orderStatus", draft.orderStatus || "عرض سعر");
         setValue("orderNotes", draft.orderNotes || "");
+        setValue("pieceQuantity", draft.pieceQuantity || "1");
         setValue("printHours", draft.printHours || "");
         setValue("machineRate", draft.machineRate || "");
         setValue("wasteWeight", draft.wasteWeight || "");
@@ -322,6 +326,7 @@ function restoreCurrentDraft() {
         setValue("discount", draft.discount || "");
         setValue("manualRate", draft.manualRate || state.settings.manualRate);
         setValue("packagingCost", draft.packagingCost || state.settings.packagingCost);
+        setValue("accessoriesCost", draft.accessoriesCost || state.settings.accessoriesCost || 0);
         setValue("electricityCostPerHour", draft.electricityCostPerHour || state.settings.electricityCostPerHour);
         setValue("failurePercent", draft.failurePercent || state.settings.failurePercent);
         setValue("shippingCost", draft.shippingCost || state.settings.shippingCost);
@@ -397,6 +402,7 @@ function loadSettingsIntoUI() {
     setValue("profitPercent", s.profitPercent);
     setValue("manualRate", s.manualRate);
     setValue("packagingCost", s.packagingCost);
+    setValue("accessoriesCost", s.accessoriesCost || 0);
     setValue("electricityCostPerHour", s.electricityCostPerHour);
     setValue("failurePercent", s.failurePercent);
     setValue("shippingCost", s.shippingCost);
@@ -407,6 +413,7 @@ function loadSettingsIntoUI() {
     setValue("setProfitPercent", s.profitPercent);
     setValue("setManualRate", s.manualRate);
     setValue("setPackagingCost", s.packagingCost);
+    setValue("setAccessoriesCost", s.accessoriesCost || 0);
     setValue("setElectricityCostPerHour", s.electricityCostPerHour);
     setValue("setFailurePercent", s.failurePercent);
     setValue("setShippingCost", s.shippingCost);
@@ -419,6 +426,7 @@ function saveGeneralFromCalculator() {
     state.settings.profitPercent = num(getValue("profitPercent"));
     state.settings.manualRate = num(getValue("manualRate"));
     state.settings.packagingCost = num(getValue("packagingCost"));
+    state.settings.accessoriesCost = num(getValue("accessoriesCost"));
     state.settings.electricityCostPerHour = num(getValue("electricityCostPerHour"));
     state.settings.failurePercent = num(getValue("failurePercent"));
     state.settings.shippingCost = num(getValue("shippingCost"));
@@ -437,6 +445,7 @@ function saveGeneralSettings() {
     state.settings.profitPercent = num(getValue("setProfitPercent"));
     state.settings.manualRate = num(getValue("setManualRate"));
     state.settings.packagingCost = num(getValue("setPackagingCost"));
+    state.settings.accessoriesCost = num(getValue("setAccessoriesCost"));
     state.settings.electricityCostPerHour = num(getValue("setElectricityCostPerHour"));
     state.settings.failurePercent = num(getValue("setFailurePercent"));
     state.settings.shippingCost = num(getValue("setShippingCost"));
@@ -890,9 +899,105 @@ function getOrderMaterials() {
 /* CALCULATION */
 /* ========================= */
 
+function toNonNegativeNumber(value, fallback = 0) {
+    const n = num(value);
+    if (Number.isFinite(n) && n >= 0) return n;
+    return Math.max(0, fallback);
+}
+
+function toPositiveInteger(value, fallback = 1) {
+    const n = num(value);
+    if (!Number.isFinite(n)) return fallback;
+    const integer = Math.floor(n);
+    return integer > 0 ? integer : fallback;
+}
+
+function roundUpByStep(value, step) {
+    const safeValue = toNonNegativeNumber(value, 0);
+    const safeStep = toNonNegativeNumber(step, 5);
+    if (!Number.isFinite(safeStep) || safeStep <= 0) return safeValue;
+    return Math.ceil(safeValue / safeStep) * safeStep;
+}
+
+// نفس معادلة برنامج الديسك توب MOO3D:
+// وزن الخامة، الهالك، وقت الطباعة، الشغل اليدوي، والتغليف هي إجماليات للأوردر كله.
+// الإكسسوارات فقط تكلفة للقطعة الواحدة وتضرب في عدد القطع، والشحن يضاف مرة واحدة بدون هامش ربح.
+function calculateMoo3dPricing(input = {}) {
+    const quantity = toPositiveInteger(input.quantity, 1);
+
+    const materialCost = toNonNegativeNumber(input.materialCost, 0);
+    const wasteCost = toNonNegativeNumber(input.wasteCost, 0);
+    const depreciationCost = toNonNegativeNumber(input.depreciationCost, 0);
+    const electricityCost = toNonNegativeNumber(input.electricityCost, 0);
+    const laborCost = toNonNegativeNumber(input.laborCost, 0);
+    const packagingCost = toNonNegativeNumber(input.packagingCost, 0);
+    const unitAccessoriesCost = toNonNegativeNumber(input.accessoriesCost, 0);
+    const shippingCost = toNonNegativeNumber(input.shippingCost, 0);
+
+    const accessoriesCost = unitAccessoriesCost * quantity;
+
+    const failurePercent = toNonNegativeNumber(input.failurePercent, 0);
+    const taxPercent = toNonNegativeNumber(input.taxPercent, 0);
+    const profitMargin = toNonNegativeNumber(input.profitMargin, 0);
+    const discountValue = toNonNegativeNumber(input.discountValue, 0);
+    const minimumOrderPrice = toNonNegativeNumber(input.minimumOrderPrice, 0);
+    const roundingStep = toNonNegativeNumber(input.roundingStep, 5);
+
+    const productionSubtotal = materialCost + wasteCost + depreciationCost + electricityCost + laborCost + packagingCost;
+    const riskCost = productionSubtotal * (failurePercent / 100);
+    const productionCostAfterRisk = productionSubtotal + riskCost;
+    const taxCost = productionCostAfterRisk * (taxPercent / 100);
+    const totalCost = productionCostAfterRisk + taxCost;
+    const directAddOnsCost = accessoriesCost + shippingCost;
+
+    const sellBeforeAddOns = totalCost * (1 + profitMargin / 100);
+    const priceBeforeDiscount = sellBeforeAddOns + directAddOnsCost;
+    const safeDiscountValue = Math.min(Math.max(discountValue, 0), priceBeforeDiscount);
+    const priceAfterDiscountBeforeMinimum = Math.max(0, priceBeforeDiscount - safeDiscountValue);
+    const priceAfterDiscount = Math.max(priceAfterDiscountBeforeMinimum, minimumOrderPrice);
+    const finalPrice = roundUpByStep(priceAfterDiscount, roundingStep);
+    const roundedAdjustment = finalPrice - priceAfterDiscount;
+
+    const profit = finalPrice - totalCost - directAddOnsCost;
+    const minimumNoLossPrice = totalCost + directAddOnsCost;
+
+    return {
+        quantity,
+        materialCost,
+        wasteCost,
+        depreciationCost,
+        electricityCost,
+        laborCost,
+        packagingCost,
+        unitAccessoriesCost,
+        shippingCost,
+        accessoriesCost,
+        productionSubtotal,
+        riskCost,
+        productionCostAfterRisk,
+        taxCost,
+        totalCost,
+        directAddOnsCost,
+        sellBeforeAddOns,
+        priceBeforeDiscount,
+        safeDiscountValue,
+        priceAfterDiscountBeforeMinimum,
+        priceAfterDiscount,
+        minimumOrderPrice,
+        finalPrice,
+        roundedAdjustment,
+        profit,
+        minimumNoLossPrice,
+        unitFinalPrice: finalPrice / quantity,
+        unitTotalCost: totalCost / quantity,
+        unitProfit: profit / quantity
+    };
+}
+
 function calculate() {
     const printer = selectedPrinter();
 
+    const quantity = toPositiveInteger(getValue("pieceQuantity"), 1);
     const printHours = num(getValue("printHours"));
     const machineRate = num(getValue("machineRate")) || (printer ? num(printer.rate) : 0);
     const wasteWeight = num(getValue("wasteWeight"));
@@ -901,54 +1006,46 @@ function calculate() {
     const profitPercent = num(getValue("profitPercent"));
     const discountInput = num(getValue("discount"));
     const manualRate = num(getValue("manualRate"));
-    const packagingCost = num(getValue("packagingCost"));
+    const packagingCostInput = num(getValue("packagingCost"));
+    const unitAccessoriesCost = num(getValue("accessoriesCost"));
 
     const electricityCostPerHour = num(getValue("electricityCostPerHour"));
     const failurePercent = num(getValue("failurePercent"));
-    const shippingCost = num(getValue("shippingCost"));
+    const shippingCostInput = num(getValue("shippingCost"));
     const taxPercent = num(getValue("taxPercent"));
     const minimumOrderPrice = num(getValue("minimumOrderPrice"));
     const roundingStep = num(getValue("roundingStep")) || 5;
 
     const orderMaterials = getOrderMaterials();
 
+    // نفس الديسك توب: أوزان الخامات المدخلة هي إجمالي استهلاك الأوردر كله، وليست للقطعة الواحدة.
     const materialWeight = orderMaterials.reduce((sum, item) => sum + num(item.weight), 0);
     const materialCost = orderMaterials.reduce((sum, item) => sum + num(item.cost), 0);
 
     const weightedGramPrice = materialWeight > 0 ? materialCost / materialWeight : 0;
     const wasteCost = wasteWeight * weightedGramPrice;
 
-    const machineCost = printHours * machineRate;
+    const depreciationCost = printHours * machineRate;
     const electricityCost = printHours * electricityCostPerHour;
-    const manualCost = (manualMinutes / 60) * manualRate;
+    const laborCost = (manualMinutes / 60) * manualRate;
 
-    const baseCost =
-        materialCost +
-        wasteCost +
-        machineCost +
-        electricityCost +
-        manualCost +
-        packagingCost +
-        shippingCost;
-
-    const riskCost = baseCost * (failurePercent / 100);
-    const costBeforeTax = baseCost + riskCost;
-    const taxCost = costBeforeTax * (taxPercent / 100);
-    const totalCost = costBeforeTax + taxCost;
-
-    const priceBeforeDiscount = totalCost * (1 + profitPercent / 100);
-    const discount = Math.min(Math.max(discountInput, 0), priceBeforeDiscount);
-
-    let finalPrice = priceBeforeDiscount - discount;
-
-    if (minimumOrderPrice > 0) {
-        finalPrice = Math.max(finalPrice, minimumOrderPrice);
-    }
-
-    finalPrice = applyRounding(finalPrice, roundingStep);
-    finalPrice = Math.max(0, finalPrice);
-
-    const netProfit = finalPrice - totalCost;
+    const pricing = calculateMoo3dPricing({
+        quantity,
+        materialCost,
+        wasteCost,
+        depreciationCost,
+        electricityCost,
+        laborCost,
+        packagingCost: packagingCostInput,
+        accessoriesCost: unitAccessoriesCost,
+        shippingCost: shippingCostInput,
+        failurePercent,
+        taxPercent,
+        profitMargin: profitPercent,
+        discountValue: discountInput,
+        minimumOrderPrice,
+        roundingStep
+    });
 
     lastCalc = {
         clientName: getValue("clientName").trim(),
@@ -959,44 +1056,68 @@ function calculate() {
         printerId: printer ? printer.id : "",
         printerName: printer ? printer.name : "",
 
+        quantity: pricing.quantity,
+        unitFinalPrice: pricing.unitFinalPrice,
+        unitTotalCost: pricing.unitTotalCost,
+        unitProfit: pricing.unitProfit,
+
         printHours,
         machineRate,
-        machineCost,
+        machineCost: pricing.depreciationCost,
+        depreciationCost: pricing.depreciationCost,
 
         materialWeight,
         wasteWeight,
         weightedGramPrice,
-        materialCost,
-        wasteCost,
+        materialCost: pricing.materialCost,
+        wasteCost: pricing.wasteCost,
 
         manualMinutes,
         manualRate,
-        manualCost,
+        manualCost: pricing.laborCost,
+        laborCost: pricing.laborCost,
 
-        packagingCost,
+        packagingCost: pricing.packagingCost,
         electricityCostPerHour,
-        electricityCost,
+        electricityCost: pricing.electricityCost,
 
-        shippingCost,
+        unitAccessoriesCost: pricing.unitAccessoriesCost,
+        accessoriesCost: pricing.accessoriesCost,
+        shippingCost: pricing.shippingCost,
+        directAddOnsCost: pricing.directAddOnsCost,
+
         failurePercent,
-        riskCost,
+        riskCost: pricing.riskCost,
 
         taxPercent,
-        taxCost,
+        taxCost: pricing.taxCost,
 
         profitPercent,
-        discount,
+        profitMargin: profitPercent,
+        discount: pricing.safeDiscountValue,
+        discountValue: pricing.safeDiscountValue,
 
-        totalCost,
-        finalPrice,
-        netProfit,
+        productionSubtotal: pricing.productionSubtotal,
+        productionCostAfterRisk: pricing.productionCostAfterRisk,
+        sellBeforeAddOns: pricing.sellBeforeAddOns,
+        priceBeforeDiscount: pricing.priceBeforeDiscount,
+        priceAfterDiscount: pricing.priceAfterDiscount,
+        minimumOrderPrice: pricing.minimumOrderPrice,
+        roundedAdjustment: pricing.roundedAdjustment,
+        minimumNoLossPrice: pricing.minimumNoLossPrice,
+
+        totalCost: pricing.totalCost,
+        finalPrice: pricing.finalPrice,
+        netProfit: pricing.profit,
+        profit: pricing.profit,
 
         orderMaterials
     };
 
-    setText("totalCost", money(totalCost));
-    setText("finalPrice", money(finalPrice));
-    setText("netProfit", money(netProfit));
+    setText("totalCost", money(lastCalc.totalCost));
+    setText("finalPrice", money(lastCalc.finalPrice));
+    setText("netProfit", money(lastCalc.netProfit));
+    setText("unitFinalPrice", money(lastCalc.unitFinalPrice));
 
     renderPriceBreakdown(lastCalc);
     updateMaintenanceUI();
@@ -1005,8 +1126,7 @@ function calculate() {
 }
 
 function applyRounding(value, step) {
-    if (!step || step <= 1) return Math.ceil(value);
-    return Math.ceil(value / step) * step;
+    return roundUpByStep(value, step || 5);
 }
 
 function renderPriceBreakdown(calc) {
@@ -1014,16 +1134,22 @@ function renderPriceBreakdown(calc) {
     if (!box) return;
 
     box.innerHTML = `
+        <div><span>عدد القطع</span><strong>${formatNumber(calc.quantity)} قطعة</strong></div>
+        <div><span>سعر القطعة</span><strong>${money(calc.unitFinalPrice)} ج</strong></div>
         <div><span>الخامات</span><strong>${money(calc.materialCost)} ج</strong></div>
         <div><span>الهالك</span><strong>${money(calc.wasteCost)} ج</strong></div>
-        <div><span>الماكينة</span><strong>${money(calc.machineCost)} ج</strong></div>
+        <div><span>الماكينة / الإهلاك</span><strong>${money(calc.depreciationCost)} ج</strong></div>
         <div><span>الكهرباء</span><strong>${money(calc.electricityCost)} ج</strong></div>
-        <div><span>الشغل اليدوي</span><strong>${money(calc.manualCost)} ج</strong></div>
+        <div><span>الشغل اليدوي</span><strong>${money(calc.laborCost)} ج</strong></div>
         <div><span>التغليف</span><strong>${money(calc.packagingCost)} ج</strong></div>
+        <div><span>إكسسوارات</span><strong>${money(calc.accessoriesCost)} ج</strong></div>
         <div><span>الشحن</span><strong>${money(calc.shippingCost)} ج</strong></div>
         <div><span>مخاطرة / فشل</span><strong>${money(calc.riskCost)} ج</strong></div>
         <div><span>ضريبة</span><strong>${money(calc.taxCost)} ج</strong></div>
+        <div><span>قبل الخصم</span><strong>${money(calc.priceBeforeDiscount)} ج</strong></div>
         <div><span>الخصم</span><strong>${money(calc.discount)} ج</strong></div>
+        <div><span>الحد الأدنى</span><strong>${money(calc.minimumOrderPrice)} ج</strong></div>
+        <div><span>فرق التقريب</span><strong>${money(calc.roundedAdjustment)} ج</strong></div>
     `;
 }
 
@@ -1055,6 +1181,11 @@ function confirmSale() {
         return;
     }
 
+    if (calc.finalPrice < calc.minimumNoLossPrice) {
+        toast("سعر البيع أقل من التكلفة والمصاريف المباشرة");
+        return;
+    }
+
     const sale = {
         id: makeId(),
         date: new Date().toISOString(),
@@ -1080,6 +1211,7 @@ function clearOrderAfterSale() {
     setValue("clientName", "");
     setValue("modelName", "");
     setValue("orderNotes", "");
+    setValue("pieceQuantity", "1");
     setValue("printHours", "");
     setValue("wasteWeight", "");
     setValue("manualMinutes", "");
@@ -1146,6 +1278,7 @@ function renderSales() {
                             العميل: ${escapeHtml(sale.clientName || "غير محدد")}<br>
                             الماكينة: ${escapeHtml(sale.printerName || "-")}<br>
                             التاريخ: ${escapeHtml(dateText)}<br>
+                            عدد القطع: ${formatNumber(sale.quantity || 1)} / سعر القطعة: ${money(sale.unitFinalPrice || sale.finalPrice)} ج<br>
                             الوزن: ${formatNumber(num(sale.materialWeight) + num(sale.wasteWeight))} جم /
                             الوقت: ${formatNumber(sale.printHours)} س<br>
                             الحالة: ${escapeHtml(sale.status || "عرض سعر")}
@@ -1294,6 +1427,7 @@ function renderReportsSummary() {
     const quotes = state.sales.filter((s) => s.status === "عرض سعر").length;
 
     const totalCost = activeSales.reduce((sum, s) => sum + num(s.totalCost), 0);
+    const totalDirectAddOns = activeSales.reduce((sum, s) => sum + num(s.accessoriesCost) + num(s.shippingCost), 0);
     const totalRevenue = activeSales.reduce((sum, s) => sum + num(s.finalPrice), 0);
     const totalProfit = activeSales.reduce((sum, s) => sum + num(s.netProfit), 0);
 
@@ -1317,6 +1451,10 @@ function renderReportsSummary() {
         <div class="report-row">
             <span>إجمالي التكلفة</span>
             <strong>${money(totalCost)} جنيه</strong>
+        </div>
+        <div class="report-row">
+            <span>إكسسوارات وشحن</span>
+            <strong>${money(totalDirectAddOns)} جنيه</strong>
         </div>
         <div class="report-row">
             <span>إجمالي البيع</span>
@@ -1382,8 +1520,13 @@ function buildInvoice(sale) {
         "أهلاً بيك في MS Studio 3D 👋",
         "",
         `اسم العميل: ${sale.clientName || "-"}`,
-        `اسم المنتج: ${sale.modelName || "-"}`
+        `اسم المنتج: ${sale.modelName || "-"}`,
+        `عدد القطع: ${formatNumber(sale.quantity || 1)}`
     ];
+
+    if (num(sale.quantity || 1) > 1) {
+        lines.push(`سعر القطعة: ${money(sale.unitFinalPrice || 0)} جنيه`);
+    }
 
     if (num(sale.discount) > 0) {
         lines.push(`الخصم: ${money(sale.discount)} جنيه`);
@@ -1466,6 +1609,18 @@ function buildPrintableInvoiceHtml(sale) {
             <strong>اسم المنتج</strong>
             <span>${escapeHtml(sale.modelName || "-")}</span>
         </div>
+
+        <div class="row">
+            <strong>عدد القطع</strong>
+            <span>${formatNumber(sale.quantity || 1)}</span>
+        </div>
+
+        ${num(sale.quantity || 1) > 1
+            ? `<div class="row">
+                <strong>سعر القطعة</strong>
+                <span>${money(sale.unitFinalPrice || 0)} جنيه</span>
+               </div>`
+            : ""}
 
         ${
             num(sale.discount) > 0
@@ -1593,6 +1748,8 @@ function exportCSV() {
         "model",
         "status",
         "printer",
+        "quantity",
+        "unit_final_price",
         "print_hours",
         "material_weight_g",
         "waste_weight_g",
@@ -1602,10 +1759,14 @@ function exportCSV() {
         "electricity_cost",
         "manual_cost",
         "packaging_cost",
+        "accessories_cost",
         "shipping_cost",
         "risk_cost",
         "tax_cost",
+        "price_before_discount",
         "discount",
+        "minimum_order_price",
+        "rounding_adjustment",
         "total_cost",
         "final_price",
         "net_profit",
@@ -1618,6 +1779,8 @@ function exportCSV() {
         s.modelName,
         s.status,
         s.printerName,
+        s.quantity || 1,
+        round2(s.unitFinalPrice),
         s.printHours,
         s.materialWeight,
         s.wasteWeight,
@@ -1625,12 +1788,16 @@ function exportCSV() {
         round2(s.wasteCost),
         round2(s.machineCost),
         round2(s.electricityCost),
-        round2(s.manualCost),
+        round2(s.manualCost || s.laborCost),
         round2(s.packagingCost),
+        round2(s.accessoriesCost),
         round2(s.shippingCost),
         round2(s.riskCost),
         round2(s.taxCost),
-        round2(s.discount),
+        round2(s.priceBeforeDiscount),
+        round2(s.discount || s.discountValue),
+        round2(s.minimumOrderPrice),
+        round2(s.roundedAdjustment),
         round2(s.totalCost),
         round2(s.finalPrice),
         round2(s.netProfit),
