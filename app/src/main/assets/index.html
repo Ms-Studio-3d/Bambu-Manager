@@ -43,6 +43,7 @@
 
             <input id="clientName" type="text" value="">
             <input id="modelName" type="text" value="طلب سريع">
+
             <select id="orderStatus">
                 <option value="تم التسليم" selected>تم التسليم</option>
                 <option value="عرض سعر">عرض سعر</option>
@@ -51,6 +52,7 @@
                 <option value="جاهز">جاهز</option>
                 <option value="ملغي">ملغي</option>
             </select>
+
             <input id="orderNotes" type="text" value="">
         </div>
 
@@ -213,6 +215,71 @@
         </div>
     </section>
 
+    <section id="page-orders" class="page system-hidden">
+        <div class="stats">
+            <div class="stat">
+                <small>إجمالي الطلبات</small>
+                <strong id="statOrdersCount">0</strong>
+            </div>
+
+            <div class="stat">
+                <small>إجمالي المبيعات</small>
+                <strong id="statSales">0 جنيه</strong>
+            </div>
+
+            <div class="stat">
+                <small>إجمالي الأرباح</small>
+                <strong id="statProfit">0 جنيه</strong>
+            </div>
+
+            <div class="stat">
+                <small>ساعات العمل</small>
+                <strong id="statHours">0 س</strong>
+            </div>
+        </div>
+
+        <input id="ordersSearch" type="text" value="">
+
+        <select id="ordersStatusFilter">
+            <option value="">كل الحالات</option>
+            <option value="عرض سعر">عرض سعر</option>
+            <option value="مؤكد">مؤكد</option>
+            <option value="قيد الطباعة">قيد الطباعة</option>
+            <option value="جاهز">جاهز</option>
+            <option value="تم التسليم">تم التسليم</option>
+            <option value="ملغي">ملغي</option>
+        </select>
+
+        <div id="salesList" class="sales-list"></div>
+    </section>
+
+    <section id="page-reports" class="page system-hidden">
+        <div class="stats">
+            <div class="stat">
+                <small>استهلاك الخامات</small>
+                <strong id="statWeight">0 كجم</strong>
+            </div>
+
+            <div class="stat">
+                <small>متوسط ربح / طلب</small>
+                <strong id="statAvgProfit">0 جنيه</strong>
+            </div>
+
+            <div class="stat">
+                <small>متوسط ربح / ساعة</small>
+                <strong id="statProfitPerHour">0 جنيه</strong>
+            </div>
+
+            <div class="stat">
+                <small>أفضل حالة</small>
+                <strong id="statTopStatus">-</strong>
+            </div>
+        </div>
+
+        <div id="reportsSummary" class="report-list"></div>
+        <div id="materialsReport" class="report-list"></div>
+    </section>
+
     <section id="page-settings" class="page">
         <h1>الإعدادات</h1>
 
@@ -370,25 +437,64 @@
         var clientName = document.getElementById("clientName");
         var orderNotes = document.getElementById("orderNotes");
 
-        if (modelName && !String(modelName.value || "").trim()) {
-            modelName.value = "طلب سريع";
-        }
-
-        if (orderStatus && !String(orderStatus.value || "").trim()) {
-            orderStatus.value = "تم التسليم";
-        }
-
-        if (clientName && clientName.value === undefined) {
+        if (clientName) {
             clientName.value = "";
         }
 
-        if (orderNotes && orderNotes.value === undefined) {
+        if (modelName) {
+            modelName.value = "طلب سريع";
+        }
+
+        if (orderStatus) {
+            orderStatus.value = "تم التسليم";
+        }
+
+        if (orderNotes) {
             orderNotes.value = "";
+        }
+    }
+
+    function fixedShowPage(page) {
+        ensureHiddenDefaults();
+
+        if (typeof saveCurrentDraft === "function") {
+            saveCurrentDraft();
+        }
+
+        document.querySelectorAll(".page").forEach(function (el) {
+            el.classList.remove("active");
+        });
+
+        document.querySelectorAll(".tab-btn").forEach(function (el) {
+            el.classList.remove("active");
+        });
+
+        var pageEl = document.getElementById("page-" + page);
+        if (pageEl) {
+            pageEl.classList.add("active");
+        }
+
+        var activeButton = Array.prototype.slice.call(document.querySelectorAll(".tab-btn")).find(function (button) {
+            var onclick = button.getAttribute("onclick") || "";
+            return (
+                onclick.indexOf("showPage('" + page + "')") !== -1 ||
+                onclick.indexOf('showPage("' + page + '")') !== -1
+            );
+        });
+
+        if (activeButton) {
+            activeButton.classList.add("active");
+        }
+
+        if ((page === "orders" || page === "reports") && typeof loadSales === "function") {
+            loadSales();
         }
     }
 
     window.addEventListener("DOMContentLoaded", function () {
         ensureHiddenDefaults();
+
+        window.showPage = fixedShowPage;
 
         var oldCalculate = window.calculate;
         if (typeof oldCalculate === "function") {
