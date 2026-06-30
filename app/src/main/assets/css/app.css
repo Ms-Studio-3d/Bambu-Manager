@@ -555,6 +555,10 @@ button.danger {
         grid-template-columns: repeat(4, 1fr);
     }
 
+    .result-mini {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
     .breakdown {
         grid-template-columns: repeat(3, 1fr);
     }
