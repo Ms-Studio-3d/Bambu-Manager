@@ -77,6 +77,12 @@
                 </div>
 
                 <div class="field">
+                    <label>عدد القطع</label>
+                    <input id="pieceQuantity" type="text" inputmode="numeric" value="1" placeholder="مثال: 1" oninput="calculate()">
+                    <div class="muted">زي الديسك توب: الوزن والوقت والشغل إجمالي الأوردر، والإكسسوارات فقط للقطعة.</div>
+                </div>
+
+                <div class="field">
                     <label>ملاحظات</label>
                     <input id="orderNotes" type="text" placeholder="مقاس، لون، تفاصيل خاصة..." oninput="calculate()">
                 </div>
@@ -140,12 +146,18 @@
 
                 <div class="field">
                     <label>سعر ساعة شغلك اليدوي</label>
-                    <input id="manualRate" type="text" inputmode="decimal" placeholder="مثال: 60 جنيه" oninput="calculate()">
+                    <input id="manualRate" type="text" inputmode="decimal" placeholder="مثال: 50 جنيه" oninput="calculate()">
                 </div>
 
                 <div class="field">
                     <label>تكلفة التغليف</label>
                     <input id="packagingCost" type="text" inputmode="decimal" placeholder="مثال: 10 جنيه" oninput="calculate()">
+                </div>
+
+                <div class="field">
+                    <label>إكسسوارات / إضافة للقطعة</label>
+                    <input id="accessoriesCost" type="text" inputmode="decimal" placeholder="مثال: 20 جنيه" oninput="calculate()">
+                    <div class="muted">تضرب في عدد القطع مثل برنامج الديسك توب.</div>
                 </div>
             </div>
 
@@ -162,7 +174,7 @@
 
                     <div class="field">
                         <label>المخاطر / الفشل (%)</label>
-                        <input id="failurePercent" type="text" inputmode="decimal" placeholder="مثال: 5" oninput="calculate()">
+                        <input id="failurePercent" type="text" inputmode="decimal" placeholder="مثال: 10" oninput="calculate()">
                     </div>
 
                     <div class="field">
@@ -197,13 +209,18 @@
 
             <div class="result-mini">
                 <div>
-                    <span>التكلفة عليك</span>
+                    <span>تكلفة الإنتاج</span>
                     <strong><span id="totalCost">0</span> جنيه</strong>
                 </div>
 
                 <div>
                     <span>صافي ربحك</span>
                     <strong><span id="netProfit">0</span> جنيه</strong>
+                </div>
+
+                <div>
+                    <span>سعر القطعة</span>
+                    <strong><span id="unitFinalPrice">0</span> جنيه</strong>
                 </div>
             </div>
 
@@ -337,12 +354,17 @@
 
                 <div class="field">
                     <label>سعر ساعة الشغل اليدوي</label>
-                    <input id="setManualRate" type="text" inputmode="decimal" placeholder="مثال: 60">
+                    <input id="setManualRate" type="text" inputmode="decimal" placeholder="مثال: 50">
                 </div>
 
                 <div class="field">
                     <label>تكلفة التغليف</label>
                     <input id="setPackagingCost" type="text" inputmode="decimal" placeholder="مثال: 10">
+                </div>
+
+                <div class="field">
+                    <label>إكسسوارات افتراضية للقطعة</label>
+                    <input id="setAccessoriesCost" type="text" inputmode="decimal" placeholder="مثال: 0">
                 </div>
 
                 <div class="field">
@@ -352,7 +374,7 @@
 
                 <div class="field">
                     <label>المخاطر / الفشل (%)</label>
-                    <input id="setFailurePercent" type="text" inputmode="decimal" placeholder="مثال: 5">
+                    <input id="setFailurePercent" type="text" inputmode="decimal" placeholder="مثال: 10">
                 </div>
 
                 <div class="field">
