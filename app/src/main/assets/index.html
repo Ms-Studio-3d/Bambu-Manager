@@ -73,14 +73,19 @@
 
             <div class="grid">
                 <div class="field">
-                    <label>وقت الطباعة بالساعات</label>
-                    <input id="printHours" type="text" inputmode="decimal" placeholder="مثال: 4.5" oninput="calculate()">
+                    <label for="printHours">ساعات الطباعة</label>
+                    <input id="printHours" type="text" inputmode="decimal" placeholder="مثال: 4" oninput="calculate()">
                 </div>
 
                 <div class="field">
-                    <label>إهلاك / تشغيل الماكينة لكل ساعة</label>
-                    <input id="machineRate" type="text" inputmode="decimal" placeholder="مثال: 20 جنيه" oninput="calculate()">
-                    <div class="muted">ساعات الطباعة × تكلفة تشغيل/إهلاك الساعة.</div>
+                    <label for="printMinutes">دقائق الطباعة</label>
+                    <input id="printMinutes" type="text" inputmode="decimal" placeholder="مثال: 30" oninput="calculate()">
+                </div>
+
+                <div class="field">
+                    <label id="machineRateLabel" for="machineRate">تشغيل الطابعة فقط / ساعة</label>
+                    <input id="machineRate" type="text" inputmode="decimal" placeholder="مثال: 6.5" oninput="calculate()">
+                    <div class="muted" id="machineRateHint"></div>
                 </div>
             </div>
 
@@ -147,8 +152,13 @@
 
                 <div class="grid" style="margin-top:12px">
                     <div class="field">
-                        <label>تكلفة الكهرباء لكل ساعة</label>
-                        <input id="electricityCostPerHour" type="text" inputmode="decimal" placeholder="مثال: 3" oninput="calculate()">
+                        <label for="electricityPricePerKwh">سعر الكهرباء (جنيه / kWh)</label>
+                        <input id="electricityPricePerKwh" type="text" inputmode="decimal" placeholder="مثال: 3" oninput="calculate()">
+                    </div>
+
+                    <div class="field">
+                        <label for="printerPowerKw">استهلاك الطابعة (kW)</label>
+                        <input id="printerPowerKw" type="text" inputmode="decimal" placeholder="مثال: 0.25" oninput="calculate()">
                     </div>
 
                     <div class="field">
@@ -172,7 +182,7 @@
                     </div>
 
                     <div class="field">
-                        <label>تقريب السعر لأقرب</label>
+                        <label>التقريب لأعلى (0 لإيقافه)</label>
                         <input id="roundingStep" type="text" inputmode="decimal" placeholder="5" oninput="calculate()">
                     </div>
                 </div>
@@ -285,6 +295,7 @@
 
         <div class="card">
             <h2>إعدادات التسعير الأساسية</h2>
+            <p class="muted">لمطابقة MOO3D Farm، استخدم نفس قيم التسعير واختَر «تشغيل فقط» في إعدادات الماكينة.</p>
 
             <div class="grid-3">
                 <div class="field">
@@ -298,6 +309,21 @@
                 </div>
 
                 <div class="field">
+                    <label for="setManualMinutes">دقائق الشغل اليدوي الافتراضية</label>
+                    <input id="setManualMinutes" type="text" inputmode="decimal" placeholder="مثال: 15">
+                </div>
+
+                <div class="field">
+                    <label for="setWasteWeight">الهالك الافتراضي (جرام)</label>
+                    <input id="setWasteWeight" type="text" inputmode="decimal" placeholder="0">
+                </div>
+
+                <div class="field">
+                    <label for="setDiscount">الخصم الافتراضي (جنيه)</label>
+                    <input id="setDiscount" type="text" inputmode="decimal" placeholder="0">
+                </div>
+
+                <div class="field">
                     <label>تكلفة التغليف</label>
                     <input id="setPackagingCost" type="text" inputmode="decimal" placeholder="مثال: 10">
                 </div>
@@ -308,8 +334,29 @@
                 </div>
 
                 <div class="field">
-                    <label>تكلفة الكهرباء لكل ساعة</label>
-                    <input id="setElectricityCostPerHour" type="text" inputmode="decimal" placeholder="مثال: 3">
+                    <label for="setElectricityPricePerKwh">سعر الكهرباء (جنيه / kWh)</label>
+                    <input id="setElectricityPricePerKwh" type="text" inputmode="decimal" placeholder="مثال: 3">
+                </div>
+
+                <div class="field">
+                    <label for="setPrinterPowerKw">استهلاك الطابعة (kW)</label>
+                    <input id="setPrinterPowerKw" type="text" inputmode="decimal" placeholder="مثال: 0.25">
+                </div>
+
+                <div class="field">
+                    <label for="setAssetsHourlyDepreciation">إجمالي إهلاك الأصول (جنيه / ساعة)</label>
+                    <input id="setAssetsHourlyDepreciation" type="text" inputmode="decimal" placeholder="مثال: 12">
+                    <div class="muted">لو الديسكتوب بيحسب إهلاك الأصول من أوردر ساعتين، اقسم بند الإهلاك على 2.</div>
+                </div>
+
+                <div class="field">
+                    <label for="setMaintenanceCost">تكلفة الصيانة الدورية (جنيه)</label>
+                    <input id="setMaintenanceCost" type="text" inputmode="decimal" placeholder="1500">
+                </div>
+
+                <div class="field">
+                    <label for="setMaintenanceEveryHours">الصيانة الدورية كل كام ساعة؟</label>
+                    <input id="setMaintenanceEveryHours" type="text" inputmode="decimal" placeholder="1000">
                 </div>
 
                 <div class="field">
@@ -333,7 +380,7 @@
                 </div>
 
                 <div class="field">
-                    <label>تقريب السعر لأقرب</label>
+                    <label>التقريب لأعلى (0 لإيقافه)</label>
                     <input id="setRoundingStep" type="text" inputmode="decimal" placeholder="5">
                 </div>
             </div>
@@ -356,12 +403,21 @@
                 </div>
 
                 <div class="field">
-                    <label>سعر ساعة التشغيل / الإهلاك</label>
-                    <input id="printerRate" type="text" inputmode="decimal" placeholder="مثال: 20 جنيه">
+                    <label for="printerRateMode">طريقة حساب تكلفة الماكينة</label>
+                    <select id="printerRateMode">
+                        <option value="operating">تشغيل فقط (زي الديسكتوب)</option>
+                        <option value="combined">سعر ساعة شامل (الإعداد القديم)</option>
+                    </select>
                 </div>
 
                 <div class="field">
-                    <label>حد الصيانة بالساعات</label>
+                    <label for="printerRate">تكلفة الساعة (جنيه)</label>
+                    <input id="printerRate" type="text" inputmode="decimal" placeholder="مثال: 6.5">
+                    <div class="muted">لو اخترت «تشغيل فقط»، اكتب سعر التشغيل من الديسكتوب. الإهلاك والصيانة بيتضافوا من إعدادات التسعير.</div>
+                </div>
+
+                <div class="field">
+                    <label>التنبيه للصيانة بعد كام ساعة؟</label>
                     <input id="printerMaintenanceLimit" type="text" inputmode="decimal" placeholder="مثال: 200">
                 </div>
 
@@ -427,6 +483,7 @@
 <div id="invoicePrintArea"></div>
 <div id="toast" class="toast"></div>
 
+<script src="js/pricing-core.js"></script>
 <script src="js/app.js"></script>
 
 <script>
