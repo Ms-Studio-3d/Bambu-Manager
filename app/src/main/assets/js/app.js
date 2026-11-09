@@ -7,8 +7,15 @@ const defaultState = {
     settings: {
         profitPercent: 100,
         manualRate: 50,
+        manualMinutes: 15,
+        wasteWeight: 0,
+        discount: 0,
         packagingCost: 10,
-        electricityCostPerHour: 3,
+        electricityPricePerKwh: 3,
+        printerPowerKw: 0.25,
+        assetsHourlyDepreciation: 12,
+        maintenanceCost: 1500,
+        maintenanceEveryHours: 1000,
         failurePercent: 10,
         accessoriesCost: 0,
         shippingCost: 0,
@@ -20,7 +27,8 @@ const defaultState = {
         {
             id: makeId(),
             name: "BAMBU LAB A1",
-            rate: 20,
+            rate: 6.5,
+            legacyCombinedRate: false,
             maintenanceLimit: 200,
             currentHours: 0
         }
@@ -64,6 +72,7 @@ function initApp() {
     attachDraftAutoSave();
 
     calculate();
+    saveCurrentDraft();
     loadSales();
 }
 
@@ -89,30 +98,20 @@ function structuredCloneSafe(obj) {
 
 function loadState() {
     try {
-        const rawV3 = localStorage.getItem(STORAGE_KEY);
-        if (rawV3) {
-            return mergeDeep(structuredCloneSafe(defaultState), JSON.parse(rawV3));
-        }
+        const raw = localStorage.getItem(STORAGE_KEY)
+            || localStorage.getItem("bambu_manager_v2")
+            || localStorage.getItem("bambu_manager_v1");
+        if (!raw) return structuredCloneSafe(defaultState);
 
-        const rawV2 = localStorage.getItem("bambu_manager_v2");
-        if (rawV2) {
-            const oldState = JSON.parse(rawV2);
-            const migrated = mergeDeep(structuredCloneSafe(defaultState), oldState);
-            delete migrated.extras;
-            migrated.settings.roundingStep = num(migrated.settings.roundingStep) || 5;
-            return migrated;
+        const saved = JSON.parse(raw);
+        const settings = saved?.settings;
+        if (settings?.electricityPricePerKwh == null && settings?.electricityCostPerHour != null) {
+            const power = defaultState.settings.printerPowerKw;
+            settings.electricityPricePerKwh = num(settings.electricityCostPerHour) / power;
         }
-
-        const rawV1 = localStorage.getItem("bambu_manager_v1");
-        if (rawV1) {
-            const oldState = JSON.parse(rawV1);
-            const migrated = mergeDeep(structuredCloneSafe(defaultState), oldState);
-            delete migrated.extras;
-            migrated.settings.roundingStep = num(migrated.settings.roundingStep) || 5;
-            return migrated;
-        }
-
-        return structuredCloneSafe(defaultState);
+        const migrated = mergeDeep(structuredCloneSafe(defaultState), saved);
+        delete migrated.extras;
+        return migrated;
     } catch (e) {
         return structuredCloneSafe(defaultState);
     }
@@ -144,7 +143,7 @@ function normalizeState() {
     if (!state.settings) state.settings = {};
     state.settings = mergeDeep(structuredCloneSafe(defaultState.settings), state.settings);
 
-    state.settings.roundingStep = num(state.settings.roundingStep) || 5;
+    state.settings.roundingStep = pricingNumber(state.settings.roundingStep, defaultState.settings.roundingStep);
 
     if (!Array.isArray(state.printers)) state.printers = [];
     if (!Array.isArray(state.materials)) state.materials = [];
@@ -162,6 +161,7 @@ function normalizeState() {
         id: p.id || makeId(),
         name: p.name || "ماكينة",
         rate: num(p.rate),
+        legacyCombinedRate: p.legacyCombinedRate !== false,
         maintenanceLimit: num(p.maintenanceLimit) || 200,
         currentHours: num(p.currentHours)
     }));
@@ -190,22 +190,30 @@ function normalizeStatus(status) {
     return status || "عرض سعر";
 }
 
-function num(value) {
-    if (value === null || value === undefined) return 0;
-
-    let text = String(value)
+function normalizeNumericText(value) {
+    return String(value ?? "")
         .trim()
         .replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
         .replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
-        .replace(",", ".")
-        .replace(/[^\d.-]/g, "");
+        .replace(/[٫,]/g, ".")
+        .replace(/٬/g, "");
+}
 
-    const n = parseFloat(text);
+function num(value) {
+    const n = parseFloat(normalizeNumericText(value).replace(/[^\d.-]/g, ""));
     return Number.isFinite(n) ? n : 0;
 }
 
+function pricingNumber(value, fallback = 0) {
+    const text = normalizeNumericText(value);
+    return text === "" ? fallback : MOO3DPricing.toNonNegativeNumber(text, fallback);
+}
+
 function money(value) {
-    return Math.round(num(value)).toLocaleString("en-US");
+    return Number(Number(value || 0).toFixed(2)).toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
 }
 
 function formatNumber(value) {
@@ -279,6 +287,7 @@ function collectCurrentDraft() {
         orderNotes: getValue("orderNotes"),
         pieceQuantity: getValue("pieceQuantity"),
         printHours: getValue("printHours"),
+        printMinutes: getValue("printMinutes"),
         machineRate: getValue("machineRate"),
         wasteWeight: getValue("wasteWeight"),
         manualMinutes: getValue("manualMinutes"),
@@ -287,7 +296,8 @@ function collectCurrentDraft() {
         manualRate: getValue("manualRate"),
         packagingCost: getValue("packagingCost"),
         accessoriesCost: getValue("accessoriesCost"),
-        electricityCostPerHour: getValue("electricityCostPerHour"),
+        electricityPricePerKwh: getValue("electricityPricePerKwh"),
+        printerPowerKw: getValue("printerPowerKw"),
         failurePercent: getValue("failurePercent"),
         shippingCost: getValue("shippingCost"),
         taxPercent: getValue("taxPercent"),
@@ -318,25 +328,29 @@ function restoreCurrentDraft() {
         setValue("orderStatus", draft.orderStatus || "عرض سعر");
         setValue("orderNotes", draft.orderNotes || "");
         setValue("pieceQuantity", draft.pieceQuantity || "1");
-        setValue("printHours", draft.printHours || "");
-        setValue("machineRate", draft.machineRate || "");
-        setValue("wasteWeight", draft.wasteWeight || "");
-        setValue("manualMinutes", draft.manualMinutes || "");
-        setValue("profitPercent", draft.profitPercent || state.settings.profitPercent);
-        setValue("discount", draft.discount || "");
-        setValue("manualRate", draft.manualRate || state.settings.manualRate);
-        setValue("packagingCost", draft.packagingCost || state.settings.packagingCost);
-        setValue("accessoriesCost", draft.accessoriesCost || state.settings.accessoriesCost || 0);
-        setValue("electricityCostPerHour", draft.electricityCostPerHour || state.settings.electricityCostPerHour);
-        setValue("failurePercent", draft.failurePercent || state.settings.failurePercent);
-        setValue("shippingCost", draft.shippingCost || state.settings.shippingCost);
-        setValue("taxPercent", draft.taxPercent || state.settings.taxPercent);
-        setValue("minimumOrderPrice", draft.minimumOrderPrice || state.settings.minimumOrderPrice);
-        setValue("roundingStep", draft.roundingStep || state.settings.roundingStep || 5);
+        setValue("printHours", draft.printHours ?? "");
+        setValue("printMinutes", draft.printMinutes ?? "");
+        setValue("wasteWeight", draft.wasteWeight ?? "");
+        setValue("manualMinutes", draft.manualMinutes ?? "");
+        setValue("discount", draft.discount ?? "");
+
+        const settings = state.settings;
+        const legacyPower = defaultState.settings.printerPowerKw;
+        const hasLegacyElectricity = draft.electricityCostPerHour != null && draft.electricityCostPerHour !== "";
+        const electricityPrice = hasLegacyElectricity
+            ? num(draft.electricityCostPerHour) / legacyPower
+            : settings.electricityPricePerKwh;
+        setValue("electricityPricePerKwh", draft.electricityPricePerKwh ?? electricityPrice);
+        setValue("printerPowerKw", draft.printerPowerKw ?? (hasLegacyElectricity ? legacyPower : settings.printerPowerKw));
+        for (const key of ["profitPercent", "manualRate", "packagingCost", "accessoriesCost", "failurePercent",
+        "shippingCost", "taxPercent", "minimumOrderPrice", "roundingStep"]) {
+            setValue(key, draft[key] ?? settings[key]);
+        }
 
         const machineSelect = document.getElementById("machineSelect");
-        if (machineSelect && draft.machineSelect) {
+        if (machineSelect && state.printers.some((p) => p.id === draft.machineSelect)) {
             machineSelect.value = draft.machineSelect;
+            setValue("machineRate", draft.machineRate ?? selectedPrinter().rate);
         }
 
         const container = document.getElementById("orderMaterials");
@@ -347,7 +361,6 @@ function restoreCurrentDraft() {
             });
         }
 
-        calculate();
     } catch (e) {
         console.log("Draft restore failed", e);
     }
@@ -396,44 +409,30 @@ function showPage(page) {
 /* SETTINGS */
 /* ========================= */
 
+const calculatorSettingKeys = [
+    "profitPercent", "manualRate", "manualMinutes", "wasteWeight", "discount",
+    "packagingCost", "accessoriesCost", "electricityPricePerKwh", "printerPowerKw",
+    "failurePercent", "shippingCost", "taxPercent", "minimumOrderPrice", "roundingStep"
+];
+const settingsOnlyKeys = ["assetsHourlyDepreciation", "maintenanceCost", "maintenanceEveryHours"];
+
+function settingsInputId(key) {
+    return "set" + key[0].toUpperCase() + key.slice(1);
+}
+
 function loadSettingsIntoUI() {
-    const s = state.settings;
-
-    setValue("profitPercent", s.profitPercent);
-    setValue("manualRate", s.manualRate);
-    setValue("packagingCost", s.packagingCost);
-    setValue("accessoriesCost", s.accessoriesCost || 0);
-    setValue("electricityCostPerHour", s.electricityCostPerHour);
-    setValue("failurePercent", s.failurePercent);
-    setValue("shippingCost", s.shippingCost);
-    setValue("taxPercent", s.taxPercent);
-    setValue("minimumOrderPrice", s.minimumOrderPrice);
-    setValue("roundingStep", s.roundingStep || 5);
-
-    setValue("setProfitPercent", s.profitPercent);
-    setValue("setManualRate", s.manualRate);
-    setValue("setPackagingCost", s.packagingCost);
-    setValue("setAccessoriesCost", s.accessoriesCost || 0);
-    setValue("setElectricityCostPerHour", s.electricityCostPerHour);
-    setValue("setFailurePercent", s.failurePercent);
-    setValue("setShippingCost", s.shippingCost);
-    setValue("setTaxPercent", s.taxPercent);
-    setValue("setMinimumOrderPrice", s.minimumOrderPrice);
-    setValue("setRoundingStep", s.roundingStep || 5);
+    for (const key of calculatorSettingKeys) {
+        setValue(key, state.settings[key]);
+    }
+    for (const key of [...calculatorSettingKeys, ...settingsOnlyKeys]) {
+        setValue(settingsInputId(key), state.settings[key]);
+    }
 }
 
 function saveGeneralFromCalculator() {
-    state.settings.profitPercent = num(getValue("profitPercent"));
-    state.settings.manualRate = num(getValue("manualRate"));
-    state.settings.packagingCost = num(getValue("packagingCost"));
-    state.settings.accessoriesCost = num(getValue("accessoriesCost"));
-    state.settings.electricityCostPerHour = num(getValue("electricityCostPerHour"));
-    state.settings.failurePercent = num(getValue("failurePercent"));
-    state.settings.shippingCost = num(getValue("shippingCost"));
-    state.settings.taxPercent = num(getValue("taxPercent"));
-    state.settings.minimumOrderPrice = num(getValue("minimumOrderPrice"));
-    state.settings.roundingStep = num(getValue("roundingStep")) || 5;
-
+    for (const key of calculatorSettingKeys) {
+        state.settings[key] = pricingNumber(getValue(key), key === "manualMinutes" ? 0 : state.settings[key]);
+    }
     saveState();
     loadSettingsIntoUI();
     calculate();
@@ -442,17 +441,9 @@ function saveGeneralFromCalculator() {
 }
 
 function saveGeneralSettings() {
-    state.settings.profitPercent = num(getValue("setProfitPercent"));
-    state.settings.manualRate = num(getValue("setManualRate"));
-    state.settings.packagingCost = num(getValue("setPackagingCost"));
-    state.settings.accessoriesCost = num(getValue("setAccessoriesCost"));
-    state.settings.electricityCostPerHour = num(getValue("setElectricityCostPerHour"));
-    state.settings.failurePercent = num(getValue("setFailurePercent"));
-    state.settings.shippingCost = num(getValue("setShippingCost"));
-    state.settings.taxPercent = num(getValue("setTaxPercent"));
-    state.settings.minimumOrderPrice = num(getValue("setMinimumOrderPrice"));
-    state.settings.roundingStep = num(getValue("setRoundingStep")) || 5;
-
+    for (const key of [...calculatorSettingKeys, ...settingsOnlyKeys]) {
+        state.settings[key] = pricingNumber(getValue(settingsInputId(key)), defaultState.settings[key]);
+    }
     saveState();
     loadSettingsIntoUI();
     calculate();
@@ -495,16 +486,14 @@ function onMachineChanged() {
     if (!printer) return;
 
     setValue("machineRate", printer.rate);
-    updateMaintenanceUI();
     calculate();
-    saveCurrentDraft();
 }
 
 function updateMaintenanceUI() {
     const printer = selectedPrinter();
     if (!printer) return;
 
-    const printHours = num(getValue("printHours"));
+    const printHours = getPrintHours();
     const current = num(printer.currentHours);
     const limit = num(printer.maintenanceLimit) || 200;
     const after = current + printHours;
@@ -545,11 +534,10 @@ function renderPrinters() {
                 <div>
                     <div class="item-title">${escapeHtml(p.name)}</div>
                     <div class="item-sub">
-                        سعر الساعة: ${money(p.rate)} جنيه<br>
+                        ${p.legacyCombinedRate ? "سعر الساعة الشامل" : "تشغيل فقط"}: ${money(getMachineRate(p, p.rate))} جنيه/ساعة<br>
                         الصيانة: ${oneDecimal(p.currentHours)} / ${oneDecimal(p.maintenanceLimit)} ساعة
                     </div>
                 </div>
-                <div class="item-price">${money(p.rate)} ج/س</div>
             </div>
 
             <div class="item-actions">
@@ -562,7 +550,8 @@ function renderPrinters() {
 
 function savePrinter() {
     const name = getValue("printerName").trim();
-    const rate = num(getValue("printerRate"));
+    const rate = pricingNumber(getValue("printerRate"));
+    const legacyCombinedRate = getValue("printerRateMode") === "combined";
     const maintenanceLimit = num(getValue("printerMaintenanceLimit")) || 200;
     const currentHours = num(getValue("printerCurrentHours"));
 
@@ -576,6 +565,7 @@ function savePrinter() {
         if (p) {
             p.name = name;
             p.rate = rate;
+            p.legacyCombinedRate = legacyCombinedRate;
             p.maintenanceLimit = maintenanceLimit;
             p.currentHours = currentHours;
         }
@@ -587,6 +577,7 @@ function savePrinter() {
             id: makeId(),
             name,
             rate,
+            legacyCombinedRate,
             maintenanceLimit,
             currentHours
         });
@@ -609,6 +600,7 @@ function editPrinter(id) {
 
     setValue("printerName", p.name);
     setValue("printerRate", p.rate);
+    setValue("printerRateMode", p.legacyCombinedRate ? "combined" : "operating");
     setValue("printerMaintenanceLimit", p.maintenanceLimit);
     setValue("printerCurrentHours", p.currentHours);
 
@@ -641,6 +633,7 @@ function cancelPrinterEdit(showToast = true) {
 function clearPrinterForm() {
     setValue("printerName", "");
     setValue("printerRate", "");
+    setValue("printerRateMode", "operating");
     setValue("printerMaintenanceLimit", "");
     setValue("printerCurrentHours", "");
 }
@@ -876,157 +869,88 @@ function refreshOneMaterialSelect(select, selectedId = "") {
 }
 
 function getOrderMaterials() {
-    const rows = Array.from(document.querySelectorAll(".order-material-row"));
+    const weights = new Map();
 
-    return rows.map((row) => {
-        const materialId = row.querySelector(".order-material-select")?.value || "";
-        const weight = num(row.querySelector(".order-material-weight")?.value || 0);
-        const material = state.materials.find((m) => m.id === materialId) || null;
-        const gramPrice = material ? num(material.kgPrice) / 1000 : 0;
-        const cost = weight * gramPrice;
+    for (const row of document.querySelectorAll(".order-material-row")) {
+        const materialId = row.querySelector(".order-material-select")?.value;
+        const weight = pricingNumber(row.querySelector(".order-material-weight")?.value);
+        if (materialId && weight > 0) {
+            weights.set(materialId, (weights.get(materialId) ?? 0) + weight);
+        }
+    }
 
-        return {
+    const materials = [];
+    for (const [materialId, weight] of weights) {
+        const material = state.materials.find((m) => m.id === materialId);
+        if (!material) continue;
+        const gramPrice = material.kgPrice / 1000;
+        materials.push({
             materialId,
-            materialName: material ? materialLabel(material) : "خامة",
-            weight,
-            gramPrice,
-            cost
-        };
-    }).filter((x) => x.weight > 0);
+            materialName: materialLabel(material),
+            weight: Number(weight.toFixed(2)),
+            gramPrice: Number(gramPrice.toFixed(6)),
+            cost: Number((weight * gramPrice).toFixed(2))
+        });
+    }
+    return materials;
 }
 
 /* ========================= */
 /* CALCULATION */
 /* ========================= */
 
-function toNonNegativeNumber(value, fallback = 0) {
-    const n = num(value);
-    if (Number.isFinite(n) && n >= 0) return n;
-    return Math.max(0, fallback);
+function getPrintHours() {
+    const hours = pricingNumber(getValue("printHours"));
+    const minutes = pricingNumber(getValue("printMinutes"));
+    return Number((hours + minutes / 60).toFixed(4));
 }
 
-function toPositiveInteger(value, fallback = 1) {
-    const n = num(value);
-    if (!Number.isFinite(n)) return fallback;
-    const integer = Math.floor(n);
-    return integer > 0 ? integer : fallback;
-}
-
-function roundUpByStep(value, step) {
-    const safeValue = toNonNegativeNumber(value, 0);
-    const safeStep = toNonNegativeNumber(step, 5);
-    if (!Number.isFinite(safeStep) || safeStep <= 0) return safeValue;
-    return Math.ceil(safeValue / safeStep) * safeStep;
-}
-
-// نفس معادلة برنامج الديسك توب MOO3D:
-// وزن الخامة، الهالك، وقت الطباعة، الشغل اليدوي، والتغليف هي إجماليات للأوردر كله.
-// الإكسسوارات فقط تكلفة للقطعة الواحدة وتضرب في عدد القطع، والشحن يضاف مرة واحدة بدون هامش ربح.
-function calculateMoo3dPricing(input = {}) {
-    const quantity = toPositiveInteger(input.quantity, 1);
-
-    const materialCost = toNonNegativeNumber(input.materialCost, 0);
-    const wasteCost = toNonNegativeNumber(input.wasteCost, 0);
-    const depreciationCost = toNonNegativeNumber(input.depreciationCost, 0);
-    const electricityCost = toNonNegativeNumber(input.electricityCost, 0);
-    const laborCost = toNonNegativeNumber(input.laborCost, 0);
-    const packagingCost = toNonNegativeNumber(input.packagingCost, 0);
-    const unitAccessoriesCost = toNonNegativeNumber(input.accessoriesCost, 0);
-    const shippingCost = toNonNegativeNumber(input.shippingCost, 0);
-
-    const accessoriesCost = unitAccessoriesCost * quantity;
-
-    const failurePercent = toNonNegativeNumber(input.failurePercent, 0);
-    const taxPercent = toNonNegativeNumber(input.taxPercent, 0);
-    const profitMargin = toNonNegativeNumber(input.profitMargin, 0);
-    const discountValue = toNonNegativeNumber(input.discountValue, 0);
-    const minimumOrderPrice = toNonNegativeNumber(input.minimumOrderPrice, 0);
-    const roundingStep = toNonNegativeNumber(input.roundingStep, 5);
-
-    const productionSubtotal = materialCost + wasteCost + depreciationCost + electricityCost + laborCost + packagingCost;
-    const riskCost = productionSubtotal * (failurePercent / 100);
-    const productionCostAfterRisk = productionSubtotal + riskCost;
-    const taxCost = productionCostAfterRisk * (taxPercent / 100);
-    const totalCost = productionCostAfterRisk + taxCost;
-    const directAddOnsCost = accessoriesCost + shippingCost;
-
-    const sellBeforeAddOns = totalCost * (1 + profitMargin / 100);
-    const priceBeforeDiscount = sellBeforeAddOns + directAddOnsCost;
-    const safeDiscountValue = Math.min(Math.max(discountValue, 0), priceBeforeDiscount);
-    const priceAfterDiscountBeforeMinimum = Math.max(0, priceBeforeDiscount - safeDiscountValue);
-    const priceAfterDiscount = Math.max(priceAfterDiscountBeforeMinimum, minimumOrderPrice);
-    const finalPrice = roundUpByStep(priceAfterDiscount, roundingStep);
-    const roundedAdjustment = finalPrice - priceAfterDiscount;
-
-    const profit = finalPrice - totalCost - directAddOnsCost;
-    const minimumNoLossPrice = totalCost + directAddOnsCost;
-
-    return {
-        quantity,
-        materialCost,
-        wasteCost,
-        depreciationCost,
-        electricityCost,
-        laborCost,
-        packagingCost,
-        unitAccessoriesCost,
-        shippingCost,
-        accessoriesCost,
-        productionSubtotal,
-        riskCost,
-        productionCostAfterRisk,
-        taxCost,
-        totalCost,
-        directAddOnsCost,
-        sellBeforeAddOns,
-        priceBeforeDiscount,
-        safeDiscountValue,
-        priceAfterDiscountBeforeMinimum,
-        priceAfterDiscount,
-        minimumOrderPrice,
-        finalPrice,
-        roundedAdjustment,
-        profit,
-        minimumNoLossPrice,
-        unitFinalPrice: finalPrice / quantity,
-        unitTotalCost: totalCost / quantity,
-        unitProfit: profit / quantity
-    };
+function getMachineRate(printer, rate) {
+    const name = String(printer?.name || "").toLowerCase();
+    const isDefaultBambu = name.includes("bambu lab a1") || name.includes("bambu a1");
+    if (!printer?.legacyCombinedRate && isDefaultBambu) {
+        const legacyRate = [0, 12, 20, 33.5].some((value) => Math.abs(rate - value) < 0.0001);
+        if (legacyRate) return 6.5;
+    }
+    return rate;
 }
 
 function calculate() {
     const printer = selectedPrinter();
+    const legacyCombinedRate = printer?.legacyCombinedRate === true;
+    const settings = state.settings;
+    const settingValue = (key) => pricingNumber(getValue(key), settings[key]);
 
-    const quantity = toPositiveInteger(getValue("pieceQuantity"), 1);
-    const printHours = num(getValue("printHours"));
-    const machineRate = num(getValue("machineRate")) || (printer ? num(printer.rate) : 0);
-    const wasteWeight = num(getValue("wasteWeight"));
-    const manualMinutes = num(getValue("manualMinutes"));
+    const quantity = MOO3DPricing.toPositiveInteger(normalizeNumericText(getValue("pieceQuantity")), 1);
+    const printHours = getPrintHours();
+    const machineRate = getMachineRate(printer, pricingNumber(getValue("machineRate"), printer?.rate ?? 0));
+    const wasteWeight = settingValue("wasteWeight");
+    const manualMinutes = pricingNumber(getValue("manualMinutes"));
 
-    const profitPercent = num(getValue("profitPercent"));
-    const discountInput = num(getValue("discount"));
-    const manualRate = num(getValue("manualRate"));
-    const packagingCostInput = num(getValue("packagingCost"));
-    const unitAccessoriesCost = num(getValue("accessoriesCost"));
-
-    const electricityCostPerHour = num(getValue("electricityCostPerHour"));
-    const failurePercent = num(getValue("failurePercent"));
-    const shippingCostInput = num(getValue("shippingCost"));
-    const taxPercent = num(getValue("taxPercent"));
-    const minimumOrderPrice = num(getValue("minimumOrderPrice"));
-    const roundingStep = num(getValue("roundingStep")) || 5;
+    const profitPercent = settingValue("profitPercent");
+    const manualRate = settingValue("manualRate");
+    const electricityPricePerKwh = settingValue("electricityPricePerKwh");
+    const printerPowerKw = settingValue("printerPowerKw");
+    const failurePercent = settingValue("failurePercent");
+    const taxPercent = settingValue("taxPercent");
 
     const orderMaterials = getOrderMaterials();
 
     // نفس الديسك توب: أوزان الخامات المدخلة هي إجمالي استهلاك الأوردر كله، وليست للقطعة الواحدة.
-    const materialWeight = orderMaterials.reduce((sum, item) => sum + num(item.weight), 0);
-    const materialCost = orderMaterials.reduce((sum, item) => sum + num(item.cost), 0);
+    const materialWeight = orderMaterials.reduce((sum, item) => sum + item.weight, 0);
+    const materialCost = orderMaterials.reduce((sum, item) => sum + item.cost, 0);
 
     const weightedGramPrice = materialWeight > 0 ? materialCost / materialWeight : 0;
     const wasteCost = wasteWeight * weightedGramPrice;
 
-    const depreciationCost = printHours * machineRate;
-    const electricityCost = printHours * electricityCostPerHour;
+    const defaultSettings = defaultState.settings;
+    const maintenanceCost = settings.maintenanceCost || defaultSettings.maintenanceCost;
+    const maintenanceEveryHours = settings.maintenanceEveryHours || defaultSettings.maintenanceEveryHours;
+    const machineRunCost = printHours * machineRate;
+    const assetDepreciationCost = legacyCombinedRate ? 0 : printHours * settings.assetsHourlyDepreciation;
+    const maintenanceShareCost = legacyCombinedRate ? 0 : printHours * (maintenanceCost / maintenanceEveryHours);
+    const depreciationCost = machineRunCost + assetDepreciationCost + maintenanceShareCost;
+    const electricityCost = printHours * electricityPricePerKwh * printerPowerKw;
     const laborCost = (manualMinutes / 60) * manualRate;
 
     const pricing = calculateMoo3dPricing({
@@ -1036,15 +960,15 @@ function calculate() {
         depreciationCost,
         electricityCost,
         laborCost,
-        packagingCost: packagingCostInput,
-        accessoriesCost: unitAccessoriesCost,
-        shippingCost: shippingCostInput,
+        packagingCost: settingValue("packagingCost"),
+        accessoriesCost: settingValue("accessoriesCost"),
+        shippingCost: settingValue("shippingCost"),
         failurePercent,
         taxPercent,
         profitMargin: profitPercent,
-        discountValue: discountInput,
-        minimumOrderPrice,
-        roundingStep
+        discountValue: settingValue("discount"),
+        minimumOrderPrice: settingValue("minimumOrderPrice"),
+        roundingStep: settingValue("roundingStep")
     });
 
     lastCalc = {
@@ -1063,6 +987,10 @@ function calculate() {
 
         printHours,
         machineRate,
+        legacyCombinedRate,
+        machineRunCost,
+        assetDepreciationCost,
+        maintenanceShareCost,
         machineCost: pricing.depreciationCost,
         depreciationCost: pricing.depreciationCost,
 
@@ -1078,7 +1006,9 @@ function calculate() {
         laborCost: pricing.laborCost,
 
         packagingCost: pricing.packagingCost,
-        electricityCostPerHour,
+        electricityCostPerHour: electricityPricePerKwh * printerPowerKw,
+        electricityPricePerKwh,
+        printerPowerKw,
         electricityCost: pricing.electricityCost,
 
         unitAccessoriesCost: pricing.unitAccessoriesCost,
@@ -1114,6 +1044,10 @@ function calculate() {
         orderMaterials
     };
 
+    setText("machineRateLabel", legacyCombinedRate ? "تكلفة الماكينة الشاملة / ساعة" : "تشغيل الطابعة فقط / ساعة");
+    setText("machineRateHint", legacyCombinedRate
+        ? "سعر شامل من إعدادات الماكينة القديمة. تقدر تغيّره للتسعير المفصّل من إدارة الماكينات."
+        : "إهلاك الأصول ونصيب الصيانة بيتحسبوا من إعدادات التسعير.");
     setText("totalCost", money(lastCalc.totalCost));
     setText("finalPrice", money(lastCalc.finalPrice));
     setText("netProfit", money(lastCalc.netProfit));
@@ -1125,20 +1059,22 @@ function calculate() {
     return lastCalc;
 }
 
-function applyRounding(value, step) {
-    return roundUpByStep(value, step || 5);
-}
-
 function renderPriceBreakdown(calc) {
     const box = document.getElementById("priceBreakdown");
     if (!box) return;
+
+    const machineBreakdown = calc.legacyCombinedRate
+        ? `<div><span>الماكينة بالسعر الشامل</span><strong>${money(calc.depreciationCost)} ج</strong></div>`
+        : `<div><span>تشغيل الطابعة فقط</span><strong>${money(calc.machineRunCost)} ج</strong></div>
+           <div><span>إهلاك الأصول</span><strong>${money(calc.assetDepreciationCost)} ج</strong></div>
+           <div><span>نصيب الصيانة</span><strong>${money(calc.maintenanceShareCost)} ج</strong></div>`;
 
     box.innerHTML = `
         <div><span>عدد القطع</span><strong>${formatNumber(calc.quantity)} قطعة</strong></div>
         <div><span>سعر القطعة</span><strong>${money(calc.unitFinalPrice)} ج</strong></div>
         <div><span>الخامات</span><strong>${money(calc.materialCost)} ج</strong></div>
         <div><span>الهالك</span><strong>${money(calc.wasteCost)} ج</strong></div>
-        <div><span>الماكينة / الإهلاك</span><strong>${money(calc.depreciationCost)} ج</strong></div>
+        ${machineBreakdown}
         <div><span>الكهرباء</span><strong>${money(calc.electricityCost)} ج</strong></div>
         <div><span>الشغل اليدوي</span><strong>${money(calc.laborCost)} ج</strong></div>
         <div><span>التغليف</span><strong>${money(calc.packagingCost)} ج</strong></div>
@@ -1213,9 +1149,8 @@ function clearOrderAfterSale() {
     setValue("orderNotes", "");
     setValue("pieceQuantity", "1");
     setValue("printHours", "");
-    setValue("wasteWeight", "");
-    setValue("manualMinutes", "");
-    setValue("discount", "");
+    setValue("printMinutes", "");
+    loadSettingsIntoUI();
 
     const container = document.getElementById("orderMaterials");
     if (container) {
